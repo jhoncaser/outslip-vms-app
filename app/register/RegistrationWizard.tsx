@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { PasswordInput } from "@/components/PasswordInput";
+import { registrationSchema } from "@/lib/validation/registration";
 
 type ReferenceItem = { id: string; name: string };
 type ReferenceData = {
@@ -297,23 +299,21 @@ export function RegistrationWizard() {
         <label htmlFor="password" className="text-xs text-slate-500">
           Password
         </label>
-        <input
+        <PasswordInput
           id="password"
-          type="password"
           value={form.password}
           onChange={(e) => update("password", e.target.value)}
-          className="mb-3 h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+          wrapperClassName="mb-3"
         />
 
         <label htmlFor="confirmPassword" className="text-xs text-slate-500">
           Confirm Password
         </label>
-        <input
+        <PasswordInput
           id="confirmPassword"
-          type="password"
           value={form.confirmPassword}
           onChange={(e) => update("confirmPassword", e.target.value)}
-          className="mb-4 h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+          wrapperClassName="mb-4"
         />
 
         <div className="flex justify-between">
@@ -326,8 +326,9 @@ export function RegistrationWizard() {
           </button>
           <button
             type="button"
+            disabled={!registrationSchema.safeParse(form).success}
             onClick={() => setStep(3)}
-            className="rounded bg-[#0b2545] px-5 py-2.5 text-sm font-semibold text-white"
+            className="rounded bg-[#0b2545] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
           >
             NEXT →
           </button>

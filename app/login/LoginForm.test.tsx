@@ -24,7 +24,7 @@ describe("LoginForm", () => {
     fireEvent.change(screen.getByLabelText(/email/i), {
       target: { value: "juan@company.com" },
     });
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByLabelText(/^password$/i), {
       target: { value: "correct-password" },
     });
     fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
@@ -42,7 +42,7 @@ describe("LoginForm", () => {
     fireEvent.change(screen.getByLabelText(/email/i), {
       target: { value: "juan@company.com" },
     });
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByLabelText(/^password$/i), {
       target: { value: "temp-password" },
     });
     fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
@@ -62,7 +62,7 @@ describe("LoginForm", () => {
     fireEvent.change(screen.getByLabelText(/email/i), {
       target: { value: "juan@company.com" },
     });
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByLabelText(/^password$/i), {
       target: { value: "wrong" },
     });
     fireEvent.click(screen.getByRole("button", { name: /sign in/i }));

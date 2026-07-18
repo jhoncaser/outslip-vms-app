@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export function LoginForm() {
   const router = useRouter();
@@ -54,13 +55,12 @@ export function LoginForm() {
       <label htmlFor="password" className="text-xs text-slate-500">
         Password
       </label>
-      <input
+      <PasswordInput
         id="password"
-        type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
-        className="mb-2 h-9 rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+        wrapperClassName="mb-2"
       />
 
       <a href="#" className="mb-4 self-end text-xs font-semibold text-[#0b2545]">

@@ -95,11 +95,25 @@ describe("POST /api/register", () => {
     expect(response.status).toBe(403);
   });
 
-  it("returns 400 for an invalid payload", async () => {
+  it("returns 400 with a message naming the invalid field for a bad email", async () => {
     const response = await POST(
       requestWithCookie(provisionerToken, validPayload({ email: "bad" }))
     );
     expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toMatch(/email/i);
+  });
+
+  it("returns 400 with a message naming the invalid field for a short password", async () => {
+    const response = await POST(
+      requestWithCookie(
+        provisionerToken,
+        validPayload({ password: "short", confirmPassword: "short" })
+      )
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toMatch(/password/i);
   });
 
   it("creates a user with mustChangePassword true for an authorized provisioner", async () => {

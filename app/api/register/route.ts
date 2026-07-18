@@ -21,7 +21,12 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const parsed = registrationSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    const issue = parsed.error.issues[0];
+    const field = issue.path.join(".");
+    return NextResponse.json(
+      { error: field ? `${field}: ${issue.message}` : issue.message },
+      { status: 400 }
+    );
   }
 
   const data = parsed.data;
