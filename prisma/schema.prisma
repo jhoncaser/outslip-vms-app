@@ -15,6 +15,11 @@ enum Role {
   GUARD_PERSONNEL
 }
 
+enum Theme {
+  LIGHT
+  DARK
+}
+
 model Department {
   id    String @id @default(cuid())
   name  String @unique
@@ -42,6 +47,7 @@ model User {
   passwordHash       String
   role               Role
   mustChangePassword Boolean  @default(true)
+  themePreference    Theme    @default(LIGHT)
   createdAt          DateTime @default(now())
 
   department   Department @relation(fields: [departmentId], references: [id])
