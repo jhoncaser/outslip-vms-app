@@ -84,6 +84,7 @@ export function RegistrationWizard() {
   );
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     fetch("/api/reference-data")
@@ -103,21 +104,53 @@ export function RegistrationWizard() {
     setError(null);
     setSubmitting(true);
 
-    const response = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    const body = await response.json();
-    setSubmitting(false);
+      const body = await response.json();
 
-    if (!response.ok) {
-      setError(body.error ?? "Something went wrong");
-      return;
+      if (!response.ok) {
+        setError(body.error ?? "Something went wrong");
+        return;
+      }
+
+      setSuccess(true);
+      router.push("/register?success=1");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
+  }
 
-    router.push("/register?success=1");
+  if (success) {
+    return (
+      <div>
+        <div className="mb-3 text-sm font-bold text-[#0b2545]">
+          Registration complete
+        </div>
+        <p className="mb-6 text-xs leading-relaxed text-slate-600">
+          {[form.firstName, form.lastName].filter(Boolean).join(" ")} has
+          been registered with a temporary password and will be asked to
+          set a new one on first login.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setForm(initialState);
+            setStep(1);
+            setSuccess(false);
+          }}
+          className="rounded bg-[#0b2545] px-5 py-2.5 text-sm font-semibold text-white"
+        >
+          REGISTER ANOTHER USER
+        </button>
+      </div>
+    );
   }
 
   if (step === 1) {

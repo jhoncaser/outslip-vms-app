@@ -84,5 +84,13 @@ describe("RegistrationWizard", () => {
       )
     );
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/register?success=1"));
+
+    expect(await screen.findByText(/registration complete/i)).toBeInTheDocument();
+    expect(screen.getByText(/juan dela cruz has been registered/i)).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /register another user/i })
+    );
+    await screen.findByText(/select a role/i);
   });
 });
