@@ -9,6 +9,20 @@ async function getSession(request: NextRequest) {
   return token ? verifySessionToken(token) : null;
 }
 
+function createReferenceDataRow(
+  type: "department" | "businessUnit" | "location",
+  name: string
+) {
+  switch (type) {
+    case "department":
+      return prisma.department.create({ data: { name } });
+    case "businessUnit":
+      return prisma.businessUnit.create({ data: { name } });
+    case "location":
+      return prisma.location.create({ data: { name } });
+  }
+}
+
 export async function GET(request: NextRequest) {
   const session = await getSession(request);
   if (!session) {
@@ -41,14 +55,8 @@ export async function POST(request: NextRequest) {
   }
 
   const { type, name } = parsed.data;
-  const model =
-    type === "department"
-      ? prisma.department
-      : type === "businessUnit"
-        ? prisma.businessUnit
-        : prisma.location;
 
-  const created = await model.create({ data: { name } });
+  const created = await createReferenceDataRow(type, name);
 
   return NextResponse.json(created, { status: 201 });
 }
