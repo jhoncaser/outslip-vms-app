@@ -14,7 +14,7 @@ export default async function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-1">
       <div className="flex flex-1 flex-col items-center justify-center bg-[#0b2545] text-[#e8eef7]">
         <div className="text-4xl">⛨</div>
         <div className="mt-3 text-base font-semibold tracking-wide">
