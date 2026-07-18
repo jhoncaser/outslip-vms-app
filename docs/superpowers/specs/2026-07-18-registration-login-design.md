@@ -30,6 +30,10 @@ part of the deferred system-behavior design and is out of scope here.
 
 ## Registration Wizard
 
+Not publicly reachable. Only opens for a logged-in user who has the User
+Provisioning permission (see Access Control below) — i.e. an authorized
+Approver registering someone else, not a self-service signup flow.
+
 **Step 1 — Select Role**
 - Role (dropdown, fixed list above)
 
@@ -45,16 +49,30 @@ part of the deferred system-behavior design and is out of scope here.
 - Read-only summary of Steps 1–2
 - Submit Registration
 
-### Reference data management (Department / Business Unit / Location)
+### Access control
 
+Two distinct permissions, gated on different combinations of Department and
+Role:
+
+**Reference data management (Department / Business Unit / Location)**
 These three dropdowns are not hardcoded. They're backed by manageable
 reference lists so new values can be added later without a code change.
-
 Any user registered with Department = "Admin" gets permission to add new
-Department, Business Unit, and Location values. This is a role-adjacent
-permission tied to department membership, not to the Step-1 role dropdown —
-an Admin-department Creator and an Admin-department Approver would both have
-it.
+Department, Business Unit, and Location values, regardless of their Step-1
+role.
+
+**User provisioning (registering new users)**
+Only a user whose Department = "Admin" AND Role is one of "1st Level
+Approver", "2nd Level Approver", or "3rd Level Approver" has access to
+register new users in the app. This is a narrower gate than the
+reference-data permission above — it requires both conditions together, not
+Admin department alone. Admin-department users with Role = "Creator" or
+"Guard Personnel" do NOT have this access, and non-Admin-department users
+never have it regardless of role.
+
+This implies user accounts are provisioned by this one gatekeeper role
+rather than created via fully open public self-registration — see the open
+question below about the login page's public "Register" link.
 
 ## Login Page
 
@@ -66,11 +84,11 @@ Fields:
 - Password
 - "Forgot password?" link
 - Sign In button
-- "Don't have an account? Register" link to the wizard
 
-Employees and Guard Personnel authenticate with either their company or
-personal email — the login form does not distinguish between the two; any
-valid registered email works.
+No public sign-up link — see User Provisioning below. Employees and Guard
+Personnel authenticate with either their company or personal email — the
+login form does not distinguish between the two; any valid registered email
+works.
 
 ## Visual Design Reference
 
