@@ -15,21 +15,26 @@ export function ChangePasswordForm() {
     setError(null);
     setSubmitting(true);
 
-    const response = await fetch("/api/auth/change-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ newPassword, confirmPassword }),
-    });
+    try {
+      const response = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword, confirmPassword }),
+      });
 
-    const body = await response.json();
-    setSubmitting(false);
+      const body = await response.json();
 
-    if (!response.ok) {
-      setError(body.error ?? "Something went wrong");
-      return;
+      if (!response.ok) {
+        setError(body.error ?? "Something went wrong");
+        return;
+      }
+
+      router.push("/dashboard");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
-
-    router.push("/dashboard");
   }
 
   return (
