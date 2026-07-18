@@ -1,0 +1,55 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CREATOR
+  FIRST_APPROVER
+  SECOND_APPROVER
+  THIRD_APPROVER
+  GUARD_PERSONNEL
+}
+
+model Department {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+}
+
+model BusinessUnit {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+}
+
+model Location {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  firstName          String
+  middleName         String?
+  lastName           String
+  email              String   @unique
+  passwordHash       String
+  role               Role
+  mustChangePassword Boolean  @default(true)
+  createdAt          DateTime @default(now())
+
+  department   Department @relation(fields: [departmentId], references: [id])
+  departmentId String
+
+  businessUnit   BusinessUnit @relation(fields: [businessUnitId], references: [id])
+  businessUnitId String
+
+  location   Location @relation(fields: [locationId], references: [id])
+  locationId String
+}
