@@ -1,13 +1,12 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { redirectMock, cookiesMock, verifySessionTokenMock, findUniqueMock } = vi.hoisted(() => ({
+const { redirectMock, cookiesMock, verifySessionTokenMock } = vi.hoisted(() => ({
   redirectMock: vi.fn((url: string) => {
     throw new Error(`REDIRECT:${url}`);
   }),
   cookiesMock: vi.fn(),
   verifySessionTokenMock: vi.fn(),
-  findUniqueMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ redirect: redirectMock }));
@@ -17,11 +16,6 @@ vi.mock("@/lib/auth/session", () => ({
     verifySessionTokenMock(...args),
   SESSION_COOKIE_NAME: "session",
 }));
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    user: { findUnique: (...args: unknown[]) => findUniqueMock(...args) },
-  },
-}));
 
 import AuthenticatedLayout from "./layout";
 
@@ -30,7 +24,6 @@ describe("AuthenticatedLayout", () => {
     redirectMock.mockClear();
     cookiesMock.mockReset();
     verifySessionTokenMock.mockReset();
-    findUniqueMock.mockReset();
   });
 
   it("redirects to /login when there is no session cookie", async () => {
@@ -42,7 +35,7 @@ describe("AuthenticatedLayout", () => {
     ).rejects.toThrow("REDIRECT:/login");
   });
 
-  it("looks up the caller's theme preference for an authenticated session", async () => {
+  it("renders the shell for an authenticated session without redirecting", async () => {
     cookiesMock.mockResolvedValue({ get: () => ({ value: "a-token" }) });
     verifySessionTokenMock.mockResolvedValue({
       sub: "user_1",
@@ -53,13 +46,10 @@ describe("AuthenticatedLayout", () => {
       department: "ICT",
       mustChangePassword: false,
     });
-    findUniqueMock.mockResolvedValue({ themePreference: "DARK" });
 
-    await AuthenticatedLayout({ children: null });
-
-    expect(findUniqueMock).toHaveBeenCalledWith({
-      where: { id: "user_1" },
-      select: { themePreference: true },
-    });
+    await expect(
+      AuthenticatedLayout({ children: null })
+    ).resolves.toBeDefined();
+    expect(redirectMock).not.toHaveBeenCalled();
   });
 });
