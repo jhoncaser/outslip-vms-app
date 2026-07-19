@@ -19,7 +19,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
-  ],
+  // Next.js requires matcher to be a plain string literal for static analysis,
+  // so String.raw (which would avoid this escaping) can't be used here.
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };
