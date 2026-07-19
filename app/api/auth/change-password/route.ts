@@ -20,7 +20,8 @@ export async function POST(request: NextRequest) {
   const parsed = changePasswordSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    const message = parsed.error.issues[0]?.message ?? "Invalid request";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 
   const passwordHash = await hashPassword(parsed.data.newPassword);

@@ -80,7 +80,7 @@ describe("POST /api/auth/change-password", () => {
     expect(response.status).toBe(401);
   });
 
-  it("returns 400 for mismatched passwords", async () => {
+  it("returns 400 with a specific message for mismatched passwords", async () => {
     const response = await POST(
       changePasswordRequest(
         { newPassword: "brand-new-password", confirmPassword: "different" },
@@ -88,6 +88,32 @@ describe("POST /api/auth/change-password", () => {
       )
     );
     expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toBe("Passwords do not match");
+  });
+
+  it("returns 'Passwords do not match' when confirm is short and mismatched, not a length error", async () => {
+    const response = await POST(
+      changePasswordRequest(
+        { newPassword: "brand-new-password", confirmPassword: "short" },
+        validToken
+      )
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toBe("Passwords do not match");
+  });
+
+  it("returns 400 with a specific message for a too-short password", async () => {
+    const response = await POST(
+      changePasswordRequest(
+        { newPassword: "short", confirmPassword: "short" },
+        validToken
+      )
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toBe("Password must be at least 8 characters");
   });
 
   it("updates the password and clears mustChangePassword", async () => {
