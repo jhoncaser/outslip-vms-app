@@ -14,8 +14,12 @@ export default async function RegisterPage() {
   }
 
   return (
-    <div className="flex flex-1 items-start justify-center bg-[#eef1ee] p-8">
-      <div className="w-full max-w-[520px] overflow-hidden rounded-xl bg-white shadow-xl">
+    <div className="relative flex flex-1 items-start justify-center overflow-hidden bg-[#eef1ee] p-8">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[url('/mfc-logo.png')] bg-cover bg-center bg-no-repeat opacity-[0.18]"
+      />
+      <div className="relative z-10 w-full max-w-[520px] overflow-hidden rounded-xl bg-white shadow-xl">
         <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
           <div
             aria-hidden
