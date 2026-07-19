@@ -14,7 +14,9 @@ describe("ChangePasswordForm", () => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
-  it("redirects to /dashboard after a successful change", async () => {
+  it("shows a confirmation toast, then redirects to /dashboard after a successful change", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
     (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       json: async () => ({ success: true }),
@@ -29,7 +31,13 @@ describe("ChangePasswordForm", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /update password/i }));
 
+    expect(await screen.findByText(/password updated!/i)).toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1500);
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/dashboard"));
+
+    vi.useRealTimers();
   });
 
   it("shows an error when the server rejects the change", async () => {
