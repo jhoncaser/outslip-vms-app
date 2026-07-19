@@ -63,6 +63,20 @@ Implemented directly (small, mechanical, unambiguous — no brainstorm/plan need
 
 Commit `41c9098`: "Redirect to /login on logout". Pushed to `origin/green-rebrand`.
 
+## 3c. Follow-up work: password-update confirmation toast — DONE
+
+User asked for a "Password Updated!" confirmation after a successful password change, for reassurance (decided against the equivalent for login — the dashboard redirect there is sufficient confirmation on its own). Brainstormed via `superpowers:brainstorming` with the visual companion: 4 mockup styles shown (top-right toast, bottom-center toast, inline in-card banner, centered checkmark overlay); user picked **top-right toast**. Also decided the redirect to `/dashboard` should delay ~1.5s so the toast is actually visible instead of flashing during navigation.
+
+**Spec:** `docs/superpowers/specs/2026-07-19-password-updated-toast-design.md`, committed `f05ab91`, self-reviewed. Implemented directly (single component, fully specified after brainstorming — same "small, mechanical" pattern as prior ad-hoc work on this branch, no subagent dispatch).
+
+**Changes:** `app/change-password/ChangePasswordForm.tsx` — on success, shows a `role="status"` toast (white bg, green left border, checkmark badge, "Password Updated!") fixed top-right, keeps the submit button disabled through the delay (no more resetting `submitting` in a blanket `finally` — moved to the error/catch branches only), then `setTimeout` → `router.push("/dashboard")` after 1500ms. `app/globals.css` — new `toast-slide-in` keyframe/class mirroring the existing `login-card-in` pattern, disabled under `prefers-reduced-motion: reduce`. `ChangePasswordForm.test.tsx` — updated to use fake timers, assert the toast renders before the redirect fires, then assert redirect after advancing 1500ms.
+
+**Not yet committed** — implementation is complete and verified (isolated test 2/2, full suite 68/68, dev server hot-reloaded and confirmed alive) but user is testing in-browser first, per this branch's established pattern (commit only after manual confirmation, then push on request).
+
+## 3d. Deferred: Forgot Password
+
+Login page has a "Forgot Password?" link (`app/login/LoginForm.tsx:78-80`) that is a dead `href="#"` — flagged as a known non-blocking gap in the original green-rebrand final review, never built out. User asked about implementing it; confirmed nothing exists yet to build on: no email-sending service configured anywhere in the project (checked `package.json` and codebase — no SMTP/Resend/SendGrid/etc.), no reset-token fields on the `User` model (`prisma/schema.prisma:36-55`), no reset route/page. This is a real feature (email delivery + token generation/expiry + a new consuming route), not a quick add-on — **explicitly deferred by the user ("lets work on it later on, just note it for future development") until a later point in the project.** When picked up, will need a brainstorming pass to decide delivery method (real email via a provider like Resend, vs. an admin-mediated reset with no email) before any implementation.
+
 **Process preference (updated in memory 2026-07-19):** the user's per-task check-in rule (`feedback_checkin_between_sdd_tasks` memory) generalizes to every skill checklist item when running a formal plan — but for small, well-specified, mechanical ad-hoc requests like the change-password propagation above, direct in-session implementation (no brainstorm/spec/plan) is the established pattern on this branch, matching the earlier "post-review ad-hoc additions" in §2.
 
 **Session environment notes:**
