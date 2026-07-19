@@ -143,6 +143,14 @@ Second navbar iteration (on top of §3h). User asked to drop the shield icon bes
 
 Tests: `Navbar.test.tsx` — searchbox test extended to assert the new placeholder, new case for the QR button. Suite 82/82 passing (after one seed-admin drift reset and one Neon cold-start retry — both §5 gotchas, seen in that order this cycle).
 
+## 3k. Follow-up work: dashboard tile icon badges — DONE
+
+User asked for image/icon ideas on the dashboard module tiles. Two options mocked up in the visual companion (same session dir `1341-1784454868`): semantic colors vs. all-brand-green. User picked **Option A (semantic colors)**. Commit `ef4a275`.
+
+- **`components/dashboard/ModuleGrid.tsx`**: each tile now has a rounded icon badge on its right side — Feather-style inline SVGs (same convention as `Sidebar.tsx`, no new deps): blue inbox (Open, `sky-100/600`), green check-circle (Approved, `green-100/600`), red x-circle (Canceled, `red-100/600`), amber clipboard-check (My Approvals, `amber-100/600`). Icons are `aria-hidden` decoration; tile layout, labels, and the green left accent border are unchanged.
+
+Tests: no new cases — the badges are decorative and the existing `ModuleGrid.test.tsx` behavior tests (tile presence + approvals gating) still cover the component. Suite 82/82 passing (one Neon cold-start flake on first run, clean on retry).
+
 ## 4. Environment & secrets
 
 Working directly in the main repo checkout (not a worktree) — `.env` here already points at the live Neon Postgres dev database. No new secrets introduced by this plan.
@@ -155,4 +163,4 @@ Working directly in the main repo checkout (not a worktree) — `.env` here alre
 
 ## 6. GitHub push status
 
-Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "proceed to commit and push" for the navbar search/QR work), latest tip = the handoff-update commit sitting on top of `fa0ed8b`, 35 commits ahead of `main`. **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
+Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "push and commit" for the dashboard tile icon badges), latest tip = the handoff-update commit sitting on top of `ef4a275`, 37 commits ahead of `main`. **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
