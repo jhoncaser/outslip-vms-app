@@ -106,6 +106,24 @@ Login page has a "Forgot Password?" link (`app/login/LoginForm.tsx`) that is a d
 - A dev server (started outside this session) is already running at `http://localhost:3000`, PID 22044 — don't start a second one; `npm run dev` will fail with "Another next dev server is already running."
 - Visual companion server running on port 52903 (background, 4h idle timeout), session dir `.superpowers/brainstorm/631-1784441032/`. Currently showing a waiting screen; safe to let it die or stop it — all selections are recorded above and in the spec.
 
+## 3h. Follow-up work: navbar & sidebar redesign (floating icon rail) — DONE
+
+User provided a reference design (CodePen-style floating icon menu with hover label fly-outs and a "gooey blob" animation) and asked if we could adopt it. Ran a full brainstorm with visual-companion mockups: first 3 rough layout options, then two high-fidelity interactive mockups (hoverable fly-outs) — user picked **"Design 1 — Green header"**: green `#2C7001` top bar kept, sidebar replaced by a floating white icon rail. Spec: `docs/superpowers/specs/2026-07-19-navbar-sidebar-redesign-design.md` (commit `3b63225`). Implemented directly (no formal plan — two-component rewrite, per branch convention), commit `754f091`.
+
+Key decisions captured in the spec:
+
+- **Icons are inline Feather-style SVGs** drawn in-component — deliberately no icon library dependency for 6 icons (5 rail + shield).
+- **Active page** = `usePathname().startsWith(href)`, marked with `aria-current="page"` + green pill styling. Both components became `"use client"` for `usePathname`.
+- **Fly-out labels** show on hover *and* keyboard focus, are always in the DOM (they ARE the accessible names — existing `getByRole("link", { name: ... })` tests kept working), and animations are disabled under `prefers-reduced-motion` via Tailwind `motion-reduce:` variants (no globals.css changes needed).
+- **Logout** stays the same form POST to `/api/auth/logout`, pinned to the rail bottom below a divider, red hover (destructive-action convention).
+- **Navbar** now shows: shield SVG (replacing the `⛨` emoji) + brand, divider + current page title (8-entry pathname map incl. the 4 transaction placeholder pages; unknown paths show no title), and the user's initials in a `bg-white/20` circle with full name as `title` tooltip — initials/fullName computed in `app/(authenticated)/layout.tsx` from the already-verified session (no new data fetching). No avatar dropdown (future work).
+- **Explicitly declined:** the reference's gooey blob morph animation (user confirmed per-item hover pills instead), mobile collapse behavior.
+- Layout root background changed `bg-white` → `bg-[#eef1ee]` so the rail's floating gap reads correctly on every page.
+
+Tests: `Sidebar.test.tsx` updated (existing 3 pass unchanged + new `aria-current` active-state test, `usePathname` mocked via `vi.hoisted` ref) and new `Navbar.test.tsx` (brand, title mapping, unknown-path fallback, initials/tooltip). Suite 74 passing; only failure was the known seed-admin drift (§5), reset via the usual one-off script afterwards.
+
+**Session environment notes (2026-07-19, evening):** visual companion server for this brainstorm runs on port 51919, session dir `.superpowers/brainstorm/1341-1784454868/` (mockups: `sidebar-layout-options.html`, `professional-designs.html`). Selections recorded here and in the spec; safe to stop or let idle out.
+
 ## 4. Environment & secrets
 
 Working directly in the main repo checkout (not a worktree) — `.env` here already points at the live Neon Postgres dev database. No new secrets introduced by this plan.
@@ -118,4 +136,4 @@ Working directly in the main repo checkout (not a worktree) — `.env` here alre
 
 ## 6. GitHub push status
 
-Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "please push it to my github now"), latest tip `0bdbd74`, 27 commits ahead of `main` (`972e2c0..0bdbd74`). **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
+Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "proceed on commit and push into my github" for the navbar/sidebar redesign), latest tip = the handoff-update commit sitting on top of `754f091`, 31 commits ahead of `main`. **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
