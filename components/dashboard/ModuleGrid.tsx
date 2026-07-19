@@ -79,19 +79,22 @@ const BASE_MODULES = [
     label: "Open Transaction",
     href: "/transactions/open",
     Icon: InboxIcon,
-    badgeClass: "bg-sky-100 text-sky-600",
+    badgeClass:
+      "bg-sky-100 text-sky-600 group-hover:shadow-[0_2px_6px_rgba(2,132,199,0.20)]",
   },
   {
     label: "Approved Transaction",
     href: "/transactions/approved",
     Icon: CheckCircleIcon,
-    badgeClass: "bg-green-100 text-green-600",
+    badgeClass:
+      "bg-green-100 text-green-600 group-hover:shadow-[0_2px_6px_rgba(22,163,74,0.20)]",
   },
   {
     label: "Canceled Transaction",
     href: "/transactions/canceled",
     Icon: XCircleIcon,
-    badgeClass: "bg-red-100 text-red-600",
+    badgeClass:
+      "bg-red-100 text-red-600 group-hover:shadow-[0_2px_6px_rgba(220,38,38,0.20)]",
   },
 ];
 
@@ -99,7 +102,8 @@ const APPROVALS_MODULE = {
   label: "My Approvals",
   href: "/transactions/my-approvals",
   Icon: ClipboardCheckIcon,
-  badgeClass: "bg-amber-100 text-amber-600",
+  badgeClass:
+    "bg-amber-100 text-amber-600 group-hover:shadow-[0_2px_6px_rgba(217,119,6,0.20)]",
 };
 
 export function ModuleGrid({
@@ -117,10 +121,10 @@ export function ModuleGrid({
         <Link
           key={module.href}
           href={module.href}
-          className="flex items-start justify-between gap-3 rounded border border-l-4 border-slate-200 border-l-[#2C7001] bg-white p-4 shadow-sm hover:shadow-md"
+          className="group flex items-start justify-between gap-3 rounded border border-l-4 border-slate-200 border-l-[#2C7001] bg-white p-4 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-l-[6px] hover:bg-[#fbfdf9] hover:shadow-[0_8px_18px_rgba(44,112,1,0.13),0_2px_6px_rgba(0,0,0,0.05)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
         >
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 transition-colors duration-200 group-hover:text-[#2C7001] motion-reduce:transition-none">
               {module.label}
             </div>
             <div className="mt-1 text-2xl font-bold text-[#2C7001]">
@@ -129,7 +133,7 @@ export function ModuleGrid({
           </div>
           <span
             aria-hidden
-            className={`flex h-[42px] w-[42px] flex-none items-center justify-center rounded-xl ${module.badgeClass}`}
+            className={`flex h-[42px] w-[42px] flex-none items-center justify-center rounded-xl transition-all duration-200 group-hover:scale-[1.08] motion-reduce:transition-none motion-reduce:group-hover:scale-100 ${module.badgeClass}`}
           >
             <module.Icon />
           </span>
