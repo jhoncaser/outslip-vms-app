@@ -35,9 +35,10 @@ Final whole-branch review (opus, `972e2c0..04c942d`, 6 commits): **Ready to merg
 - Found and fixed a pre-existing routing bug while wiring up the background image: `proxy.ts`'s `config.matcher` didn't exclude `/public` static assets, so `PUBLIC_PATHS = ["/login"]` in `lib/auth/routeGuard.ts` caused *any* direct request to a public file (e.g. `/mfc-logo.png`) to 307-redirect to `/login` when unauthenticated. Fixed by broadening the matcher's negative lookahead to exclude any path with a file extension. This bug predates the rebrand plan and would affect any future public asset, not just the logo. Note: `config.matcher` must be a plain string literal — this Next.js fork requires it to be statically analyzable at build time, so a `String.raw` tagged-template version (added to satisfy an IDE lint suggestion) silently failed to apply; reverted to a plain string with an explanatory comment.
 - Change-password page (`app/change-password/page.tsx`): same background-image treatment applied for visual consistency with the login page.
 
+User confirmed the change-password page update looked correct. Along the way, testing the "Set a New Password" flow itself twice flipped the live seed admin's `mustChangePassword` back to `false` and, on the second pass, also changed its `passwordHash` away from `SEED_ADMIN_PASSWORD` — both reset again via the same one-off script pattern (run, verified, deleted). Full suite reconfirmed green: 68/68.
+
 **Remaining:**
-- User is manually re-testing after the change-password page update — awaiting confirmation before push
-- Push `green-rebrand` to GitHub (`superpowers:finishing-a-development-branch`) — not yet done
+- Decide merge strategy (PR vs. local merge vs. keep pushed as-is) — branch is now pushed, not yet merged
 
 ## 3. How to resume
 
@@ -57,4 +58,4 @@ Working directly in the main repo checkout (not a worktree) — `.env` here alre
 
 ## 6. GitHub push status
 
-No commits on `green-rebrand` have been pushed. Ask the user before pushing — this project's convention so far is explicit authorization per push, not standing permission.
+Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized: "we can proceed and push this to my github"). 9 commits ahead of `main` (`972e2c0..aa67be5`). Not yet merged — GitHub offered a compare/PR link (`https://github.com/jhoncaser/outslip-vms-app/pull/new/green-rebrand`) but no PR has been opened. This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR.
