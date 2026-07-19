@@ -124,6 +124,16 @@ Tests: `Sidebar.test.tsx` updated (existing 3 pass unchanged + new `aria-current
 
 **Session environment notes (2026-07-19, evening):** visual companion server for this brainstorm runs on port 51919, session dir `.superpowers/brainstorm/1341-1784454868/` (mockups: `sidebar-layout-options.html`, `professional-designs.html`). Selections recorded here and in the spec; safe to stop or let idle out.
 
+## 3i. Follow-up work: role-based "My Approvals" dashboard tile — DONE
+
+User asked that the "My Approvals" dashboard module only appear for First/Second/Third Approver roles — everyone else (Creator, Guard Personnel) should see only Open/Approved/Canceled Transaction. Implemented directly (small, well-specified, no brainstorm/plan), commit `287bfbd`.
+
+- **`lib/auth/permissions.ts`**: new `canViewApprovals(user)` — true for any of the three approver roles, **regardless of department** (deliberately different from `canProvisionUsers`, which also requires the Admin department; this request was role-only).
+- **`app/(authenticated)/dashboard/page.tsx`**: became session-aware itself, re-deriving the session from the cookie (same pattern as `register/page.tsx`) rather than relying on the layout, and passes `canViewApprovals` down to `ModuleGrid` as a prop.
+- **`components/dashboard/ModuleGrid.tsx`**: split the module list into always-shown `BASE_MODULES` (Open/Approved/Canceled) plus a conditionally-appended `APPROVALS_MODULE`.
+
+Tests: 3 new cases in `permissions.test.ts`, new `ModuleGrid.test.tsx` (3 cases: base tiles always render, My Approvals hidden/shown by prop). Suite 80/80 passing after the usual seed-admin drift reset.
+
 ## 4. Environment & secrets
 
 Working directly in the main repo checkout (not a worktree) — `.env` here already points at the live Neon Postgres dev database. No new secrets introduced by this plan.
@@ -136,4 +146,4 @@ Working directly in the main repo checkout (not a worktree) — `.env` here alre
 
 ## 6. GitHub push status
 
-Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "proceed on commit and push into my github" for the navbar/sidebar redesign), latest tip = the handoff-update commit sitting on top of `754f091`, 31 commits ahead of `main`. **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
+Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently confirming the My Approvals role gate), latest tip = the handoff-update commit sitting on top of `287bfbd`, 32 commits ahead of `main`. **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
