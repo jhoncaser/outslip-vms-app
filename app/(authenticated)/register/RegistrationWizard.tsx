@@ -61,14 +61,14 @@ function StepIndicator({ step }: { step: number }) {
         <div key={n} className="flex flex-1 items-center gap-1.5 last:flex-none">
           <div
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
-              n <= step ? "bg-[#0b2545] text-white" : "bg-slate-200 text-slate-500"
+              n <= step ? "bg-[#2C7001] text-white" : "bg-slate-200 text-slate-500"
             }`}
           >
             {n < step ? "✓" : n}
           </div>
           {n < 3 && (
             <div
-              className={`h-0.5 flex-1 ${n < step ? "bg-[#0b2545]" : "bg-slate-200"}`}
+              className={`h-0.5 flex-1 ${n < step ? "bg-[#2C7001]" : "bg-slate-200"}`}
             />
           )}
         </div>
@@ -132,7 +132,7 @@ export function RegistrationWizard() {
   if (success) {
     return (
       <div>
-        <div className="mb-3 text-sm font-bold text-[#0b2545]">
+        <div className="mb-3 text-sm font-bold text-[#2C7001]">
           Registration complete
         </div>
         <p className="mb-6 text-xs leading-relaxed text-slate-600">
@@ -147,7 +147,7 @@ export function RegistrationWizard() {
             setStep(1);
             setSuccess(false);
           }}
-          className="rounded bg-[#0b2545] px-5 py-2.5 text-sm font-semibold text-white"
+          className="rounded-full bg-[#2C7001] px-5 py-2.5 text-sm font-semibold text-white"
         >
           REGISTER ANOTHER USER
         </button>
@@ -159,7 +159,7 @@ export function RegistrationWizard() {
     return (
       <div>
         <StepIndicator step={1} />
-        <div className="mb-3.5 text-sm font-bold text-[#0b2545]">
+        <div className="mb-3.5 text-sm font-bold text-[#2C7001]">
           Select your role
         </div>
         <label htmlFor="role" className="text-xs text-slate-500">
@@ -170,7 +170,7 @@ export function RegistrationWizard() {
           aria-label="Role"
           value={form.role}
           onChange={(e) => update("role", e.target.value as FormState["role"])}
-          className="mb-2 block h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+          className="mb-2 block h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
         >
           <option value="">Select a role...</option>
           {ROLES.map((role) => (
@@ -186,7 +186,7 @@ export function RegistrationWizard() {
           type="button"
           disabled={!form.role}
           onClick={() => setStep(2)}
-          className="ml-auto block rounded bg-[#0b2545] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          className="ml-auto block rounded-full bg-[#2C7001] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
         >
           NEXT →
         </button>
@@ -198,7 +198,7 @@ export function RegistrationWizard() {
     return (
       <div>
         <StepIndicator step={2} />
-        <div className="mb-3.5 text-sm font-bold text-[#0b2545]">
+        <div className="mb-3.5 text-sm font-bold text-[#2C7001]">
           Personal &amp; account details
         </div>
         <label htmlFor="firstName" className="text-xs text-slate-500">
@@ -208,7 +208,7 @@ export function RegistrationWizard() {
           id="firstName"
           value={form.firstName}
           onChange={(e) => update("firstName", e.target.value)}
-          className="mb-3 h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
         />
 
         <label htmlFor="middleName" className="text-xs text-slate-500">
@@ -218,7 +218,7 @@ export function RegistrationWizard() {
           id="middleName"
           value={form.middleName}
           onChange={(e) => update("middleName", e.target.value)}
-          className="mb-3 h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
         />
 
         <label htmlFor="lastName" className="text-xs text-slate-500">
@@ -228,7 +228,7 @@ export function RegistrationWizard() {
           id="lastName"
           value={form.lastName}
           onChange={(e) => update("lastName", e.target.value)}
-          className="mb-3 h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
         />
 
         <label htmlFor="department" className="text-xs text-slate-500">
@@ -239,7 +239,7 @@ export function RegistrationWizard() {
           aria-label="Department"
           value={form.departmentId}
           onChange={(e) => update("departmentId", e.target.value)}
-          className="mb-3 h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
         >
           <option value="">Select...</option>
           {referenceData?.departments.map((d) => (
@@ -257,7 +257,7 @@ export function RegistrationWizard() {
           aria-label="Business Unit"
           value={form.businessUnitId}
           onChange={(e) => update("businessUnitId", e.target.value)}
-          className="mb-3 h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
         >
           <option value="">Select...</option>
           {referenceData?.businessUnits.map((b) => (
@@ -275,7 +275,7 @@ export function RegistrationWizard() {
           aria-label="Location"
           value={form.locationId}
           onChange={(e) => update("locationId", e.target.value)}
-          className="mb-3 h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
         >
           <option value="">Select...</option>
           {referenceData?.locations.map((l) => (
@@ -293,7 +293,7 @@ export function RegistrationWizard() {
           type="email"
           value={form.email}
           onChange={(e) => update("email", e.target.value)}
-          className="mb-3 h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
         />
 
         <label htmlFor="password" className="text-xs text-slate-500">
@@ -303,7 +303,8 @@ export function RegistrationWizard() {
           id="password"
           value={form.password}
           onChange={(e) => update("password", e.target.value)}
-          wrapperClassName="mb-3"
+          wrapperClassName="mb-4"
+          inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
         />
 
         <label htmlFor="confirmPassword" className="text-xs text-slate-500">
@@ -313,14 +314,15 @@ export function RegistrationWizard() {
           id="confirmPassword"
           value={form.confirmPassword}
           onChange={(e) => update("confirmPassword", e.target.value)}
-          wrapperClassName="mb-4"
+          wrapperClassName="mb-5"
+          inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
         />
 
         <div className="flex justify-between">
           <button
             type="button"
             onClick={() => setStep(1)}
-            className="rounded border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-600"
+            className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-500"
           >
             ← BACK
           </button>
@@ -328,7 +330,7 @@ export function RegistrationWizard() {
             type="button"
             disabled={!registrationSchema.safeParse(form).success}
             onClick={() => setStep(3)}
-            className="rounded bg-[#0b2545] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+            className="rounded-full bg-[#2C7001] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
           >
             NEXT →
           </button>
@@ -340,7 +342,7 @@ export function RegistrationWizard() {
   return (
     <div>
       <StepIndicator step={3} />
-      <div className="mb-3 text-sm font-bold text-[#0b2545]">
+      <div className="mb-3 text-sm font-bold text-[#2C7001]">
         Review &amp; confirm
       </div>
       <div className="mb-4 rounded border border-slate-100 bg-slate-50 p-4 text-xs leading-loose text-slate-600">
@@ -386,7 +388,7 @@ export function RegistrationWizard() {
         <button
           type="button"
           onClick={() => setStep(2)}
-          className="rounded border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-600"
+          className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-500"
         >
           ← BACK
         </button>
@@ -394,7 +396,7 @@ export function RegistrationWizard() {
           type="button"
           disabled={submitting}
           onClick={submit}
-          className="rounded bg-[#0b2545] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-full bg-[#2C7001] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
         >
           SUBMIT REGISTRATION
         </button>

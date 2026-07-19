@@ -14,15 +14,24 @@ export default async function RegisterPage() {
   }
 
   return (
-    <div className="flex flex-1">
-      <div className="flex flex-1 flex-col items-center justify-center bg-[#0b2545] text-[#e8eef7]">
-        <div className="text-4xl">⛨</div>
-        <div className="mt-3 text-base font-semibold tracking-wide">
-          OUTSLIP VMS
+    <div className="flex flex-1 items-start justify-center bg-[#eef1ee] p-8">
+      <div className="w-full max-w-[520px] overflow-hidden rounded-xl bg-white shadow-xl">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
+          <div
+            aria-hidden
+            className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
+          />
+          <div
+            aria-hidden
+            className="absolute -bottom-10 -left-5 h-28 w-28 rounded-full bg-white/5"
+          />
+          <h1 className="text-lg font-extrabold tracking-widest text-white">
+            REGISTER USER
+          </h1>
         </div>
-      </div>
-      <div className="flex flex-[1.3] flex-col justify-center bg-white p-10">
-        <RegistrationWizard />
+        <div className="px-8 py-7">
+          <RegistrationWizard />
+        </div>
       </div>
     </div>
   );
