@@ -27,7 +27,7 @@ describe("LoginForm", () => {
     fireEvent.change(screen.getByLabelText(/^password$/i), {
       target: { value: "correct-password" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^login$/i }));
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/dashboard"));
   });
@@ -45,7 +45,7 @@ describe("LoginForm", () => {
     fireEvent.change(screen.getByLabelText(/^password$/i), {
       target: { value: "temp-password" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^login$/i }));
 
     await waitFor(() =>
       expect(pushMock).toHaveBeenCalledWith("/change-password")
@@ -65,7 +65,7 @@ describe("LoginForm", () => {
     fireEvent.change(screen.getByLabelText(/^password$/i), {
       target: { value: "wrong" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^login$/i }));
 
     expect(
       await screen.findByText(/invalid email or password/i)

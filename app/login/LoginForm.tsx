@@ -40,31 +40,43 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col">
-      <label htmlFor="email" className="text-xs text-slate-500">
-        Email
-      </label>
-      <input
-        id="email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        className="mb-3 h-9 rounded border border-slate-300 bg-slate-50 px-3 text-sm"
-      />
+      <div className="mb-5 flex items-center gap-4">
+        <label
+          htmlFor="email"
+          className="w-20 shrink-0 text-[13px] text-slate-500"
+        >
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          placeholder="Enter email"
+          className="w-full border-b border-slate-300 bg-transparent pb-1.5 text-sm placeholder:text-slate-300 focus:border-[#2C7001] focus:outline-none"
+        />
+      </div>
 
-      <label htmlFor="password" className="text-xs text-slate-500">
-        Password
-      </label>
-      <PasswordInput
-        id="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-        wrapperClassName="mb-2"
-      />
+      <div className="mb-2 flex items-center gap-4">
+        <label
+          htmlFor="password"
+          className="w-20 shrink-0 text-[13px] text-slate-500"
+        >
+          Password
+        </label>
+        <PasswordInput
+          id="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          placeholder="Enter password"
+          inputClassName="w-full border-b border-slate-300 bg-transparent pb-1.5 pr-9 text-sm placeholder:text-slate-300 focus:border-[#2C7001] focus:outline-none"
+        />
+      </div>
 
-      <a href="#" className="mb-4 self-end text-xs font-semibold text-[#0b2545]">
-        Forgot password?
+      <a href="#" className="mb-6 self-end text-xs font-semibold text-[#2C7001]">
+        Forgot Password?
       </a>
 
       {error && (
@@ -76,9 +88,9 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="rounded bg-[#0b2545] py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+        className="mx-auto rounded-full bg-[#2C7001] px-12 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
       >
-        SIGN IN
+        Login
       </button>
     </form>
   );

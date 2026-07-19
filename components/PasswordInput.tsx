@@ -4,10 +4,12 @@ import { useState, type InputHTMLAttributes } from "react";
 
 type PasswordInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
   wrapperClassName?: string;
+  inputClassName?: string;
 };
 
 export function PasswordInput({
   wrapperClassName,
+  inputClassName,
   ...props
 }: PasswordInputProps) {
   const [visible, setVisible] = useState(false);
@@ -17,7 +19,10 @@ export function PasswordInput({
       <input
         {...props}
         type={visible ? "text" : "password"}
-        className="h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 pr-9 text-sm"
+        className={
+          inputClassName ??
+          "h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 pr-9 text-sm"
+        }
       />
       <button
         type="button"
