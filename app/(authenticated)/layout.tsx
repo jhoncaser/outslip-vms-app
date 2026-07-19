@@ -18,9 +18,13 @@ export default async function AuthenticatedLayout({
     redirect("/login");
   }
 
+  const initials =
+    `${session.firstName.charAt(0)}${session.lastName.charAt(0)}`.toUpperCase();
+  const fullName = `${session.firstName} ${session.lastName}`;
+
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <Navbar />
+    <div className="flex min-h-screen flex-col bg-[#eef1ee]">
+      <Navbar initials={initials} fullName={fullName} />
       <div className="flex flex-1">
         <Sidebar canProvisionUsers={canProvisionUsers(session)} />
         <main className="flex flex-1 flex-col">{children}</main>

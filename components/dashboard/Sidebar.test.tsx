@@ -1,8 +1,19 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { vi } from "vitest";
 import { Sidebar } from "./Sidebar";
 
+const pathnameRef = vi.hoisted(() => ({ current: "/dashboard" }));
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => pathnameRef.current,
+}));
+
 describe("Sidebar", () => {
+  beforeEach(() => {
+    pathnameRef.current = "/dashboard";
+  });
+
   it("always shows Dashboard, Profile, Settings, and Logout", () => {
     render(<Sidebar canProvisionUsers={false} />);
     expect(
@@ -31,5 +42,17 @@ describe("Sidebar", () => {
     expect(
       screen.getByRole("link", { name: /register user/i })
     ).toBeInTheDocument();
+  });
+
+  it("marks the current page's link with aria-current", () => {
+    pathnameRef.current = "/profile";
+    render(<Sidebar canProvisionUsers={false} />);
+    expect(screen.getByRole("link", { name: /profile/i })).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
+    expect(
+      screen.getByRole("link", { name: /dashboard/i })
+    ).not.toHaveAttribute("aria-current");
   });
 });
