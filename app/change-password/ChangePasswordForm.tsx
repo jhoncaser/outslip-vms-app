@@ -48,7 +48,7 @@ export function ChangePasswordForm() {
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
         required
-        className="mb-3 h-9 rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+        className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
       />
 
       <label htmlFor="confirmPassword" className="text-xs text-slate-500">
@@ -60,7 +60,7 @@ export function ChangePasswordForm() {
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
         required
-        className="mb-4 h-9 rounded border border-slate-300 bg-slate-50 px-3 text-sm"
+        className="mb-5 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
       />
 
       {error && (
@@ -72,7 +72,7 @@ export function ChangePasswordForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="rounded bg-[#0b2545] py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+        className="mx-auto rounded-full bg-[#2C7001] px-10 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
       >
         UPDATE PASSWORD
       </button>

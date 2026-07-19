@@ -2,22 +2,28 @@ import { ChangePasswordForm } from "./ChangePasswordForm";
 
 export default function ChangePasswordPage() {
   return (
-    <div className="flex min-h-screen">
-      <div className="flex flex-1 flex-col items-center justify-center bg-[#0b2545] text-[#e8eef7]">
-        <div className="text-4xl">⛨</div>
-        <div className="mt-3 text-base font-semibold tracking-wide">
-          OUTSLIP VMS
+    <div className="flex min-h-screen items-center justify-center bg-[#eef1ee] p-6">
+      <div className="w-full max-w-[400px] overflow-hidden rounded-xl bg-white shadow-xl">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-8 text-center">
+          <div
+            aria-hidden
+            className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/5"
+          />
+          <div
+            aria-hidden
+            className="absolute -bottom-10 -left-5 h-32 w-32 rounded-full bg-white/5"
+          />
+          <h1 className="text-xl font-extrabold tracking-widest text-white">
+            SET A NEW PASSWORD
+          </h1>
         </div>
-      </div>
-      <div className="flex flex-[1.3] flex-col justify-center bg-white p-10">
-        <div className="mb-1 text-lg font-bold text-[#0b2545]">
-          Set a new password
+        <div className="px-8 py-7">
+          <p className="mb-6 text-center text-xs text-slate-400">
+            Your account was created with a temporary password. Choose a new
+            one to continue.
+          </p>
+          <ChangePasswordForm />
         </div>
-        <div className="mb-6 text-xs text-[#8593a8]">
-          Your account was created with a temporary password. Choose a new
-          one to continue.
-        </div>
-        <ChangePasswordForm />
       </div>
     </div>
   );
