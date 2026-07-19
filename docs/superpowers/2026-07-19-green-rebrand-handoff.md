@@ -134,6 +134,15 @@ User asked that the "My Approvals" dashboard module only appear for First/Second
 
 Tests: 3 new cases in `permissions.test.ts`, new `ModuleGrid.test.tsx` (3 cases: base tiles always render, My Approvals hidden/shown by prop). Suite 80/80 passing after the usual seed-admin drift reset.
 
+## 3j. Follow-up work: navbar search bar + QR scan placeholder — DONE
+
+Second navbar iteration (on top of §3h). User asked to drop the shield icon beside the brand, add a centered search field for looking up transaction codes, then widen it and shorten the placeholder to "Search...", plus a QR scan trigger. QR placement options were mocked up in the visual companion (same session dir `1341-1784454868`); user picked Option A (QR icon inside the pill). Commit `fa0ed8b`.
+
+- **`components/dashboard/Navbar.tsx`**: shield icon removed (brand is text-only now); header grid changed from `[1fr_auto_1fr]` to `[auto_1fr_auto]` so the center search column takes all leftover width (pill capped at `max-w-3xl`); search input has `aria-label="Search transaction code"` but visible placeholder "Search..."; QR button (`aria-label="Scan QR code"`) sits inside the pill's right edge — **decorative placeholder only, no onClick yet**. Search itself is also not wired to anything — both are future work.
+- Future work queued from this: real transaction-code search (backend + results UI) and the QR scan flow (camera capture → code lookup).
+
+Tests: `Navbar.test.tsx` — searchbox test extended to assert the new placeholder, new case for the QR button. Suite 82/82 passing (after one seed-admin drift reset and one Neon cold-start retry — both §5 gotchas, seen in that order this cycle).
+
 ## 4. Environment & secrets
 
 Working directly in the main repo checkout (not a worktree) — `.env` here already points at the live Neon Postgres dev database. No new secrets introduced by this plan.
@@ -146,4 +155,4 @@ Working directly in the main repo checkout (not a worktree) — `.env` here alre
 
 ## 6. GitHub push status
 
-Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently confirming the My Approvals role gate), latest tip = the handoff-update commit sitting on top of `287bfbd`, 32 commits ahead of `main`. **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
+Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "proceed to commit and push" for the navbar search/QR work), latest tip = the handoff-update commit sitting on top of `fa0ed8b`, 35 commits ahead of `main`. **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
