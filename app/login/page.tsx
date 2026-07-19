@@ -7,7 +7,7 @@ export default function LoginPage() {
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[url('/mfc-logo.png')] bg-cover bg-center bg-no-repeat opacity-[0.18]"
       />
-      <div className="relative z-10 w-full max-w-[400px] overflow-hidden rounded-xl bg-white shadow-xl">
+      <div className="login-card-in relative z-10 w-full max-w-[400px] overflow-hidden rounded-xl bg-white shadow-xl">
         <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-10 text-center">
           <div
             aria-hidden
@@ -22,7 +22,7 @@ export default function LoginPage() {
           </h1>
         </div>
         <div className="px-8 py-7">
-          <p className="mb-6 text-center text-xs text-slate-400">
+          <p className="mb-6 text-center text-[13px] text-slate-500">
             Sign in with your company or personal email
           </p>
           <LoginForm />

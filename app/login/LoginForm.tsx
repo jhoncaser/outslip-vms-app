@@ -88,7 +88,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="mx-auto rounded-full bg-[#2C7001] px-12 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+        className="mx-auto rounded-full bg-[#2C7001] px-12 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0 disabled:pointer-events-none disabled:opacity-60"
       >
         Login
       </button>
