@@ -37,8 +37,7 @@ Final whole-branch review (opus, `972e2c0..04c942d`, 6 commits): **Ready to merg
 
 User confirmed the change-password page update looked correct. Along the way, testing the "Set a New Password" flow itself twice flipped the live seed admin's `mustChangePassword` back to `false` and, on the second pass, also changed its `passwordHash` away from `SEED_ADMIN_PASSWORD` — both reset again via the same one-off script pattern (run, verified, deleted). Full suite reconfirmed green: 68/68.
 
-**Remaining:**
-- Decide merge strategy (PR vs. local merge vs. keep pushed as-is) — branch is now pushed, not yet merged
+**Status: plan complete.** All 7 tasks done and reviewed, final whole-branch review passed, branch pushed to GitHub. User decided to defer the merge: "just leave it as pushed branch in my github, no need to push or merge into main. we will do later on once we finish this project." No further action needed on this branch until that broader project wraps up — do not merge to `main` or open a PR without a fresh go-ahead, even after more commits land here.
 
 ## 3. How to resume
 
@@ -58,4 +57,4 @@ Working directly in the main repo checkout (not a worktree) — `.env` here alre
 
 ## 6. GitHub push status
 
-Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized: "we can proceed and push this to my github"). 9 commits ahead of `main` (`972e2c0..aa67be5`). Not yet merged — GitHub offered a compare/PR link (`https://github.com/jhoncaser/outslip-vms-app/pull/new/green-rebrand`) but no PR has been opened. This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR.
+Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized: "we can proceed and push this to my github"), latest tip `a92bc2b`, 10 commits ahead of `main` (`972e2c0..a92bc2b`). **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
