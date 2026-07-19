@@ -39,11 +39,25 @@ User confirmed the change-password page update looked correct. Along the way, te
 
 **Status: plan complete.** All 7 tasks done and reviewed, final whole-branch review passed, branch pushed to GitHub. User decided to defer the merge: "just leave it as pushed branch in my github, no need to push or merge into main. we will do later on once we finish this project." No further action needed on this branch until that broader project wraps up — do not merge to `main` or open a PR without a fresh go-ahead, even after more commits land here.
 
-## 3. How to resume
+## 3. Follow-up work in flight: login page polish (started 2026-07-19, after plan completion)
 
-1. Read this file and `.superpowers/sdd/progress.md` — **Tasks 1 and 2 are done and reviewed clean, do not re-dispatch either.**
-2. Continue with Task 3: `scripts/task-brief docs/superpowers/plans/2026-07-19-green-rebrand.md 3` → dispatch implementer (fast/cheap tier — brief has complete code) → `scripts/review-package <base> <head>` + task reviewer (`sonnet`) once it reports DONE.
-3. After Task 3 completes (implementer + task review + ledger updated), **check in with the user before dispatching Task 4** — this applies to every remaining task, one at a time, per the saved preference in §1.
+New mini-project on this same branch, currently mid-brainstorm-workflow. User asked for CSS polish on the login page (button hover effects, text hierarchy, card design). Brainstormed via `superpowers:brainstorming` with the visual companion (browser mockups); user's final selections:
+
+- **Button:** effect A — "Lift & shadow" hover/press (darken + 2px rise + green shadow, focus-visible ring, motion-reduce and disabled handling)
+- **Text:** option A — "SIGN IN" stays the only `<h1>` unchanged; subtitle bumped `text-xs text-slate-400` → `text-[13px] text-slate-500`
+- **Card polish:** item 2 only — CSS entrance animation (fade + 16px rise, 400ms, `prefers-reduced-motion` disabled). Declined: shadow rework, input focus transition, Forgot-Password hover, mixed-case heading, brand eyebrow.
+
+**Scope: login page only** (`app/login/LoginForm.tsx`, `app/login/page.tsx`, `app/globals.css`). User will test before deciding whether to propagate to change-password.
+
+**Spec:** `docs/superpowers/specs/2026-07-19-login-polish-design.md`, committed `5309a5a`, self-reviewed.
+
+**Exact resume point: awaiting the user's review/approval of that spec.** Once approved, the next checklist item is invoking `superpowers:writing-plans` — do NOT skip ahead to implementation, and do NOT re-brainstorm.
+
+**Process preference (updated in memory 2026-07-19):** the user generalized their per-task check-in rule to *every skill checklist item* — complete one item, report, wait for explicit go-ahead before the next (`feedback_checkin_between_sdd_tasks` memory).
+
+**Session environment notes:**
+- A dev server (started outside this session) is already running at `http://localhost:3000`, PID 22044 — don't start a second one; `npm run dev` will fail with "Another next dev server is already running."
+- Visual companion server running on port 52903 (background, 4h idle timeout), session dir `.superpowers/brainstorm/631-1784441032/`. Currently showing a waiting screen; safe to let it die or stop it — all selections are recorded above and in the spec.
 
 ## 4. Environment & secrets
 
