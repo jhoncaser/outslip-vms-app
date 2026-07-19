@@ -75,9 +75,30 @@ User asked for a "Password Updated!" confirmation after a successful password ch
 
 **Status: done, committed (`e2135ff`: "Add password-update confirmation toast"), user tested and confirmed in-browser.**
 
-## 3d. Deferred: Forgot Password
+## 3d. Follow-up work: uniform MFC background across authenticated pages — DONE
 
-Login page has a "Forgot Password?" link (`app/login/LoginForm.tsx:78-80`) that is a dead `href="#"` — flagged as a known non-blocking gap in the original green-rebrand final review, never built out. User asked about implementing it; confirmed nothing exists yet to build on: no email-sending service configured anywhere in the project (checked `package.json` and codebase — no SMTP/Resend/SendGrid/etc.), no reset-token fields on the `User` model (`prisma/schema.prisma:36-55`), no reset route/page. This is a real feature (email delivery + token generation/expiry + a new consuming route), not a quick add-on — **explicitly deferred by the user ("lets work on it later on, just note it for future development") until a later point in the project.** When picked up, will need a brainstorming pass to decide delivery method (real email via a provider like Resend, vs. an admin-mediated reset with no email) before any implementation.
+User asked for the same faint MFC background treatment used on login/change-password to also appear on Dashboard, Profile, Settings, and Register User, for a uniform look. All four live under `app/(authenticated)/`, sharing `app/(authenticated)/layout.tsx` and, for Profile/Settings, the shared `PagePlaceholder` component — but that component is also used by the four transaction placeholder pages (`transactions/open|approved|canceled|my-approvals`), which the user did not mention. To avoid over-scoping, the background was added directly in each of the 4 named `page.tsx` files (not the shared layout or `PagePlaceholder`), so the transaction pages are untouched. Each page now wraps its content in a `relative bg-[#eef1ee]` container with the same `absolute inset-0 bg-[url('/mfc-logo.png')] opacity-[0.18]` overlay div used on login/change-password, content at `relative z-10`. Register's page already had its own `bg-[#eef1ee]` wrapper (mirroring login) — just needed the image overlay + `relative z-10` on its card added.
+
+Commit `239c132`: "Add MFC background image to dashboard, profile, settings, register pages".
+
+## 3e. Follow-up work: login error message → centered pop-up toast — DONE
+
+User asked for the login page's error message ("Invalid email or password") to use the same fixed, centered pop-up presentation as the change-password success toast, instead of the inline red text below the password field. Implemented in `app/login/LoginForm.tsx`: same `fixed left-1/2 top-6 -translate-x-1/2` positioning and `toast-fade-in` animation class as the change-password toast, styled red (border/badge/text) instead of green, `role="alert"` (assertive) instead of `role="status"` since it's an error. Same lifecycle as before — stays until the next submit attempt clears it, no auto-dismiss timer (unlike the success toast, there's no redirect here to naturally time against).
+
+Commit `5a47b6d`: "Convert login error message to a centered pop-up toast".
+
+## 3f. Bugfix: change-password validation messages — DONE
+
+Two related fixes to `lib/validation/auth.ts` and `app/api/auth/change-password/route.ts`:
+
+1. **Specific messages instead of generic "Invalid request":** the route now surfaces the actual Zod issue message (`parsed.error.issues[0]?.message`) — "Password must be at least 8 characters" or "Passwords do not match" — instead of a blanket "Invalid request" for any validation failure. Confirmed safe to be this specific here (unlike login) since there's no account-enumeration risk once a user is already authenticated and changing their own password.
+2. **Real bug found and fixed:** `confirmPassword` had its own independent `.min(8, ...)` check in the schema, which ran *before* the `.refine()` cross-field match check. So whenever `confirmPassword` was short — even when the actual problem was a mismatch with `newPassword` — the user saw "Password must be at least 8 characters" instead of "Passwords do not match" (user caught this from a screenshot: `newPassword="admin"`, `confirmPassword="adminadmin"`, both short-and-mismatched, message didn't address the mismatch). Fixed by dropping the redundant length rule on `confirmPassword` — its only real job is matching `newPassword`, which already enforces the length floor. Added a regression test (`route.test.ts`: "returns 'Passwords do not match' when confirm is short and mismatched, not a length error") covering exactly this case.
+
+Commit `17e6475`: "Show specific validation messages on change-password errors".
+
+## 3g. Deferred: Forgot Password
+
+Login page has a "Forgot Password?" link (`app/login/LoginForm.tsx`) that is a dead `href="#"` — flagged as a known non-blocking gap in the original green-rebrand final review, never built out. User asked about implementing it; confirmed nothing exists yet to build on: no email-sending service configured anywhere in the project (checked `package.json` and codebase — no SMTP/Resend/SendGrid/etc.), no reset-token fields on the `User` model (`prisma/schema.prisma:36-55`), no reset route/page. This is a real feature (email delivery + token generation/expiry + a new consuming route), not a quick add-on — **explicitly deferred by the user ("lets work on it later on, just note it for future development") until a later point in the project.** When picked up, will need a brainstorming pass to decide delivery method (real email via a provider like Resend, vs. an admin-mediated reset with no email) before any implementation.
 
 **Process preference (updated in memory 2026-07-19):** the user's per-task check-in rule (`feedback_checkin_between_sdd_tasks` memory) generalizes to every skill checklist item when running a formal plan — but for small, well-specified, mechanical ad-hoc requests like the change-password propagation above, direct in-session implementation (no brainstorm/spec/plan) is the established pattern on this branch, matching the earlier "post-review ad-hoc additions" in §2.
 
@@ -97,4 +118,4 @@ Working directly in the main repo checkout (not a worktree) — `.env` here alre
 
 ## 6. GitHub push status
 
-Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "please push it to my github"), latest tip `6e04474`, 22 commits ahead of `main` (`972e2c0..6e04474`). **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
+Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "please push it to my github now"), latest tip `17e6475`, 26 commits ahead of `main` (`972e2c0..17e6475`). **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
