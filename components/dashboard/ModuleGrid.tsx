@@ -14,12 +14,12 @@ export function ModuleGrid() {
         <Link
           key={module.href}
           href={module.href}
-          className="rounded border border-l-4 border-slate-200 border-l-[#0b2545] bg-white p-4 shadow-sm hover:shadow-md dark:border-slate-700 dark:border-l-[#0b2545] dark:bg-slate-800"
+          className="rounded border border-l-4 border-slate-200 border-l-[#2C7001] bg-white p-4 shadow-sm hover:shadow-md"
         >
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             {module.label}
           </div>
-          <div className="mt-1 text-2xl font-bold text-[#0b2545] dark:text-white">
+          <div className="mt-1 text-2xl font-bold text-[#2C7001]">
             —
           </div>
         </Link>
