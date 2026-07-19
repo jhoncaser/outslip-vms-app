@@ -151,6 +151,12 @@ User asked for image/icon ideas on the dashboard module tiles. Two options mocke
 
 Tests: no new cases — the badges are decorative and the existing `ModuleGrid.test.tsx` behavior tests (tile presence + approvals gating) still cover the component. Suite 82/82 passing (one Neon cold-start flake on first run, clean on retry).
 
+## 3l. Follow-up work: dashboard tile hover effect — DONE
+
+User asked for professional CSS hover effect ideas for the dashboard module tiles. Brainstormed via `superpowers:brainstorming` reusing the still-running visual companion session (`1341-1784454868`, port 51919): 4 live hoverable effect demos (`tile-hover-effects.html` — lift & shadow, accent sweep, icon pop, green ring), user asked to combine A+B+C, then compared full-strength vs. refined intensities (`tile-hover-combo.html`) and took the recommendation: **refined combo** (2px lift + green-tinted shadow, left border 4→6px + faint `#fbfdf9` wash + label turns `#2C7001`, icon badge scales 1.08 with a per-color glow at 0.20 alpha). Spec: `docs/superpowers/specs/2026-07-19-tile-hover-design.md` (commit `f0e7c24`). Implemented directly per branch convention, classNames-only in `components/dashboard/ModuleGrid.tsx`, commit `c632aa0`. Reduced motion: `motion-reduce:transition-none` + Tailwind-documented neutralizers (`motion-reduce:hover:translate-y-0`, `motion-reduce:group-hover:scale-100`), same convention as `Sidebar.tsx`. No new tests (decorative CSS, existing `ModuleGrid.test.tsx` still covers behavior). User verified in-browser and confirmed.
+
+**Seed-admin state is now permanently user-owned (2026-07-19):** the user completed the "Set a New Password" flow for real — the seed admin (`admin@gmail.com`) now has the user's own password and `mustChangePassword: false`, **by explicit user choice**. Do NOT run the one-off reset script anymore unless the user asks. Consequence: `prisma/seed.test.ts` now fails its pristine-state assertions on every full-suite run (81/82 passing is the new expected baseline, e.g. this cycle's run). If the failing test gets annoying, the agreed future option is adjusting the test to tolerate a bootstrapped-then-changed admin — not yet requested.
+
 ## 4. Environment & secrets
 
 Working directly in the main repo checkout (not a worktree) — `.env` here already points at the live Neon Postgres dev database. No new secrets introduced by this plan.
@@ -158,9 +164,10 @@ Working directly in the main repo checkout (not a worktree) — `.env` here alre
 ## 5. Known environment gotchas
 
 - Neon cold-start: `P1001`/connection errors on DB-backed tests or `prisma migrate deploy` — retry once before concluding anything is broken (per the plan's Global Constraints).
+- Seed-admin "drift" is no longer drift (see §3l): `prisma/seed.test.ts` failing 1/82 is the expected baseline now — do not reset the seed admin's password/`mustChangePassword` without the user asking.
 - `npm install` is restricted to `npm install --ignore-scripts`; no new deps are expected in this plan.
 - Two other worktrees exist in this repo (`.claude/worktrees/homepage` on branch `worktree-homepage`, `.claude/worktrees/registration-login` on branch `worktree-registration-login`) sitting on older pre-rebrand commits. They predate this plan and are unrelated to it — don't confuse their state with `green-rebrand`'s.
 
 ## 6. GitHub push status
 
-Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "push and commit" for the dashboard tile icon badges), latest tip = the handoff-update commit sitting on top of `ef4a275`, 37 commits ahead of `main`. **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
+Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "proceed on commit and push" for the dashboard tile hover effect), latest tip = the handoff-update commit sitting on top of `c632aa0` (spec `f0e7c24` + implementation `c632aa0`). **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
