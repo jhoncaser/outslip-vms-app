@@ -36,4 +36,20 @@ describe("Navbar", () => {
     const avatar = screen.getByText("JC");
     expect(avatar).toHaveAttribute("title", "Jhon Caser");
   });
+
+  it("shows a transaction code search field", () => {
+    render(<Navbar initials="JC" fullName="Jhon Caser" />);
+    const searchbox = screen.getByRole("searchbox", {
+      name: "Search transaction code",
+    });
+    expect(searchbox).toBeInTheDocument();
+    expect(searchbox).toHaveAttribute("placeholder", "Search...");
+  });
+
+  it("shows a QR scan button inside the search bar", () => {
+    render(<Navbar initials="JC" fullName="Jhon Caser" />);
+    expect(
+      screen.getByRole("button", { name: "Scan QR code" })
+    ).toBeInTheDocument();
+  });
 });
