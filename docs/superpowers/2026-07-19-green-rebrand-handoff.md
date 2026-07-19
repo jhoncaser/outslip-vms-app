@@ -39,21 +39,23 @@ User confirmed the change-password page update looked correct. Along the way, te
 
 **Status: plan complete.** All 7 tasks done and reviewed, final whole-branch review passed, branch pushed to GitHub. User decided to defer the merge: "just leave it as pushed branch in my github, no need to push or merge into main. we will do later on once we finish this project." No further action needed on this branch until that broader project wraps up — do not merge to `main` or open a PR without a fresh go-ahead, even after more commits land here.
 
-## 3. Follow-up work in flight: login page polish (started 2026-07-19, after plan completion)
+## 3. Follow-up work: login page polish — DONE, and propagated to change-password
 
-New mini-project on this same branch, currently mid-brainstorm-workflow. User asked for CSS polish on the login page (button hover effects, text hierarchy, card design). Brainstormed via `superpowers:brainstorming` with the visual companion (browser mockups); user's final selections:
+Mini-project on this same branch, after the 7-task plan completed. User asked for CSS polish on the login page (button hover effects, text hierarchy, card design). Brainstormed via `superpowers:brainstorming` with the visual companion (browser mockups); user's final selections:
 
 - **Button:** effect A — "Lift & shadow" hover/press (darken + 2px rise + green shadow, focus-visible ring, motion-reduce and disabled handling)
 - **Text:** option A — "SIGN IN" stays the only `<h1>` unchanged; subtitle bumped `text-xs text-slate-400` → `text-[13px] text-slate-500`
 - **Card polish:** item 2 only — CSS entrance animation (fade + 16px rise, 400ms, `prefers-reduced-motion` disabled). Declined: shadow rework, input focus transition, Forgot-Password hover, mixed-case heading, brand eyebrow.
 
-**Scope: login page only** (`app/login/LoginForm.tsx`, `app/login/page.tsx`, `app/globals.css`). User will test before deciding whether to propagate to change-password.
+**Spec:** `docs/superpowers/specs/2026-07-19-login-polish-design.md`, committed `5309a5a`, self-reviewed. **Plan:** `docs/superpowers/plans/2026-07-19-login-polish.md` (single task, per `superpowers:writing-plans`), committed locally but not yet pushed as a standalone commit — folded into this branch's history (untracked file as of `14194c0`, will ride along on the next handoff/doc commit).
 
-**Spec:** `docs/superpowers/specs/2026-07-19-login-polish-design.md`, committed `5309a5a`, self-reviewed.
+**Implementation — Task 1 (login page only, `app/login/LoginForm.tsx`, `app/login/page.tsx`, `app/globals.css`):** built via `superpowers:subagent-driven-development` (implementer on a cheap/fast model — fully-specified transcription — then `sonnet` task reviewer). Commit `dbdb891`. Review: ✅ spec compliant, no Critical/Important/Minor findings, 68/68 tests. Single-task plan, so the separate whole-branch-review step was skipped (already covered by the parent green-rebrand branch review) — went straight to manual dev-server testing per user request. Ledger entry in `.superpowers/sdd/progress.md` under a new "login-polish plan" section.
 
-**Exact resume point: awaiting the user's review/approval of that spec.** Once approved, the next checklist item is invoking `superpowers:writing-plans` — do NOT skip ahead to implementation, and do NOT re-brainstorm.
+**Follow-up ad-hoc request (same day, after user tested login in-browser):** user asked to propagate the button hover effect to the change-password ("Set a New Password") page, and to add a show/hide password toggle to both its "New Password" and "Confirm Password" fields. Implemented directly (no brainstorm/plan — both changes are mechanical reuse of things that already exist: the login button's exact hover/press className block, and the `PasswordInput` component with its built-in eye-icon toggle, already used on the login page but not previously wired into `ChangePasswordForm.tsx`). Changes: `app/change-password/ChangePasswordForm.tsx` — both `<input type="password">` fields swapped for `<PasswordInput>` (label `htmlFor`/`id` pairing preserved, so existing `getByLabelText` tests still pass unmodified), "UPDATE PASSWORD" button gets the identical hover/press/focus-visible/motion-reduce classes as the login button. Commit `14194c0`. 68/68 tests pass (one transient all-files failure during this task, "Cannot read properties of undefined (reading 'config')" — re-ran clean immediately after; treated as a one-off, not investigated further, consistent with known Neon cold-start flakiness on this branch). No formal task review dispatched for this ad-hoc pair (small, mechanical, user-verified visually in-browser immediately after).
 
-**Process preference (updated in memory 2026-07-19):** the user generalized their per-task check-in rule to *every skill checklist item* — complete one item, report, wait for explicit go-ahead before the next (`feedback_checkin_between_sdd_tasks` memory).
+**Status: both login-polish and its change-password propagation are complete, committed, and pushed to `origin/green-rebrand` (tip `14194c0`).** User confirmed the change-password result looks good. No pending spec/plan approval — this sub-thread is closed out. Next: awaiting direction on what to build next.
+
+**Process preference (updated in memory 2026-07-19):** the user's per-task check-in rule (`feedback_checkin_between_sdd_tasks` memory) generalizes to every skill checklist item when running a formal plan — but for small, well-specified, mechanical ad-hoc requests like the change-password propagation above, direct in-session implementation (no brainstorm/spec/plan) is the established pattern on this branch, matching the earlier "post-review ad-hoc additions" in §2.
 
 **Session environment notes:**
 - A dev server (started outside this session) is already running at `http://localhost:3000`, PID 22044 — don't start a second one; `npm run dev` will fail with "Another next dev server is already running."
@@ -71,4 +73,4 @@ Working directly in the main repo checkout (not a worktree) — `.env` here alre
 
 ## 6. GitHub push status
 
-Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized: "we can proceed and push this to my github"), latest tip `a92bc2b`, 10 commits ahead of `main` (`972e2c0..a92bc2b`). **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
+Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "yes please so my github will also be updated"), latest tip `14194c0`, 15 commits ahead of `main` (`972e2c0..14194c0`). **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
