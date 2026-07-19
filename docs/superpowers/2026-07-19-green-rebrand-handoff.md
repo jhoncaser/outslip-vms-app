@@ -97,4 +97,4 @@ Working directly in the main repo checkout (not a worktree) — `.env` here alre
 
 ## 6. GitHub push status
 
-Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "please push it to my github"), latest tip `e2135ff`, 21 commits ahead of `main` (`972e2c0..e2135ff`). **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
+Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "please push it to my github"), latest tip `6e04474`, 22 commits ahead of `main` (`972e2c0..6e04474`). **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
