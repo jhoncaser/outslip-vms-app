@@ -39,59 +39,67 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col">
-      <div className="mb-5 flex items-center gap-4">
-        <label
-          htmlFor="email"
-          className="w-20 shrink-0 text-[13px] text-slate-500"
-        >
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          placeholder="Enter email"
-          className="w-full border-b border-slate-300 bg-transparent pb-1.5 text-sm placeholder:text-slate-300 focus:border-[#2C7001] focus:outline-none"
-        />
-      </div>
-
-      <div className="mb-2 flex items-center gap-4">
-        <label
-          htmlFor="password"
-          className="w-20 shrink-0 text-[13px] text-slate-500"
-        >
-          Password
-        </label>
-        <PasswordInput
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          placeholder="Enter password"
-          inputClassName="w-full border-b border-slate-300 bg-transparent pb-1.5 pr-9 text-sm placeholder:text-slate-300 focus:border-[#2C7001] focus:outline-none"
-        />
-      </div>
-
-      <a href="#" className="mb-6 self-end text-xs font-semibold text-[#2C7001]">
-        Forgot Password?
-      </a>
-
+    <>
       {error && (
-        <p role="alert" className="mb-3 text-xs text-red-600">
+        <div
+          role="alert"
+          className="toast-fade-in fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border-l-4 border-red-600 bg-white px-4 py-3 text-sm font-semibold text-red-700 shadow-lg"
+        >
+          <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-600 text-xs text-white">
+            !
+          </span>
           {error}
-        </p>
+        </div>
       )}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="mx-auto rounded-full bg-[#2C7001] px-12 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0 disabled:pointer-events-none disabled:opacity-60"
-      >
-        Login
-      </button>
-    </form>
+      <form onSubmit={handleSubmit} className="flex flex-col">
+        <div className="mb-5 flex items-center gap-4">
+          <label
+            htmlFor="email"
+            className="w-20 shrink-0 text-[13px] text-slate-500"
+          >
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="Enter email"
+            className="w-full border-b border-slate-300 bg-transparent pb-1.5 text-sm placeholder:text-slate-300 focus:border-[#2C7001] focus:outline-none"
+          />
+        </div>
+
+        <div className="mb-2 flex items-center gap-4">
+          <label
+            htmlFor="password"
+            className="w-20 shrink-0 text-[13px] text-slate-500"
+          >
+            Password
+          </label>
+          <PasswordInput
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="Enter password"
+            inputClassName="w-full border-b border-slate-300 bg-transparent pb-1.5 pr-9 text-sm placeholder:text-slate-300 focus:border-[#2C7001] focus:outline-none"
+          />
+        </div>
+
+        <a href="#" className="mb-6 self-end text-xs font-semibold text-[#2C7001]">
+          Forgot Password?
+        </a>
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="mx-auto rounded-full bg-[#2C7001] px-12 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0 disabled:pointer-events-none disabled:opacity-60"
+        >
+          Login
+        </button>
+      </form>
+    </>
   );
 }
