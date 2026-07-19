@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export function ChangePasswordForm() {
   const router = useRouter();
@@ -42,25 +43,25 @@ export function ChangePasswordForm() {
       <label htmlFor="newPassword" className="text-xs text-slate-500">
         New Password
       </label>
-      <input
+      <PasswordInput
         id="newPassword"
-        type="password"
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
         required
-        className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
+        wrapperClassName="mb-4"
+        inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
       />
 
       <label htmlFor="confirmPassword" className="text-xs text-slate-500">
         Confirm Password
       </label>
-      <input
+      <PasswordInput
         id="confirmPassword"
-        type="password"
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
         required
-        className="mb-5 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
+        wrapperClassName="mb-5"
+        inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
       />
 
       {error && (
@@ -72,7 +73,7 @@ export function ChangePasswordForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="mx-auto rounded-full bg-[#2C7001] px-10 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+        className="mx-auto rounded-full bg-[#2C7001] px-10 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0 disabled:pointer-events-none disabled:opacity-60"
       >
         UPDATE PASSWORD
       </button>
