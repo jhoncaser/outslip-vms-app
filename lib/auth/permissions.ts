@@ -20,3 +20,13 @@ export function canProvisionUsers(user: AuthorizedUser): boolean {
     user.department === "Admin" && PROVISIONING_ROLES.includes(user.role)
   );
 }
+
+const APPROVER_ROLES: Role[] = [
+  "FIRST_APPROVER",
+  "SECOND_APPROVER",
+  "THIRD_APPROVER",
+];
+
+export function canViewApprovals(user: AuthorizedUser): boolean {
+  return APPROVER_ROLES.includes(user.role);
+}

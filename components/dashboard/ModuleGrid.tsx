@@ -1,16 +1,25 @@
 import Link from "next/link";
 
-const MODULES = [
+const BASE_MODULES = [
   { label: "Open Transaction", href: "/transactions/open" },
   { label: "Approved Transaction", href: "/transactions/approved" },
   { label: "Canceled Transaction", href: "/transactions/canceled" },
-  { label: "My Approvals", href: "/transactions/my-approvals" },
 ];
 
-export function ModuleGrid() {
+const APPROVALS_MODULE = { label: "My Approvals", href: "/transactions/my-approvals" };
+
+export function ModuleGrid({
+  canViewApprovals,
+}: {
+  canViewApprovals: boolean;
+}) {
+  const modules = canViewApprovals
+    ? [...BASE_MODULES, APPROVALS_MODULE]
+    : BASE_MODULES;
+
   return (
     <div className="grid flex-1 grid-cols-1 gap-4 p-6 content-start sm:grid-cols-2">
-      {MODULES.map((module) => (
+      {modules.map((module) => (
         <Link
           key={module.href}
           href={module.href}
