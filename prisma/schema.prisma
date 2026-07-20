@@ -53,4 +53,16 @@ model User {
 
   location   Location @relation(fields: [locationId], references: [id])
   locationId String
+
+  matrixTypesCreated MatrixType[]
+}
+
+model MatrixType {
+  id         String   @id @default(cuid())
+  matrixCode String   @unique
+  name       String   @unique
+  createdAt  DateTime @default(now())
+
+  creator   User   @relation(fields: [creatorId], references: [id])
+  creatorId String
 }

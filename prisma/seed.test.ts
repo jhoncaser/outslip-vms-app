@@ -52,6 +52,39 @@ describe("seed script", () => {
     );
   });
 
+  it("seeds all matrix type values with sequential codes", async () => {
+    await main();
+
+    const matrixTypes = await prisma.matrixType.findMany({
+      orderBy: { matrixCode: "asc" },
+    });
+
+    expect(matrixTypes.map((m) => m.name)).toEqual([
+      "Halfday",
+      "Undertime",
+      "Routing to other Business Unit",
+      "Visitor Pass",
+      "Out for Lunch",
+      "Others",
+    ]);
+    expect(matrixTypes.map((m) => m.matrixCode)).toEqual([
+      "MT-001",
+      "MT-002",
+      "MT-003",
+      "MT-004",
+      "MT-005",
+      "MT-006",
+    ]);
+  });
+
+  it("does not duplicate matrix types when run twice", async () => {
+    await main();
+    await main();
+
+    const matrixTypes = await prisma.matrixType.findMany();
+    expect(matrixTypes).toHaveLength(6);
+  });
+
   afterAll(async () => {
     await prisma.$disconnect();
   });

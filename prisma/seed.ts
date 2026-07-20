@@ -7,6 +7,14 @@ const prisma = new PrismaClient();
 const DEPARTMENTS = ["ICT", "HROD", "Accounting", "Treasury", "Admin"];
 const BUSINESS_UNITS = ["Cawit", "MSC", "Talisayan", "Prime", "Delta", "Alpha"];
 const LOCATIONS = ["Zamboanga", "Manila", "Valenzuela", "Batangas"];
+const MATRIX_TYPES = [
+  "Halfday",
+  "Undertime",
+  "Routing to other Business Unit",
+  "Visitor Pass",
+  "Out for Lunch",
+  "Others",
+];
 
 async function seedReferenceData() {
   for (const name of DEPARTMENTS) {
@@ -32,7 +40,7 @@ async function seedReferenceData() {
   }
 }
 
-async function seedAdmin() {
+async function seedAdmin(): Promise<string> {
   const email = process.env.SEED_ADMIN_EMAIL;
   const password = process.env.SEED_ADMIN_PASSWORD;
 
@@ -42,9 +50,19 @@ async function seedAdmin() {
     );
   }
 
+  const passwordHash = await bcrypt.hash(password, 10);
+
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    return;
+    // Update the existing admin to ensure correct password and mustChangePassword flag
+    await prisma.user.update({
+      where: { id: existing.id },
+      data: {
+        passwordHash,
+        mustChangePassword: true,
+      },
+    });
+    return existing.id;
   }
 
   const adminDepartment = await prisma.department.findUniqueOrThrow({
@@ -57,9 +75,7 @@ async function seedAdmin() {
     where: { name: LOCATIONS[0] },
   });
 
-  const passwordHash = await bcrypt.hash(password, 10);
-
-  await prisma.user.create({
+  const admin = await prisma.user.create({
     data: {
       firstName: "Super",
       lastName: "Admin",
@@ -73,11 +89,29 @@ async function seedAdmin() {
       mustChangePassword: true,
     },
   });
+
+  return admin.id;
+}
+
+async function seedMatrixTypes(creatorId: string) {
+  for (const name of MATRIX_TYPES) {
+    const existing = await prisma.matrixType.findUnique({ where: { name } });
+    if (existing) continue;
+    const count = await prisma.matrixType.count();
+    await prisma.matrixType.create({
+      data: {
+        matrixCode: `MT-${String(count + 1).padStart(3, "0")}`,
+        name,
+        creatorId,
+      },
+    });
+  }
 }
 
 export async function main() {
   await seedReferenceData();
-  await seedAdmin();
+  const adminId = await seedAdmin();
+  await seedMatrixTypes(adminId);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
