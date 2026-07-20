@@ -92,7 +92,7 @@ export function UsersView({ users }: { users: UserRow[] }) {
             {users.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={COLUMNS.length}
                   className="px-4 py-8 text-center text-slate-500"
                 >
                   No users registered yet.
@@ -137,30 +137,30 @@ export function UsersView({ users }: { users: UserRow[] }) {
         >
           <div className="flex min-h-full items-center justify-center p-6">
             <div className="w-full max-w-[520px] overflow-hidden rounded-xl bg-white shadow-xl">
-            <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
-              <div
-                aria-hidden
-                className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
-              />
-              <div
-                aria-hidden
-                className="absolute -bottom-10 -left-5 h-28 w-28 rounded-full bg-white/5"
-              />
-              <h2
-                id="register-user-title"
-                className="text-lg font-extrabold tracking-widest text-white"
-              >
-                REGISTER USER
-              </h2>
-              <button
-                type="button"
-                aria-label="Close"
-                onClick={() => setOpen(false)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 motion-reduce:transition-none"
-              >
-                <CloseIcon />
-              </button>
-            </div>
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
+                <div
+                  aria-hidden
+                  className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
+                />
+                <div
+                  aria-hidden
+                  className="absolute -bottom-10 -left-5 h-28 w-28 rounded-full bg-white/5"
+                />
+                <h2
+                  id="register-user-title"
+                  className="text-lg font-extrabold tracking-widest text-white"
+                >
+                  REGISTER USER
+                </h2>
+                <button
+                  type="button"
+                  aria-label="Close"
+                  onClick={() => setOpen(false)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 motion-reduce:transition-none"
+                >
+                  <CloseIcon />
+                </button>
+              </div>
               <div className="px-8 py-7">
                 <RegistrationWizard />
               </div>

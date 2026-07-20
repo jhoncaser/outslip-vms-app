@@ -101,4 +101,23 @@ describe("UsersView", () => {
     fireEvent.click(screen.getByRole("button", { name: /^close$/i }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
+
+  it("keeps the modal open on backdrop click and Escape", () => {
+    render(<UsersView users={sampleUsers} />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /\+ register user/i })
+    );
+    const dialog = screen.getByRole("dialog");
+
+    fireEvent.click(dialog);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("uses the singular label for exactly one user", () => {
+    render(<UsersView users={[sampleUsers[0]]} />);
+    expect(screen.getByText("1 user")).toBeInTheDocument();
+  });
 });
