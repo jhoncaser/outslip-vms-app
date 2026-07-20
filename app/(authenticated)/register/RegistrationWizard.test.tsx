@@ -154,3 +154,109 @@ describe("RegistrationWizard", () => {
     expect(nextButton).not.toBeDisabled();
   });
 });
+
+describe("RegistrationWizard — edit mode", () => {
+  const onDoneMock = vi.fn();
+  const existingUser = {
+    id: "user_1",
+    role: "SECOND_APPROVER",
+    firstName: "Maria",
+    middleName: "",
+    lastName: "Santos",
+    jobTitle: "HR Manager",
+    email: "maria.santos@company.com",
+    departmentId: "dept_1",
+    businessUnitId: "bu_1",
+    locationId: "loc_1",
+  };
+
+  beforeEach(() => {
+    onDoneMock.mockReset();
+    refreshMock.mockReset();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string, init?: RequestInit) => {
+        if (url === "/api/reference-data") {
+          return Promise.resolve({
+            ok: true,
+            json: async () => referenceData,
+          });
+        }
+        if (url === "/api/users/user_1" && !init) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => existingUser,
+          });
+        }
+        if (url === "/api/users/user_1" && init?.method === "PATCH") {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ id: "user_1" }),
+          });
+        }
+        return Promise.reject(new Error(`Unexpected fetch to ${url}`));
+      })
+    );
+  });
+
+  it("loads the existing user, hides password fields, and submits a PATCH", async () => {
+    render(<RegistrationWizard userId="user_1" onDone={onDoneMock} />);
+
+    expect(screen.getByText(/loading user/i)).toBeInTheDocument();
+
+    await screen.findByLabelText(/role/i);
+    expect(screen.getByLabelText(/role/i)).toHaveValue("SECOND_APPROVER");
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+
+    await screen.findByDisplayValue("Maria");
+    expect(screen.getByDisplayValue("Santos")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("HR Manager")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^password$/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/confirm password/i)).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/job title/i), {
+      target: { value: "Senior HR Manager" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+
+    await screen.findByText(/review & confirm/i);
+    expect(screen.getByText("Senior HR Manager")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /submit registration/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/users/user_1",
+        expect.objectContaining({ method: "PATCH" })
+      )
+    );
+    await waitFor(() => expect(refreshMock).toHaveBeenCalled());
+
+    expect(await screen.findByText(/changes saved/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^done$/i }));
+    expect(onDoneMock).toHaveBeenCalled();
+  });
+
+  it("shows an error if the user fails to load", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) => {
+        if (url === "/api/reference-data") {
+          return Promise.resolve({
+            ok: true,
+            json: async () => referenceData,
+          });
+        }
+        if (url === "/api/users/user_1") {
+          return Promise.resolve({
+            ok: false,
+            json: async () => ({ error: "Not found" }),
+          });
+        }
+        return Promise.reject(new Error(`Unexpected fetch to ${url}`));
+      })
+    );
+
+    render(<RegistrationWizard userId="user_1" onDone={onDoneMock} />);
+    expect(await screen.findByRole("alert")).toHaveTextContent(/could not load/i);
+  });
+});

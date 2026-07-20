@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordInput } from "@/components/PasswordInput";
-import { registrationSchema } from "@/lib/validation/registration";
+import { registrationSchema, editUserSchema } from "@/lib/validation/registration";
 import { ROLES, ROLE_LABELS, type RoleValue } from "@/lib/roles";
 
 type ReferenceItem = { id: string; name: string };
@@ -41,6 +41,11 @@ const initialState: FormState = {
   confirmPassword: "",
 };
 
+type RegistrationWizardProps = {
+  userId?: string;
+  onDone?: () => void;
+};
+
 function StepIndicator({ step }: { step: number }) {
   return (
     <div className="mb-5 flex items-center gap-1.5">
@@ -64,7 +69,8 @@ function StepIndicator({ step }: { step: number }) {
   );
 }
 
-export function RegistrationWizard() {
+export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) {
+  const isEditing = Boolean(userId);
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormState>(initialState);
@@ -74,12 +80,45 @@ export function RegistrationWizard() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(isEditing);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/reference-data")
       .then((res) => res.json())
       .then(setReferenceData);
   }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    fetch(`/api/users/${userId}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error("Failed to load user");
+        }
+        return res.json();
+      })
+      .then((user) => {
+        setForm((prev) => ({
+          ...prev,
+          role: user.role,
+          firstName: user.firstName,
+          middleName: user.middleName ?? "",
+          lastName: user.lastName,
+          jobTitle: user.jobTitle,
+          departmentId: user.departmentId,
+          businessUnitId: user.businessUnitId,
+          locationId: user.locationId,
+          email: user.email,
+        }));
+        setLoadingUser(false);
+      })
+      .catch(() => {
+        setLoadError("Could not load user details. Please close and try again.");
+        setLoadingUser(false);
+      });
+  }, [userId]);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -94,11 +133,27 @@ export function RegistrationWizard() {
     setSubmitting(true);
 
     try {
-      const response = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const response = isEditing
+        ? await fetch(`/api/users/${userId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              role: form.role,
+              firstName: form.firstName,
+              middleName: form.middleName,
+              lastName: form.lastName,
+              jobTitle: form.jobTitle,
+              departmentId: form.departmentId,
+              businessUnitId: form.businessUnitId,
+              locationId: form.locationId,
+              email: form.email,
+            }),
+          })
+        : await fetch("/api/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form),
+          });
 
       const body = await response.json();
 
@@ -116,7 +171,45 @@ export function RegistrationWizard() {
     }
   }
 
+  if (isEditing && loadError) {
+    return (
+      <p role="alert" className="text-sm text-red-600">
+        {loadError}
+      </p>
+    );
+  }
+
+  if (isEditing && loadingUser) {
+    return (
+      <div className="py-10 text-center text-sm text-slate-500">
+        Loading user…
+      </div>
+    );
+  }
+
   if (success) {
+    if (isEditing) {
+      return (
+        <div>
+          <div className="mb-3 text-sm font-bold text-[#2C7001]">
+            Changes saved
+          </div>
+          <p className="mb-6 text-xs leading-relaxed text-slate-600">
+            Details for{" "}
+            {[form.firstName, form.lastName].filter(Boolean).join(" ")} have
+            been updated.
+          </p>
+          <button
+            type="button"
+            onClick={() => onDone?.()}
+            className="rounded-full bg-[#2C7001] px-5 py-2.5 text-sm font-semibold text-white"
+          >
+            DONE
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div>
         <div className="mb-3 text-sm font-bold text-[#2C7001]">
@@ -293,27 +386,31 @@ export function RegistrationWizard() {
           className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
         />
 
-        <label htmlFor="password" className="text-xs text-slate-500">
-          Password
-        </label>
-        <PasswordInput
-          id="password"
-          value={form.password}
-          onChange={(e) => update("password", e.target.value)}
-          wrapperClassName="mb-4"
-          inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
-        />
+        {!isEditing && (
+          <>
+            <label htmlFor="password" className="text-xs text-slate-500">
+              Password
+            </label>
+            <PasswordInput
+              id="password"
+              value={form.password}
+              onChange={(e) => update("password", e.target.value)}
+              wrapperClassName="mb-4"
+              inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
+            />
 
-        <label htmlFor="confirmPassword" className="text-xs text-slate-500">
-          Confirm Password
-        </label>
-        <PasswordInput
-          id="confirmPassword"
-          value={form.confirmPassword}
-          onChange={(e) => update("confirmPassword", e.target.value)}
-          wrapperClassName="mb-5"
-          inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
-        />
+            <label htmlFor="confirmPassword" className="text-xs text-slate-500">
+              Confirm Password
+            </label>
+            <PasswordInput
+              id="confirmPassword"
+              value={form.confirmPassword}
+              onChange={(e) => update("confirmPassword", e.target.value)}
+              wrapperClassName="mb-5"
+              inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
+            />
+          </>
+        )}
 
         <div className="flex justify-between">
           <button
@@ -325,7 +422,10 @@ export function RegistrationWizard() {
           </button>
           <button
             type="button"
-            disabled={!registrationSchema.safeParse(form).success}
+            disabled={
+              !(isEditing ? editUserSchema : registrationSchema).safeParse(form)
+                .success
+            }
             onClick={() => setStep(3)}
             className="rounded-full bg-[#2C7001] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
           >
