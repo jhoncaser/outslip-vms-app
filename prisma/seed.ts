@@ -50,18 +50,8 @@ async function seedAdmin(): Promise<string> {
     );
   }
 
-  const passwordHash = await bcrypt.hash(password, 10);
-
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    // Update the existing admin to ensure correct password and mustChangePassword flag
-    await prisma.user.update({
-      where: { id: existing.id },
-      data: {
-        passwordHash,
-        mustChangePassword: true,
-      },
-    });
     return existing.id;
   }
 
@@ -74,6 +64,8 @@ async function seedAdmin(): Promise<string> {
   const defaultLocation = await prisma.location.findUniqueOrThrow({
     where: { name: LOCATIONS[0] },
   });
+
+  const passwordHash = await bcrypt.hash(password, 10);
 
   const admin = await prisma.user.create({
     data: {
