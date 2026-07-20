@@ -103,11 +103,11 @@ export function UsersView({ users }: { users: UserRow[] }) {
       <div className="overflow-x-auto rounded-xl bg-white shadow">
         <table className="w-full border-collapse text-left text-sm text-slate-600">
           <thead>
-            <tr className="border-b-2 border-[#2C7001] bg-[#f8faf7]">
+            <tr className="bg-[#2C7001]">
               {COLUMNS.map((column) => (
                 <th
                   key={column}
-                  className="px-4 py-3 text-xs font-semibold text-[#3f6212]"
+                  className="px-4 py-3 text-xs font-bold text-white"
                 >
                   {column}
                 </th>
