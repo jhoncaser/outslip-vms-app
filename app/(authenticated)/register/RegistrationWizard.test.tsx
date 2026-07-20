@@ -53,6 +53,9 @@ describe("RegistrationWizard", () => {
     fireEvent.change(screen.getByLabelText(/last name/i), {
       target: { value: "Dela Cruz" },
     });
+    fireEvent.change(screen.getByLabelText(/job title/i), {
+      target: { value: "IT Officer" },
+    });
     fireEvent.change(screen.getByLabelText(/^department$/i), {
       target: { value: "dept_1" },
     });
@@ -75,6 +78,7 @@ describe("RegistrationWizard", () => {
 
     await screen.findByText(/review & confirm/i);
     expect(screen.getByText("Juan Dela Cruz")).toBeInTheDocument();
+    expect(screen.getByText("IT Officer")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /submit registration/i }));
 
     await waitFor(() =>
@@ -112,6 +116,9 @@ describe("RegistrationWizard", () => {
     });
     fireEvent.change(screen.getByLabelText(/last name/i), {
       target: { value: "Dela Cruz" },
+    });
+    fireEvent.change(screen.getByLabelText(/job title/i), {
+      target: { value: "IT Officer" },
     });
     fireEvent.change(screen.getByLabelText(/^department$/i), {
       target: { value: "dept_1" },

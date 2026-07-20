@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
         firstName: data.firstName,
         middleName: data.middleName || null,
         lastName: data.lastName,
+        jobTitle: data.jobTitle,
         email: data.email,
         passwordHash,
         role: data.role,

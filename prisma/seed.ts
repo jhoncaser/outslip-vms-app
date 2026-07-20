@@ -63,6 +63,7 @@ async function seedAdmin() {
     data: {
       firstName: "Super",
       lastName: "Admin",
+      jobTitle: "System Administrator",
       email,
       passwordHash,
       role: "FIRST_APPROVER",

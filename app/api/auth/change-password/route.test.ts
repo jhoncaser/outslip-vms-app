@@ -48,6 +48,7 @@ describe("POST /api/auth/change-password", () => {
       create: {
         firstName: "Test",
         lastName: "User",
+        jobTitle: "IT Officer",
         email: testEmail,
         passwordHash: await hashPassword("temp-password"),
         role: "CREATOR",

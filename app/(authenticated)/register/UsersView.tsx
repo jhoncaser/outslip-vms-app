@@ -8,6 +8,7 @@ export type UserRow = {
   id: string;
   firstName: string;
   lastName: string;
+  jobTitle: string;
   role: RoleValue;
   department: string;
   businessUnit: string;
@@ -26,6 +27,7 @@ const ROLE_PILL_CLASSES: Record<RoleValue, string> = {
 const COLUMNS = [
   "First Name",
   "Last Name",
+  "Job Title",
   "Role",
   "Department",
   "Business Unit",
@@ -108,6 +110,7 @@ export function UsersView({ users }: { users: UserRow[] }) {
                 >
                   <td className="px-4 py-3">{user.firstName}</td>
                   <td className="px-4 py-3">{user.lastName}</td>
+                  <td className="px-4 py-3">{user.jobTitle}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${ROLE_PILL_CLASSES[user.role]}`}

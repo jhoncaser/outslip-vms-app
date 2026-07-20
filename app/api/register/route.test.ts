@@ -28,6 +28,7 @@ function validPayload(overrides: Record<string, unknown> = {}) {
     role: "CREATOR",
     firstName: "New",
     lastName: "User",
+    jobTitle: "IT Officer",
     departmentId,
     businessUnitId,
     locationId,

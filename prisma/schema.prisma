@@ -38,6 +38,7 @@ model User {
   firstName          String
   middleName         String?
   lastName           String
+  jobTitle           String
   email              String   @unique
   passwordHash       String
   role               Role

@@ -18,6 +18,7 @@ type FormState = {
   firstName: string;
   middleName: string;
   lastName: string;
+  jobTitle: string;
   departmentId: string;
   businessUnitId: string;
   locationId: string;
@@ -31,6 +32,7 @@ const initialState: FormState = {
   firstName: "",
   middleName: "",
   lastName: "",
+  jobTitle: "",
   departmentId: "",
   businessUnitId: "",
   locationId: "",
@@ -216,6 +218,16 @@ export function RegistrationWizard() {
           className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
         />
 
+        <label htmlFor="jobTitle" className="text-xs text-slate-500">
+          Job Title
+        </label>
+        <input
+          id="jobTitle"
+          value={form.jobTitle}
+          onChange={(e) => update("jobTitle", e.target.value)}
+          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
+        />
+
         <label htmlFor="department" className="text-xs text-slate-500">
           Department
         </label>
@@ -342,6 +354,10 @@ export function RegistrationWizard() {
               .filter(Boolean)
               .join(" ")}
           </span>
+        </div>
+        <div className="flex justify-between">
+          <span>Job Title</span>
+          <span>{form.jobTitle}</span>
         </div>
         <div className="flex justify-between">
           <span>Department</span>

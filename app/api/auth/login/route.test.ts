@@ -42,6 +42,7 @@ describe("POST /api/auth/login", () => {
       create: {
         firstName: "Test",
         lastName: "User",
+        jobTitle: "IT Officer",
         email: testEmail,
         passwordHash: await hashPassword("correct-password"),
         role: "CREATOR",

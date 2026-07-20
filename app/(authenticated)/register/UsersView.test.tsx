@@ -11,6 +11,7 @@ const sampleUsers: UserRow[] = [
     id: "u1",
     firstName: "Juan",
     lastName: "Dela Cruz",
+    jobTitle: "IT Officer",
     role: "CREATOR",
     department: "ICT",
     businessUnit: "Cawit",
@@ -21,6 +22,7 @@ const sampleUsers: UserRow[] = [
     id: "u2",
     firstName: "Maria",
     lastName: "Santos",
+    jobTitle: "HR Manager",
     role: "FIRST_APPROVER",
     department: "Admin",
     businessUnit: "Corporate",
@@ -50,11 +52,12 @@ describe("UsersView", () => {
     );
   });
 
-  it("renders all seven column headers", () => {
+  it("renders all eight column headers", () => {
     render(<UsersView users={sampleUsers} />);
     for (const header of [
       "First Name",
       "Last Name",
+      "Job Title",
       "Role",
       "Department",
       "Business Unit",
@@ -71,6 +74,7 @@ describe("UsersView", () => {
     render(<UsersView users={sampleUsers} />);
     expect(screen.getByText("Juan")).toBeInTheDocument();
     expect(screen.getByText("Dela Cruz")).toBeInTheDocument();
+    expect(screen.getByText("IT Officer")).toBeInTheDocument();
     expect(screen.getByText("Creator")).toBeInTheDocument();
     expect(screen.getByText("1st Level Approver")).toBeInTheDocument();
     expect(screen.getByText("ICT")).toBeInTheDocument();
