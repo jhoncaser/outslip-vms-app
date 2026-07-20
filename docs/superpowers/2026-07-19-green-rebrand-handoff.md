@@ -187,6 +187,14 @@ User asked to replace the users table's plain underlined-text "Edit" trigger wit
 
 Suite 110/111 (same known seed baseline). One transient `TypeError: Cannot read properties of undefined (reading 'config')` on the scoped test file, same known flake pattern as prior cycles — clean on immediate retry.
 
+## 3p. Follow-up work: users table header color — DONE
+
+User asked for the users table header to match the navbar's green (`#2C7001`) with white text, instead of the pale `#f8faf7`/`#3f6212` treatment. Brainstormed via `superpowers:brainstorming`, reusing the still-live visual companion session (`750-1784509596`, port 52903): mockup of the full table with a solid green header row against the real body rows/pills/Edit buttons, then a second version with the column labels bolded per user request. User approved the bold version ("Looks right, implement it"). Implemented directly (single-file classNames change, no separate spec doc — same lightweight precedent as the icon-badge round, §3k), commit `87eeca1`.
+
+- **`app/(authenticated)/register/UsersView.tsx`:** header `<tr>` background `bg-[#f8faf7]` → `bg-[#2C7001]`; the `border-b-2 border-[#2C7001]` separator was dropped (it becomes invisible once the header fill is the same green — the solid fill already provides the separation); column label `<th>` text `text-[#3f6212] font-semibold` → `text-white font-bold`.
+
+No new tests — purely decorative background/text-color change, existing `UsersView.test.tsx` (9/9) still covers behavior and passed unmodified.
+
 ## 4. Environment & secrets
 
 Working directly in the main repo checkout (not a worktree) — `.env` here already points at the live Neon Postgres dev database. No new secrets introduced by this plan.
