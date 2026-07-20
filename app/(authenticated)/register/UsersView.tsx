@@ -16,6 +16,24 @@ export type UserRow = {
   createdAt: string;
 };
 
+function EditIcon() {
+  return (
+    <svg
+      aria-hidden
+      className="h-3.5 w-3.5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+}
+
 const ROLE_PILL_CLASSES: Record<RoleValue, string> = {
   CREATOR: "bg-sky-100 text-sky-800",
   FIRST_APPROVER: "bg-amber-100 text-amber-800",
@@ -136,8 +154,9 @@ export function UsersView({ users }: { users: UserRow[] }) {
                       onClick={() =>
                         setModal({ mode: "edit", userId: user.id })
                       }
-                      className="text-xs font-semibold text-[#2C7001] hover:underline"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[#cfe3c4] bg-white px-2.5 py-1 text-xs font-semibold text-[#2C7001] transition-colors duration-150 hover:border-[#2C7001] hover:bg-[#f2f8ee] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none"
                     >
+                      <EditIcon />
                       Edit
                     </button>
                   </td>
