@@ -133,9 +133,10 @@ export function UsersView({ users }: { users: UserRow[] }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="register-user-title"
-          className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/35 p-6"
+          className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/35"
         >
-          <div className="mx-auto mt-6 w-full max-w-[520px] overflow-hidden rounded-xl bg-white shadow-xl">
+          <div className="flex min-h-full items-center justify-center p-6">
+            <div className="w-full max-w-[520px] overflow-hidden rounded-xl bg-white shadow-xl">
             <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
               <div
                 aria-hidden
@@ -160,8 +161,9 @@ export function UsersView({ users }: { users: UserRow[] }) {
                 <CloseIcon />
               </button>
             </div>
-            <div className="px-8 py-7">
-              <RegistrationWizard />
+              <div className="px-8 py-7">
+                <RegistrationWizard />
+              </div>
             </div>
           </div>
         </div>
