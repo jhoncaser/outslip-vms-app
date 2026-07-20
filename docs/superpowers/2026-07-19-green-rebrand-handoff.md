@@ -157,6 +157,17 @@ User asked for professional CSS hover effect ideas for the dashboard module tile
 
 **Seed-admin state is now permanently user-owned (2026-07-19):** the user completed the "Set a New Password" flow for real — the seed admin (`admin@gmail.com`) now has the user's own password and `mustChangePassword: false`, **by explicit user choice**. Do NOT run the one-off reset script anymore unless the user asks. Consequence: `prisma/seed.test.ts` now fails its pristine-state assertions on every full-suite run (81/82 passing is the new expected baseline, e.g. this cycle's run). If the failing test gets annoying, the agreed future option is adjusting the test to tolerate a bootstrapped-then-changed admin — not yet requested.
 
+## 3m. Follow-up work: Register User page → users table + modal wizard — DONE
+
+User asked that `/register` show a table of registered users by default (columns: First Name, Last Name, Role, Department, Business Unit, Location, Created) with a "+ Register User" button (upper right) opening the existing 3-step wizard. Brainstormed with a fresh visual-companion session (`750-1784509596`, port 52903 — old 51919 session had idled out); user picked the modal approach (Option A mockup: role pills, zebra rows, green-tinted header). Spec: `docs/superpowers/specs/2026-07-20-register-users-table-design.md` (`4090c52`). Plan: `docs/superpowers/plans/2026-07-20-register-users-table.md` (`da6b734`, 2 tasks). Executed via `superpowers:subagent-driven-development` (haiku implementers — fully-specified code — sonnet task reviewers, opus final review; per-task user check-ins per standing preference).
+
+- **Task 1 (`60d4c7f`):** `ROLES`/`ROLE_LABELS` extracted to new `lib/roles.ts` (shared by wizard + table); wizard success now calls `router.refresh()` (was a dead `router.push("/register?success=1")`). Review clean.
+- **Task 2 (`5539d30`):** new `app/(authenticated)/register/UsersView.tsx` (client: header/count, hover-lift button, 7-column table, role pill map, empty state, ✕-only modal wrapping `RegistrationWizard`) + 4 tests; `page.tsx` now queries Prisma directly (allowlist select — no email/hash to client), formats dates server-side (`en-US` short-month, hydration-safe), keeps the `canProvisionUsers` gate and MFC background. Review clean.
+- **`4aa8277`:** user tested in-browser — modal overlapped the navbar; centered it with the canonical `overflow-y-auto` overlay + `flex min-h-full items-center justify-center` wrapper (scroll-safe for the tall step-2 form).
+- **Final review (opus): "Ready to merge, with fixes"** — 0 Critical/Important. Its Minor fixes landed in `1d33add`: regression test that backdrop/Escape do NOT close the modal (deliberate, spec'd behavior), singular "1 user" test, `colSpan={COLUMNS.length}`, JSX re-indent. Backlog (not done, not blocking): modal focus trap/restore (a11y), pagination if the user list grows.
+
+**New test baseline: 87/88** (was 81/82) — the 1 failure is still only the §3l seed-admin baseline. `npm run build` clean. User confirmed the centered modal in-browser.
+
 ## 4. Environment & secrets
 
 Working directly in the main repo checkout (not a worktree) — `.env` here already points at the live Neon Postgres dev database. No new secrets introduced by this plan.
@@ -170,4 +181,4 @@ Working directly in the main repo checkout (not a worktree) — `.env` here alre
 
 ## 6. GitHub push status
 
-Pushed to `origin/green-rebrand` on 2026-07-19 (user explicitly authorized each time — most recently "proceed on commit and push" for the dashboard tile hover effect), latest tip = the handoff-update commit sitting on top of `c632aa0` (spec `f0e7c24` + implementation `c632aa0`). **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
+Pushed to `origin/green-rebrand` on 2026-07-20 (standing sync authorization: commit+push+handoff-update after each user-confirmed cycle — most recent cycle: register users table, §3m), latest tip = the handoff-update commit sitting on top of `1d33add`, **47 commits ahead of `main`** (verified via `git rev-list --count main..HEAD` after the handoff commit). **Merge intentionally deferred** — user wants the branch to stay pushed-but-unmerged until the whole project is finished (see Status note in §2). This project's convention is explicit authorization per push, not standing permission — ask again before merging to `main` or opening a PR, even later in the project.
