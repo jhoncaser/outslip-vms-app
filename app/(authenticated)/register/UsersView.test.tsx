@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { UsersView, type UserRow } from "./UsersView";
 
 vi.mock("next/navigation", () => ({
@@ -33,7 +33,8 @@ const sampleUsers: UserRow[] = [
 
 describe("UsersView", () => {
   beforeEach(() => {
-    // The wizard inside the modal fetches reference data on mount.
+    // The wizard inside the modal fetches reference data on mount, and in
+    // edit mode also fetches the target user's details.
     vi.stubGlobal(
       "fetch",
       vi.fn((url: string) => {
@@ -47,12 +48,29 @@ describe("UsersView", () => {
             }),
           });
         }
+        if (url.startsWith("/api/users/")) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              id: "u1",
+              role: "CREATOR",
+              firstName: "Juan",
+              middleName: "",
+              lastName: "Dela Cruz",
+              jobTitle: "IT Officer",
+              email: "juan@example.com",
+              departmentId: "dept_1",
+              businessUnitId: "bu_1",
+              locationId: "loc_1",
+            }),
+          });
+        }
         return Promise.reject(new Error(`Unexpected fetch to ${url}`));
       })
     );
   });
 
-  it("renders all eight column headers", () => {
+  it("renders all nine column headers", () => {
     render(<UsersView users={sampleUsers} />);
     for (const header of [
       "First Name",
@@ -63,6 +81,7 @@ describe("UsersView", () => {
       "Business Unit",
       "Location",
       "Created",
+      "Actions",
     ]) {
       expect(
         screen.getByRole("columnheader", { name: header })
@@ -123,5 +142,27 @@ describe("UsersView", () => {
   it("uses the singular label for exactly one user", () => {
     render(<UsersView users={[sampleUsers[0]]} />);
     expect(screen.getByText("1 user")).toBeInTheDocument();
+  });
+
+  it("renders an Edit button for each row", () => {
+    render(<UsersView users={sampleUsers} />);
+    expect(screen.getAllByRole("button", { name: /^edit$/i })).toHaveLength(2);
+  });
+
+  it("opens the edit modal with an EDIT USER header and fetches that row's details", async () => {
+    render(<UsersView users={sampleUsers} />);
+    fireEvent.click(screen.getAllByRole("button", { name: /^edit$/i })[0]);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText(/edit user/i)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith("/api/users/u1")
+    );
+  });
+
+  it("still shows a REGISTER USER header for the create flow", () => {
+    render(<UsersView users={sampleUsers} />);
+    fireEvent.click(screen.getByRole("button", { name: /\+ register user/i }));
+    expect(screen.getByText(/^register user$/i)).toBeInTheDocument();
   });
 });

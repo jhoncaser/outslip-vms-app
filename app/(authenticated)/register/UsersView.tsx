@@ -33,7 +33,13 @@ const COLUMNS = [
   "Business Unit",
   "Location",
   "Created",
+  "Actions",
 ];
+
+type ModalState =
+  | { mode: "closed" }
+  | { mode: "create" }
+  | { mode: "edit"; userId: string };
 
 function CloseIcon() {
   return (
@@ -54,7 +60,7 @@ function CloseIcon() {
 }
 
 export function UsersView({ users }: { users: UserRow[] }) {
-  const [open, setOpen] = useState(false);
+  const [modal, setModal] = useState<ModalState>({ mode: "closed" });
 
   return (
     <div className="w-full">
@@ -69,7 +75,7 @@ export function UsersView({ users }: { users: UserRow[] }) {
         </div>
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={() => setModal({ mode: "create" })}
           className="rounded-full bg-[#2C7001] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
         >
           + Register User
@@ -124,6 +130,17 @@ export function UsersView({ users }: { users: UserRow[] }) {
                   <td className="px-4 py-3 text-slate-500">
                     {user.createdAt}
                   </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setModal({ mode: "edit", userId: user.id })
+                      }
+                      className="text-xs font-semibold text-[#2C7001] hover:underline"
+                    >
+                      Edit
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
@@ -131,7 +148,7 @@ export function UsersView({ users }: { users: UserRow[] }) {
         </table>
       </div>
 
-      {open && (
+      {modal.mode !== "closed" && (
         <div
           role="dialog"
           aria-modal="true"
@@ -153,19 +170,22 @@ export function UsersView({ users }: { users: UserRow[] }) {
                   id="register-user-title"
                   className="text-lg font-extrabold tracking-widest text-white"
                 >
-                  REGISTER USER
+                  {modal.mode === "edit" ? "EDIT USER" : "REGISTER USER"}
                 </h2>
                 <button
                   type="button"
                   aria-label="Close"
-                  onClick={() => setOpen(false)}
+                  onClick={() => setModal({ mode: "closed" })}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 motion-reduce:transition-none"
                 >
                   <CloseIcon />
                 </button>
               </div>
               <div className="px-8 py-7">
-                <RegistrationWizard />
+                <RegistrationWizard
+                  userId={modal.mode === "edit" ? modal.userId : undefined}
+                  onDone={() => setModal({ mode: "closed" })}
+                />
               </div>
             </div>
           </div>
