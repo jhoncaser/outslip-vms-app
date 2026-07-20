@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { RegistrationWizard } from "./RegistrationWizard";
 
-const pushMock = vi.fn();
+const refreshMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: pushMock }),
+  useRouter: () => ({ refresh: refreshMock }),
 }));
 
 const referenceData = {
@@ -16,7 +16,7 @@ const referenceData = {
 
 describe("RegistrationWizard", () => {
   beforeEach(() => {
-    pushMock.mockReset();
+    refreshMock.mockReset();
     vi.stubGlobal(
       "fetch",
       vi.fn((url: string, init?: RequestInit) => {
@@ -83,7 +83,7 @@ describe("RegistrationWizard", () => {
         expect.objectContaining({ method: "POST" })
       )
     );
-    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/register?success=1"));
+    await waitFor(() => expect(refreshMock).toHaveBeenCalled());
 
     expect(await screen.findByText(/registration complete/i)).toBeInTheDocument();
     expect(screen.getByText(/juan dela cruz has been registered/i)).toBeInTheDocument();

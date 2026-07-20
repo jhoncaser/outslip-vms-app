@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordInput } from "@/components/PasswordInput";
 import { registrationSchema } from "@/lib/validation/registration";
+import { ROLES, ROLE_LABELS, type RoleValue } from "@/lib/roles";
 
 type ReferenceItem = { id: string; name: string };
 type ReferenceData = {
@@ -12,24 +13,8 @@ type ReferenceData = {
   locations: ReferenceItem[];
 };
 
-const ROLES = [
-  "CREATOR",
-  "FIRST_APPROVER",
-  "SECOND_APPROVER",
-  "THIRD_APPROVER",
-  "GUARD_PERSONNEL",
-] as const;
-
-const ROLE_LABELS: Record<(typeof ROLES)[number], string> = {
-  CREATOR: "Creator",
-  FIRST_APPROVER: "1st Level Approver",
-  SECOND_APPROVER: "2nd Level Approver",
-  THIRD_APPROVER: "3rd Level Approver",
-  GUARD_PERSONNEL: "Guard Personnel",
-};
-
 type FormState = {
-  role: (typeof ROLES)[number] | "";
+  role: RoleValue | "";
   firstName: string;
   middleName: string;
   lastName: string;
@@ -121,7 +106,7 @@ export function RegistrationWizard() {
       }
 
       setSuccess(true);
-      router.push("/register?success=1");
+      router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
