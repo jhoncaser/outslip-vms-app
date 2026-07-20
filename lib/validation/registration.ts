@@ -12,6 +12,7 @@ export const registrationSchema = z
     firstName: z.string().min(1),
     middleName: z.string().optional(),
     lastName: z.string().min(1),
+    jobTitle: z.string().min(1),
     departmentId: z.string().min(1),
     businessUnitId: z.string().min(1),
     locationId: z.string().min(1),
@@ -23,3 +24,21 @@ export const registrationSchema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+export const editUserSchema = z.object({
+  role: z.enum([
+    "CREATOR",
+    "FIRST_APPROVER",
+    "SECOND_APPROVER",
+    "THIRD_APPROVER",
+    "GUARD_PERSONNEL",
+  ]),
+  firstName: z.string().min(1),
+  middleName: z.string().optional(),
+  lastName: z.string().min(1),
+  jobTitle: z.string().min(1),
+  departmentId: z.string().min(1),
+  businessUnitId: z.string().min(1),
+  locationId: z.string().min(1),
+  email: z.string().email(),
+});
