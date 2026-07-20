@@ -229,6 +229,23 @@ describe("RegistrationWizard — edit mode", () => {
         expect.objectContaining({ method: "PATCH" })
       )
     );
+    const patchCall = (fetch as ReturnType<typeof vi.fn>).mock.calls.find(
+      ([url, init]) => url === "/api/users/user_1" && init?.method === "PATCH"
+    );
+    const patchBody = JSON.parse(patchCall![1].body as string);
+    expect(patchBody).toEqual({
+      role: "SECOND_APPROVER",
+      firstName: "Maria",
+      middleName: "",
+      lastName: "Santos",
+      jobTitle: "Senior HR Manager",
+      departmentId: "dept_1",
+      businessUnitId: "bu_1",
+      locationId: "loc_1",
+      email: "maria.santos@company.com",
+    });
+    expect(patchBody.password).toBeUndefined();
+    expect(patchBody.confirmPassword).toBeUndefined();
     await waitFor(() => expect(refreshMock).toHaveBeenCalled());
 
     expect(await screen.findByText(/changes saved/i)).toBeInTheDocument();
