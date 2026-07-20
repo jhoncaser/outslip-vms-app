@@ -195,6 +195,24 @@ User asked for the users table header to match the navbar's green (`#2C7001`) wi
 
 No new tests — purely decorative background/text-color change, existing `UsersView.test.tsx` (9/9) still covers behavior and passed unmodified.
 
+## 3q. Follow-up work: Settings — setup tables (Matrix Type, Department, Business Unit, Location) — IN PROGRESS
+
+New multi-step feature, first piece of the future Outslip request work. User wants employees to eventually create outslip requests with an approval level driven by a "Matrix Type" dropdown (e.g. Halfday, Undertime, Visitor Pass, Out for Lunch, Others) — but that whole request/approval feature was explicitly decomposed down to just its first building block: giving admins a place to manage the Matrix Type list (plus, once raised, the existing-but-unused Department/Business Unit/Location reference data too). **The approval-level/routing logic itself is deferred — user said they'll provide that separately.**
+
+Brainstormed via `superpowers:brainstorming`, reusing the still-live visual companion session (`750-1784509596`, port 52903). Key decisions along the way:
+- User shared a screenshot of a legacy system's `matrix_type` table (columns: id, matrix_code, matrix_type, creator, date_created) as a **shape reference only** — not a data migration; fresh seed values used instead (`Halfday`, `Undertime`, `Routing to other Business Unit`, `Visitor Pass`, `Out for Lunch`, `Others`).
+- Matrix code auto-generates (`MT-001`, `MT-002`, …) — admin never types it.
+- Discovered `Department`/`BusinessUnit`/`Location` already have a working `POST /api/reference-data` endpoint with zero UI in front of it (Settings page was still a placeholder) — decided to finally build that UI now, for all four setups, add-only (no edit/delete), keeping the existing three simple (no creator/date tracking — only Matrix Type gets that).
+- Layout mockups iterated through several rounds (top tabs → pill segmented control → dashboard-tile-style launcher with counts → **final: same dashboard-tile-style launcher, labels only, no counts**) before landing on the approved design.
+
+**Spec:** `docs/superpowers/specs/2026-07-20-settings-setup-tables-design.md` (`3acc379`). **Plan:** `docs/superpowers/plans/2026-07-20-settings-setup-tables.md` (`2bc4f54`, 3 tasks). Executing via `superpowers:subagent-driven-development` (haiku implementers, sonnet task reviewers; per-task user check-ins per standing preference).
+
+- **Task 1 — DONE (commits `0f9dd08`, fix `a375cf0`):** `MatrixType` Prisma model (matrixCode/name both unique, creator relation to `User`, createdAt) + migration applied to the live Neon DB; `lib/validation/matrixType.ts` (`matrixTypeSchema`); seed data for the 6 matrix types with sequential `MT-XXX` codes. Original review caught a real bug: the implementer had changed `seedAdmin()` to unconditionally reset an *existing* admin's `passwordHash`/`mustChangePassword` on every seed re-run — which would have silently reverted the live admin's real, user-set password (see §3l — that state is supposed to be permanent, untouched without the user asking). Fixed by reverting `seedAdmin` to the brief's exact early-return-only behavior; re-review confirmed clean. 8/8 tests pass. One Minor, plan-mandated (not implementer-introduced), carried to final review triage: `seedMatrixTypes`'s code-generation (count-based) would collide if a row were ever deleted — not currently reachable, no delete UI exists.
+- **Task 2 — NOT STARTED:** extend `GET /api/reference-data` with `matrixTypes`; new `POST /api/matrix-types` route.
+- **Task 3 — NOT STARTED:** `SettingsView` client component (tile launcher + tables + add-modal) and the `settings/page.tsx` rewrite (replaces the `PagePlaceholder`).
+
+**Status: paused mid-plan by user request ("update handoff.md and lets continue maybe tomorrow").** Resume at Task 2 — dispatch its implementer per `superpowers:subagent-driven-development` (the plan and ledger have everything needed; no re-brainstorming required). Progress ledger: `.superpowers/sdd/progress.md`, section "Progress Ledger — settings-setup-tables plan".
+
 ## 4. Environment & secrets
 
 Working directly in the main repo checkout (not a worktree) — `.env` here already points at the live Neon Postgres dev database. No new secrets introduced by this plan.
