@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { POST } from "./route";
 import { prisma } from "@/lib/prisma";
@@ -119,6 +119,58 @@ describe("POST /api/matrix-types", () => {
     expect(created?.creatorId).toBe((await prisma.user.findUniqueOrThrow({
       where: { email: "matrix-types-route-test-admin@example.com" },
     })).id);
+  });
+
+  it("returns 409 when a matrix type with this name already exists", async () => {
+    const adminUser = await prisma.user.findUniqueOrThrow({
+      where: { email: "matrix-types-route-test-admin@example.com" },
+    });
+    await prisma.matrixType.create({
+      data: {
+        matrixCode: "MT-DUPTEST",
+        name: "Route-Test Duplicate",
+        creatorId: adminUser.id,
+      },
+    });
+
+    const response = await POST(
+      requestWithCookie(adminToken, { name: "Route-Test Duplicate" })
+    );
+    expect(response.status).toBe(409);
+
+    const body = await response.json();
+    expect(body.error).toMatch(/already exists/i);
+  });
+
+  it("retries with a new code when the generated matrix code collides", async () => {
+    const adminUser = await prisma.user.findUniqueOrThrow({
+      where: { email: "matrix-types-route-test-admin@example.com" },
+    });
+    const before = await prisma.matrixType.count();
+    const staleCode = `MT-${String(before + 1).padStart(3, "0")}`;
+
+    await prisma.matrixType.create({
+      data: {
+        matrixCode: staleCode,
+        name: "Route-Test Collision Seed",
+        creatorId: adminUser.id,
+      },
+    });
+
+    const countSpy = vi
+      .spyOn(prisma.matrixType, "count")
+      .mockResolvedValueOnce(before);
+
+    const response = await POST(
+      requestWithCookie(adminToken, { name: "Route-Test Retry" })
+    );
+    expect(response.status).toBe(201);
+
+    const body = await response.json();
+    expect(body.matrixCode).not.toBe(staleCode);
+    expect(body.name).toBe("Route-Test Retry");
+
+    countSpy.mockRestore();
   });
 
   afterAll(async () => {
