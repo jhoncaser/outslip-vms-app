@@ -35,6 +35,18 @@ export async function POST(request: NextRequest) {
           matrixTypeId: parsed.data.matrixTypeId,
           statusId: openStatus.id,
           creatorId: session.sub,
+          plannedDate: parsed.data.plannedDate
+            ? new Date(parsed.data.plannedDate)
+            : undefined,
+          plannedTime: parsed.data.plannedTime
+            ? new Date(`1970-01-01T${parsed.data.plannedTime}:00.000Z`)
+            : undefined,
+          returnTime: parsed.data.returnTime
+            ? new Date(`1970-01-01T${parsed.data.returnTime}:00.000Z`)
+            : undefined,
+          originBusinessUnit: parsed.data.originBusinessUnit,
+          enrouteBusinessUnits: parsed.data.enrouteBusinessUnits ?? [],
+          reason: parsed.data.reason,
         },
       });
       return NextResponse.json(created, { status: 201 });

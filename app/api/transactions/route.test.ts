@@ -129,6 +129,60 @@ describe("POST /api/transactions", () => {
     expect(created?.status.name).toBe("Open");
   });
 
+  it("creates a transaction with all optional fields populated and round-trips them correctly", async () => {
+    const response = await POST(
+      requestWithCookie(userToken, {
+        matrixTypeId,
+        plannedDate: "2026-07-25",
+        plannedTime: "09:00",
+        returnTime: "17:00",
+        originBusinessUnit: "Cawit",
+        enrouteBusinessUnits: ["Alpha", "Delta"],
+        reason: "Client meeting",
+      })
+    );
+    expect(response.status).toBe(201);
+
+    const body = await response.json();
+    const created = await prisma.transaction.findUniqueOrThrow({
+      where: { id: body.id },
+    });
+
+    expect(created.plannedDate?.toISOString().slice(0, 10)).toBe("2026-07-25");
+    expect(created.plannedTime?.toISOString().slice(11, 16)).toBe("09:00");
+    expect(created.returnTime?.toISOString().slice(11, 16)).toBe("17:00");
+    expect(created.originBusinessUnit).toBe("Cawit");
+    expect(created.enrouteBusinessUnits).toEqual(["Alpha", "Delta"]);
+    expect(created.reason).toBe("Client meeting");
+  });
+
+  it("creates a transaction successfully when all optional fields are omitted", async () => {
+    const response = await POST(requestWithCookie(userToken, { matrixTypeId }));
+    expect(response.status).toBe(201);
+
+    const body = await response.json();
+    const created = await prisma.transaction.findUniqueOrThrow({
+      where: { id: body.id },
+    });
+
+    expect(created.plannedDate).toBeNull();
+    expect(created.plannedTime).toBeNull();
+    expect(created.returnTime).toBeNull();
+    expect(created.originBusinessUnit).toBeNull();
+    expect(created.enrouteBusinessUnits).toEqual([]);
+    expect(created.reason).toBeNull();
+  });
+
+  it("returns 400 for an originBusinessUnit value outside the fixed list", async () => {
+    const response = await POST(
+      requestWithCookie(userToken, {
+        matrixTypeId,
+        originBusinessUnit: "Not A Real Unit",
+      })
+    );
+    expect(response.status).toBe(400);
+  });
+
   it("retries with a new code when the generated transaction code collides", async () => {
     const openStatus = await prisma.transactionStatus.findUniqueOrThrow({
       where: { name: "Open" },
