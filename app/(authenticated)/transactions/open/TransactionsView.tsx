@@ -8,6 +8,12 @@ export type TransactionRow = {
   id: string;
   transactionCode: string;
   matrixTypeName: string;
+  plannedDate: string;
+  plannedTime: string;
+  returnTime: string;
+  originBusinessUnit: string;
+  enrouteBusinessUnits: string;
+  reason: string;
   createdBy: string;
   statusName: string;
   createdAt: string;
@@ -33,14 +39,29 @@ function CloseIcon() {
 }
 
 function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
-  const columns = ["Code", "Transaction Type", "Created By", "Status", "Date Filed"];
+  const columns = [
+    "Code",
+    "Transaction Type",
+    "Planned Date",
+    "Planned Time",
+    "Return Time",
+    "Origin Business Unit",
+    "Enroute to Other Business Unit",
+    "Reason",
+    "Created By",
+    "Status",
+    "Date Filed",
+  ];
   return (
     <div className="overflow-x-auto rounded-xl bg-white shadow">
       <table className="w-full border-collapse text-left text-sm text-slate-600">
         <thead>
           <tr className="bg-[#2C7001]">
             {columns.map((column) => (
-              <th key={column} className="px-4 py-3 text-xs font-bold text-white">
+              <th
+                key={column}
+                className="whitespace-nowrap px-4 py-3 text-xs font-bold text-white"
+              >
                 {column}
               </th>
             ))}
@@ -59,15 +80,21 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
                 key={row.id}
                 className={`border-b border-slate-100 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
               >
-                <td className="px-4 py-3">{row.transactionCode}</td>
-                <td className="px-4 py-3">{row.matrixTypeName}</td>
-                <td className="px-4 py-3">{row.createdBy}</td>
-                <td className="px-4 py-3">
+                <td className="whitespace-nowrap px-4 py-3">{row.transactionCode}</td>
+                <td className="whitespace-nowrap px-4 py-3">{row.matrixTypeName}</td>
+                <td className="whitespace-nowrap px-4 py-3">{row.plannedDate}</td>
+                <td className="whitespace-nowrap px-4 py-3">{row.plannedTime}</td>
+                <td className="whitespace-nowrap px-4 py-3">{row.returnTime}</td>
+                <td className="whitespace-nowrap px-4 py-3">{row.originBusinessUnit}</td>
+                <td className="max-w-[220px] px-4 py-3">{row.enrouteBusinessUnits}</td>
+                <td className="max-w-[220px] px-4 py-3">{row.reason}</td>
+                <td className="whitespace-nowrap px-4 py-3">{row.createdBy}</td>
+                <td className="whitespace-nowrap px-4 py-3">
                   <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
                     {row.statusName}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-slate-500">{row.createdAt}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-slate-500">{row.createdAt}</td>
               </tr>
             ))
           )}

@@ -11,6 +11,12 @@ const transactions = [
     id: "t1",
     transactionCode: "OT-001",
     matrixTypeName: "Halfday",
+    plannedDate: "Jul 25, 2026",
+    plannedTime: "9:00 AM",
+    returnTime: "5:00 PM",
+    originBusinessUnit: "Cawit",
+    enrouteBusinessUnits: "Alpha, Delta",
+    reason: "Client meeting",
     createdBy: "Jhon Caser",
     statusName: "Open",
     createdAt: "Jul 21, 2026",
@@ -48,6 +54,28 @@ describe("TransactionsView", () => {
     expect(screen.getByText("OT-001")).toBeInTheDocument();
     expect(screen.getByText("Halfday")).toBeInTheDocument();
     expect(screen.getByText("Jhon Caser")).toBeInTheDocument();
+  });
+
+  it("renders the additional fields as table columns before Created By", () => {
+    renderView();
+    const headers = screen.getAllByRole("columnheader").map((h) => h.textContent);
+    expect(headers).toEqual([
+      "Code",
+      "Transaction Type",
+      "Planned Date",
+      "Planned Time",
+      "Return Time",
+      "Origin Business Unit",
+      "Enroute to Other Business Unit",
+      "Reason",
+      "Created By",
+      "Status",
+      "Date Filed",
+    ]);
+    expect(screen.getByText("Jul 25, 2026")).toBeInTheDocument();
+    expect(screen.getByText("9:00 AM")).toBeInTheDocument();
+    expect(screen.getByText("Alpha, Delta")).toBeInTheDocument();
+    expect(screen.getByText("Client meeting")).toBeInTheDocument();
   });
 
   it("opens the modal and lists matrix type options", () => {
