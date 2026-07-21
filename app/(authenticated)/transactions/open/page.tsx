@@ -1,10 +1,42 @@
-import { PagePlaceholder } from "@/components/PagePlaceholder";
+import { prisma } from "@/lib/prisma";
+import { TransactionsView } from "./TransactionsView";
 
-export default function OpenTransactionsPage() {
+export default async function OpenTransactionsPage() {
+  const [transactions, matrixTypes] = await Promise.all([
+    prisma.transaction.findMany({
+      where: { status: { name: "Open" } },
+      orderBy: { createdAt: "desc" },
+      include: {
+        matrixType: { select: { name: true } },
+        status: { select: { name: true } },
+        creator: { select: { firstName: true, lastName: true } },
+      },
+    }),
+    prisma.matrixType.findMany({ orderBy: { name: "asc" } }),
+  ]);
+
+  const transactionRows = transactions.map((row) => ({
+    id: row.id,
+    transactionCode: row.transactionCode,
+    matrixTypeName: row.matrixType.name,
+    createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
+    statusName: row.status.name,
+    createdAt: row.createdAt.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
+  }));
+
   return (
-    <PagePlaceholder
-      title="Open Transaction"
-      description="The open transaction list is coming in a later update."
-    />
+    <div className="relative flex flex-1 items-start justify-center overflow-hidden bg-[#eef1ee] p-8">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[url('/mfc-logo.png')] bg-cover bg-center bg-no-repeat opacity-[0.18]"
+      />
+      <div className="relative z-10 w-full">
+        <TransactionsView transactions={transactionRows} matrixTypes={matrixTypes} />
+      </div>
+    </div>
   );
 }

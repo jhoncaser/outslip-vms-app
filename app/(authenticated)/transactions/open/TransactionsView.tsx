@@ -1,0 +1,216 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+
+export type TransactionRow = {
+  id: string;
+  transactionCode: string;
+  matrixTypeName: string;
+  createdBy: string;
+  statusName: string;
+  createdAt: string;
+};
+export type MatrixTypeOption = { id: string; name: string };
+
+function CloseIcon() {
+  return (
+    <svg
+      aria-hidden
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
+  const columns = ["Code", "Transaction Type", "Created By", "Status", "Date Filed"];
+  return (
+    <div className="overflow-x-auto rounded-xl bg-white shadow">
+      <table className="w-full border-collapse text-left text-sm text-slate-600">
+        <thead>
+          <tr className="bg-[#2C7001]">
+            {columns.map((column) => (
+              <th key={column} className="px-4 py-3 text-xs font-bold text-white">
+                {column}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan={columns.length} className="px-4 py-8 text-center text-slate-500">
+                No open transactions yet.
+              </td>
+            </tr>
+          ) : (
+            rows.map((row, index) => (
+              <tr
+                key={row.id}
+                className={`border-b border-slate-100 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
+              >
+                <td className="px-4 py-3">{row.transactionCode}</td>
+                <td className="px-4 py-3">{row.matrixTypeName}</td>
+                <td className="px-4 py-3">{row.createdBy}</td>
+                <td className="px-4 py-3">
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                    {row.statusName}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-slate-500">{row.createdAt}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export function TransactionsView({
+  transactions,
+  matrixTypes,
+}: {
+  transactions: TransactionRow[];
+  matrixTypes: MatrixTypeOption[];
+}) {
+  const router = useRouter();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [matrixTypeId, setMatrixTypeId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  function openModal() {
+    setMatrixTypeId("");
+    setError("");
+    setModalOpen(true);
+  }
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
+    setError("");
+
+    const response = await fetch("/api/transactions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matrixTypeId }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      setError(data.error ?? "Something went wrong");
+      setSubmitting(false);
+      return;
+    }
+
+    setSubmitting(false);
+    setModalOpen(false);
+    router.refresh();
+  }
+
+  return (
+    <div className="w-full">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-slate-800">Open Transaction</h1>
+          <p className="text-xs text-slate-500">Filed requests awaiting further action</p>
+        </div>
+        <button
+          type="button"
+          onClick={openModal}
+          className="rounded-full bg-[#2C7001] px-5 py-2 text-xs font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+        >
+          + Add Transaction
+        </button>
+      </div>
+
+      <TransactionsTable rows={transactions} />
+
+      {modalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="transaction-modal-title"
+          className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/35"
+        >
+          <div className="flex min-h-full items-center justify-center p-6">
+            <div className="w-full max-w-[420px] overflow-hidden rounded-xl bg-white shadow-xl">
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
+                <div
+                  aria-hidden
+                  className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
+                />
+                <div
+                  aria-hidden
+                  className="absolute -bottom-10 -left-5 h-28 w-28 rounded-full bg-white/5"
+                />
+                <h2
+                  id="transaction-modal-title"
+                  className="text-lg font-extrabold tracking-widest text-white"
+                >
+                  ADD TRANSACTION
+                </h2>
+                <button
+                  type="button"
+                  aria-label="Close"
+                  onClick={() => setModalOpen(false)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 motion-reduce:transition-none"
+                >
+                  <CloseIcon />
+                </button>
+              </div>
+              <form onSubmit={handleSubmit} className="space-y-4 px-8 py-7">
+                <div>
+                  <label
+                    htmlFor="transaction-type"
+                    className="mb-1 block text-xs font-semibold text-slate-600"
+                  >
+                    Transaction Type
+                  </label>
+                  <select
+                    id="transaction-type"
+                    required
+                    value={matrixTypeId}
+                    onChange={(event) => setMatrixTypeId(event.target.value)}
+                    className="w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-[#2C7001] focus:outline-none focus:ring-1 focus:ring-[#2C7001]"
+                  >
+                    <option value="" disabled>
+                      Select a transaction type
+                    </option>
+                    {matrixTypes.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {error && (
+                  <p role="alert" className="text-xs text-red-600">
+                    {error}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full rounded-full bg-[#2C7001] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] disabled:pointer-events-none disabled:opacity-60"
+                >
+                  {submitting ? "Saving…" : "Save"}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
