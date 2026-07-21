@@ -66,8 +66,10 @@ describe("TransactionsView", () => {
     expect(screen.getByLabelText(/return time/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^origin business unit$/i)).toBeInTheDocument();
     expect(
-      screen.getByLabelText(/enroute to other business unit/i)
+      screen.getByRole("group", { name: /enroute to other business unit/i })
     ).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Alpha" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Delta" })).toBeInTheDocument();
     expect(screen.getByLabelText(/^reason$/i)).toBeInTheDocument();
   });
 
@@ -100,20 +102,15 @@ describe("TransactionsView", () => {
     );
   });
 
-  it("includes all selected values when submitting the Enroute to Other Business Unit multi-select", async () => {
+  it("includes all checked values when submitting the Enroute to Other Business Unit checkboxes", async () => {
     renderView();
     fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
     fireEvent.change(screen.getByLabelText(/transaction type/i), {
       target: { value: "mt1" },
     });
 
-    const enrouteSelect = screen.getByLabelText(
-      /enroute to other business unit/i
-    ) as HTMLSelectElement;
-    const options = Array.from(enrouteSelect.options);
-    options.find((option) => option.value === "Alpha")!.selected = true;
-    options.find((option) => option.value === "Delta")!.selected = true;
-    fireEvent.change(enrouteSelect);
+    fireEvent.click(screen.getByRole("checkbox", { name: "Alpha" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Delta" }));
 
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
 

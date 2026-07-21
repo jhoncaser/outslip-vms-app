@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { BUSINESS_UNIT_OPTIONS } from "@/lib/businessUnitOptions";
 
@@ -112,11 +112,12 @@ export function TransactionsView({
     setModalOpen(true);
   }
 
-  function handleEnrouteChange(event: ChangeEvent<HTMLSelectElement>) {
-    const values = Array.from(event.target.selectedOptions).map(
-      (option) => option.value
+  function toggleEnrouteBusinessUnit(option: string) {
+    setEnrouteBusinessUnits((prev) =>
+      prev.includes(option)
+        ? prev.filter((value) => value !== option)
+        : [...prev, option]
     );
-    setEnrouteBusinessUnits(values);
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -284,25 +285,25 @@ export function TransactionsView({
                   </select>
                 </div>
 
-                <div>
-                  <label htmlFor="enroute-business-units" className={labelClassName}>
-                    Enroute to Other Business Unit
-                  </label>
-                  <select
-                    id="enroute-business-units"
-                    multiple
-                    size={5}
-                    value={enrouteBusinessUnits}
-                    onChange={handleEnrouteChange}
-                    className={inputClassName}
-                  >
+                <fieldset>
+                  <legend className={labelClassName}>Enroute to Other Business Unit</legend>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded border border-slate-300 p-3">
                     {BUSINESS_UNIT_OPTIONS.map((option) => (
-                      <option key={option} value={option}>
+                      <label
+                        key={option}
+                        className="flex items-center gap-2 text-sm text-slate-700"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={enrouteBusinessUnits.includes(option)}
+                          onChange={() => toggleEnrouteBusinessUnit(option)}
+                          className="h-4 w-4 rounded border-slate-300 text-[#2C7001] focus:ring-1 focus:ring-[#2C7001]"
+                        />
                         {option}
-                      </option>
+                      </label>
                     ))}
-                  </select>
-                </div>
+                  </div>
+                </fieldset>
 
                 <div>
                   <label htmlFor="reason" className={labelClassName}>
