@@ -54,7 +54,8 @@ model User {
   location   Location @relation(fields: [locationId], references: [id])
   locationId String
 
-  matrixTypesCreated MatrixType[]
+  matrixTypesCreated    MatrixType[]
+  transactionsCreated Transaction[]
 }
 
 model MatrixType {
@@ -62,6 +63,30 @@ model MatrixType {
   matrixCode String   @unique
   name       String   @unique
   createdAt  DateTime @default(now())
+
+  creator       User   @relation(fields: [creatorId], references: [id])
+  creatorId     String
+  transactions  Transaction[]
+}
+
+model TransactionStatus {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  transactions Transaction[]
+}
+
+model Transaction {
+  id              String   @id @default(cuid())
+  transactionCode String   @unique
+  createdAt       DateTime @default(now())
+
+  matrixType   MatrixType @relation(fields: [matrixTypeId], references: [id])
+  matrixTypeId String
+
+  status   TransactionStatus @relation(fields: [statusId], references: [id])
+  statusId String
 
   creator   User   @relation(fields: [creatorId], references: [id])
   creatorId String

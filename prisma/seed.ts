@@ -15,6 +15,7 @@ const MATRIX_TYPES = [
   "Out for Lunch",
   "Others",
 ];
+const TRANSACTION_STATUSES = ["Open"];
 
 async function seedReferenceData() {
   for (const name of DEPARTMENTS) {
@@ -100,10 +101,21 @@ async function seedMatrixTypes(creatorId: string) {
   }
 }
 
+async function seedTransactionStatuses() {
+  for (const name of TRANSACTION_STATUSES) {
+    await prisma.transactionStatus.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+}
+
 export async function main() {
   await seedReferenceData();
   const adminId = await seedAdmin();
   await seedMatrixTypes(adminId);
+  await seedTransactionStatuses();
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

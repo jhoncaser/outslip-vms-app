@@ -85,6 +85,21 @@ describe("seed script", () => {
     expect(matrixTypes).toHaveLength(6);
   });
 
+  it("seeds the Open transaction status", async () => {
+    await main();
+
+    const statuses = await prisma.transactionStatus.findMany();
+    expect(statuses.map((s) => s.name)).toEqual(["Open"]);
+  });
+
+  it("does not duplicate transaction statuses when run twice", async () => {
+    await main();
+    await main();
+
+    const statuses = await prisma.transactionStatus.findMany();
+    expect(statuses).toHaveLength(1);
+  });
+
   afterAll(async () => {
     await prisma.$disconnect();
   });
