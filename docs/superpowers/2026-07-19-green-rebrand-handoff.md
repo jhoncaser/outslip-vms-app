@@ -280,6 +280,18 @@ Two small ad-hoc follow-ups after §3t shipped, both implemented directly (no br
 
 Both verified via independent full-suite (150/151 → 152/153 across the two changes, same expected baseline) and `npm run build` runs, plus a live-DB query (one-off script, run and deleted) confirming a real filed transaction's data round-trips correctly end-to-end (form → API → DB → table display) after both changes.
 
+## 3v. UX/responsive audit — DEFERRED
+
+User asked whether the current design is "friendly" and works well "for all devices." Performed a read-only audit (no code changes) by grepping the whole `app/`/`components/` tree for Tailwind responsive breakpoints and reading the shell components directly:
+
+- **Only one file in the entire codebase uses `sm:`/`md:`/`lg:` breakpoints** (`app/(authenticated)/settings/SettingsView.tsx`) — everything else, including the authenticated shell every page sits in, is fixed-layout with no mobile handling.
+- **`components/dashboard/Navbar.tsx:27`** — `grid-cols-[auto_1fr_auto]` puts brand text + page title (`whitespace-nowrap`) + centered search pill + avatar all in one row with no stacking/collapse breakpoint. Will be cramped/clipped on phone-width viewports.
+- **`components/dashboard/Sidebar.tsx:11-12,143`** — fixed `w-[68px]` icon rail (width itself is fine on mobile) but nav labels only render via `group-hover`/`group-focus-visible` flyout tooltips, which never trigger on touch devices — so touch users get unlabeled icons with no way to reveal what they do.
+- **Open Transaction table** (`TransactionsView.tsx:56`, 11 columns) relies on `overflow-x-auto` to avoid breaking on narrow screens — functional but not an optimized mobile experience.
+- What IS solid: the Add Transaction modal (`TransactionsView.tsx:204-364`) scales properly (`w-full max-w-[420px]`, `max-h-[70vh] overflow-y-auto`) and holds up down to phone widths.
+
+**Verdict given to user:** solid on desktop/tablet-landscape; the app shell (navbar/sidebar) has not been built responsively for phone-width screens. **Explicitly deferred** — user said "we'll work on the UI experience later on," no design/plan started. When picked up, candidates flagged for that pass: collapsing/hiding the navbar search behind an icon on small screens, a mobile nav pattern (hamburger or bottom tabs) to replace the icon rail, and tap-to-reveal (not hover-only) labels for touch devices.
+
 ## 4. Environment & secrets
 
 Working directly in the main repo checkout (not a worktree) — `.env` here already points at the live Neon Postgres dev database. No new secrets introduced by this plan.
