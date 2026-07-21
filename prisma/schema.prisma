@@ -90,4 +90,11 @@ model Transaction {
 
   creator   User   @relation(fields: [creatorId], references: [id])
   creatorId String
+
+  plannedDate          DateTime? @db.Date
+  plannedTime          DateTime? @db.Time
+  returnTime           DateTime? @db.Time
+  originBusinessUnit   String?
+  enrouteBusinessUnits String[]  @default([])
+  reason               String?
 }
