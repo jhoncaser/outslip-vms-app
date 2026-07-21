@@ -29,13 +29,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const [departments, businessUnits, locations] = await Promise.all([
+  const [departments, businessUnits, locations, matrixTypes] = await Promise.all([
     prisma.department.findMany({ orderBy: { name: "asc" } }),
     prisma.businessUnit.findMany({ orderBy: { name: "asc" } }),
     prisma.location.findMany({ orderBy: { name: "asc" } }),
+    prisma.matrixType.findMany({ orderBy: { matrixCode: "asc" } }),
   ]);
 
-  return NextResponse.json({ departments, businessUnits, locations });
+  return NextResponse.json({ departments, businessUnits, locations, matrixTypes });
 }
 
 export async function POST(request: NextRequest) {

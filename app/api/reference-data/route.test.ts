@@ -60,6 +60,7 @@ describe("/api/reference-data", () => {
     expect(body.departments.some((d: { name: string }) => d.name === "ICT")).toBe(
       true
     );
+    expect(Array.isArray(body.matrixTypes)).toBe(true);
   });
 
   it("GET returns 401 with no session", async () => {
