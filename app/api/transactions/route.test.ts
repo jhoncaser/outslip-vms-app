@@ -76,11 +76,11 @@ describe("POST /api/transactions", () => {
     });
 
     const matrixType = await prisma.matrixType.upsert({
-      where: { name: "Route-Test Matrix Type" },
+      where: { name: "Txn Fixture Matrix Type" },
       update: {},
       create: {
-        matrixCode: "MT-ROUTETEST",
-        name: "Route-Test Matrix Type",
+        matrixCode: "MT-TXNFIXTURE",
+        name: "Txn Fixture Matrix Type",
         creatorId: user.id,
       },
     });
