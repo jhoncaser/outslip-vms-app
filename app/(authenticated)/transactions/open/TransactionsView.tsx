@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { BUSINESS_UNIT_OPTIONS } from "@/lib/businessUnitOptions";
 
 export type TransactionRow = {
   id: string;
@@ -76,6 +77,10 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
   );
 }
 
+const inputClassName =
+  "w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-[#2C7001] focus:outline-none focus:ring-1 focus:ring-[#2C7001]";
+const labelClassName = "mb-1 block text-xs font-semibold text-slate-600";
+
 export function TransactionsView({
   transactions,
   matrixTypes,
@@ -86,13 +91,32 @@ export function TransactionsView({
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
   const [matrixTypeId, setMatrixTypeId] = useState("");
+  const [plannedDate, setPlannedDate] = useState("");
+  const [plannedTime, setPlannedTime] = useState("");
+  const [returnTime, setReturnTime] = useState("");
+  const [originBusinessUnit, setOriginBusinessUnit] = useState("");
+  const [enrouteBusinessUnits, setEnrouteBusinessUnits] = useState<string[]>([]);
+  const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   function openModal() {
     setMatrixTypeId("");
+    setPlannedDate("");
+    setPlannedTime("");
+    setReturnTime("");
+    setOriginBusinessUnit("");
+    setEnrouteBusinessUnits([]);
+    setReason("");
     setError("");
     setModalOpen(true);
+  }
+
+  function handleEnrouteChange(event: ChangeEvent<HTMLSelectElement>) {
+    const values = Array.from(event.target.selectedOptions).map(
+      (option) => option.value
+    );
+    setEnrouteBusinessUnits(values);
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -100,10 +124,18 @@ export function TransactionsView({
     setSubmitting(true);
     setError("");
 
+    const body: Record<string, unknown> = { matrixTypeId };
+    if (plannedDate) body.plannedDate = plannedDate;
+    if (plannedTime) body.plannedTime = plannedTime;
+    if (returnTime) body.returnTime = returnTime;
+    if (originBusinessUnit) body.originBusinessUnit = originBusinessUnit;
+    if (enrouteBusinessUnits.length > 0) body.enrouteBusinessUnits = enrouteBusinessUnits;
+    if (reason) body.reason = reason;
+
     const response = await fetch("/api/transactions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ matrixTypeId }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -169,12 +201,9 @@ export function TransactionsView({
                   <CloseIcon />
                 </button>
               </div>
-              <form onSubmit={handleSubmit} className="space-y-4 px-8 py-7">
+              <form onSubmit={handleSubmit} className="max-h-[70vh] space-y-4 overflow-y-auto px-8 py-7">
                 <div>
-                  <label
-                    htmlFor="transaction-type"
-                    className="mb-1 block text-xs font-semibold text-slate-600"
-                  >
+                  <label htmlFor="transaction-type" className={labelClassName}>
                     Transaction Type
                   </label>
                   <select
@@ -182,7 +211,7 @@ export function TransactionsView({
                     required
                     value={matrixTypeId}
                     onChange={(event) => setMatrixTypeId(event.target.value)}
-                    className="w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-[#2C7001] focus:outline-none focus:ring-1 focus:ring-[#2C7001]"
+                    className={inputClassName}
                   >
                     <option value="" disabled>
                       Select a transaction type
@@ -194,6 +223,100 @@ export function TransactionsView({
                     ))}
                   </select>
                 </div>
+
+                <div>
+                  <label htmlFor="planned-date" className={labelClassName}>
+                    Planned Date
+                  </label>
+                  <input
+                    id="planned-date"
+                    type="date"
+                    value={plannedDate}
+                    onChange={(event) => setPlannedDate(event.target.value)}
+                    className={inputClassName}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="planned-time" className={labelClassName}>
+                    Planned Time
+                  </label>
+                  <input
+                    id="planned-time"
+                    type="time"
+                    value={plannedTime}
+                    onChange={(event) => setPlannedTime(event.target.value)}
+                    className={inputClassName}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="return-time" className={labelClassName}>
+                    Return Time
+                  </label>
+                  <input
+                    id="return-time"
+                    type="time"
+                    value={returnTime}
+                    onChange={(event) => setReturnTime(event.target.value)}
+                    className={inputClassName}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="origin-business-unit" className={labelClassName}>
+                    Origin Business Unit
+                  </label>
+                  <select
+                    id="origin-business-unit"
+                    value={originBusinessUnit}
+                    onChange={(event) => setOriginBusinessUnit(event.target.value)}
+                    className={inputClassName}
+                  >
+                    <option value="" disabled>
+                      Select a business unit
+                    </option>
+                    {BUSINESS_UNIT_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="enroute-business-units" className={labelClassName}>
+                    Enroute to Other Business Unit
+                  </label>
+                  <select
+                    id="enroute-business-units"
+                    multiple
+                    size={5}
+                    value={enrouteBusinessUnits}
+                    onChange={handleEnrouteChange}
+                    className={inputClassName}
+                  >
+                    {BUSINESS_UNIT_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="reason" className={labelClassName}>
+                    Reason
+                  </label>
+                  <textarea
+                    id="reason"
+                    rows={3}
+                    value={reason}
+                    onChange={(event) => setReason(event.target.value)}
+                    className={inputClassName}
+                  />
+                </div>
+
                 {error && (
                   <p role="alert" className="text-xs text-red-600">
                     {error}

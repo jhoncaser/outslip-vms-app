@@ -58,6 +58,78 @@ describe("TransactionsView", () => {
     expect(screen.getByRole("option", { name: "Undertime" })).toBeInTheDocument();
   });
 
+  it("renders the additional optional fields in the Add Transaction modal", () => {
+    renderView();
+    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    expect(screen.getByLabelText(/planned date/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/planned time/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/return time/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^origin business unit$/i)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/enroute to other business unit/i)
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/^reason$/i)).toBeInTheDocument();
+  });
+
+  it("includes populated optional fields in the submitted body", async () => {
+    renderView();
+    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    fireEvent.change(screen.getByLabelText(/transaction type/i), {
+      target: { value: "mt1" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned date/i), {
+      target: { value: "2026-07-25" },
+    });
+    fireEvent.change(screen.getByLabelText(/^reason$/i), {
+      target: { value: "Client meeting" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            matrixTypeId: "mt1",
+            plannedDate: "2026-07-25",
+            reason: "Client meeting",
+          }),
+        })
+      )
+    );
+  });
+
+  it("includes all selected values when submitting the Enroute to Other Business Unit multi-select", async () => {
+    renderView();
+    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    fireEvent.change(screen.getByLabelText(/transaction type/i), {
+      target: { value: "mt1" },
+    });
+
+    const enrouteSelect = screen.getByLabelText(
+      /enroute to other business unit/i
+    ) as HTMLSelectElement;
+    const options = Array.from(enrouteSelect.options);
+    options.find((option) => option.value === "Alpha")!.selected = true;
+    options.find((option) => option.value === "Delta")!.selected = true;
+    fireEvent.change(enrouteSelect);
+
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions",
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining(
+            '"enrouteBusinessUnits":["Alpha","Delta"]'
+          ),
+        })
+      )
+    );
+  });
+
   it("submits the selected matrix type to /api/transactions", async () => {
     renderView();
     fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
