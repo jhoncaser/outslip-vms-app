@@ -265,7 +265,7 @@ Add these two tests immediately after `"renders a QR code thumbnail for each tra
     renderView();
     fireEvent.click(
       screen.getByRole("button", {
-        name: "View larger QR code for transaction OT-001",
+        name: "QR code for transaction OT-001",
       })
     );
     const dialog = screen.getByRole("dialog");
@@ -279,7 +279,7 @@ Add these two tests immediately after `"renders a QR code thumbnail for each tra
     renderView();
     fireEvent.click(
       screen.getByRole("button", {
-        name: "View larger QR code for transaction OT-001",
+        name: "QR code for transaction OT-001",
       })
     );
     const dialog = screen.getByRole("dialog");
@@ -295,7 +295,7 @@ Add these two tests immediately after `"renders a QR code thumbnail for each tra
 - [ ] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run "app/(authenticated)/transactions/open/TransactionsView.test.tsx"`
-Expected: FAIL — `getByRole("button", { name: "View larger QR code for transaction OT-001" })` finds nothing, since the thumbnail is still a plain `<img>`, not a button.
+Expected: FAIL — `getByRole("button", { name: "QR code for transaction OT-001" })` finds nothing, since the thumbnail is still a plain `<img>`, not a button.
 
 - [ ] **Step 3: Implement the button and enlarge modal**
 
@@ -353,10 +353,13 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
                     <button
                       type="button"
                       onClick={() => setEnlargedCode(row.transactionCode)}
-                      aria-label={`View larger QR code for transaction ${row.transactionCode}`}
                       className="h-12 w-12 overflow-hidden rounded border border-slate-200 transition-colors hover:border-[#2C7001] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35"
                     >
-                      <img src={row.qrDataUrl} alt="" className="h-full w-full" />
+                      <img
+                        src={row.qrDataUrl}
+                        alt={`QR code for transaction ${row.transactionCode}`}
+                        className="h-full w-full"
+                      />
                     </button>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">{row.transactionCode}</td>
@@ -430,7 +433,7 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
 }
 ```
 
-Note: the outer `<img alt="">` inside the thumbnail button is deliberately decorative — the button's `aria-label` already carries the accessible name, so screen readers don't announce the same information twice.
+Note: the `<img>` keeps the exact same `alt` text it had in Task 1 (unchanged) — the button intentionally has no separate `aria-label`. A `<button>` containing only a labeled image inherits its accessible name from that image's `alt` ("name from content"), so `getByRole("button", { name: "QR code for transaction OT-001" })` and Task 1's existing `getByAltText("QR code for transaction OT-001")` both keep working against the same element without any duplication.
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
