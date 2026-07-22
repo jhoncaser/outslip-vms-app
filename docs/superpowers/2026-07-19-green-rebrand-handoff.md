@@ -292,6 +292,14 @@ User asked whether the current design is "friendly" and works well "for all devi
 
 **Verdict given to user:** solid on desktop/tablet-landscape; the app shell (navbar/sidebar) has not been built responsively for phone-width screens. **Explicitly deferred** — user said "we'll work on the UI experience later on," no design/plan started. When picked up, candidates flagged for that pass: collapsing/hiding the navbar search behind an icon on small screens, a mobile nav pattern (hamburger or bottom tabs) to replace the icon rail, and tap-to-reveal (not hover-only) labels for touch devices.
 
+## 3w. Deferred: QR code generation + gate scan lookup
+
+User asked (brainstormed via `superpowers:brainstorming`, text-only) for a QR code to be generated when a transaction is created, later scanned by Guard Personnel to pull up the transaction's details — wiring into the existing-but-decorative "Scan QR code" button in the navbar (§3j). Confirmed: the QR value would encode `transactionCode`, which a scan-lookup then resolves against the `Transaction` table.
+
+Key condition: the scan/lookup should only be meaningful **once the transaction is Approved**. But no approval workflow exists yet — only `"Open"` status is seeded (`prisma/seed.ts`), `TransactionStatus` has no other rows, and `app/(authenticated)/transactions/approved/page.tsx` is still an unbuilt `PagePlaceholder`. The approval-routing logic itself was already flagged as deferred in §3q ("user said they'll provide that separately").
+
+Given that, the user chose to **hold off on this feature entirely** (declined the alternative of building QR now with the approval gate deferred, or adding a minimal manual "Approved" toggle just to unblock it) — "approved" is the actual trigger condition, so it doesn't make sense to build the scan flow before that status is real. **No design doc was written; nothing implemented.** Pick this up once the approval workflow (statuses beyond Open, approve/reject actions, routing) is built — at that point revisit: what the QR encodes, where it's rendered for the requester (table column? a per-transaction detail/print view — none exists yet), and what the guard-facing scan screen shows.
+
 ## 4. Environment & secrets
 
 Working directly in the main repo checkout (not a worktree) — `.env` here already points at the live Neon Postgres dev database. No new secrets introduced by this plan.
