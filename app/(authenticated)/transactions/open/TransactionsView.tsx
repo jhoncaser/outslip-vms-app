@@ -7,6 +7,7 @@ import { BUSINESS_UNIT_OPTIONS } from "@/lib/businessUnitOptions";
 export type TransactionRow = {
   id: string;
   transactionCode: string;
+  qrDataUrl: string;
   matrixTypeName: string;
   plannedDate: string;
   plannedTime: string;
@@ -40,6 +41,7 @@ function CloseIcon() {
 
 function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
   const columns = [
+    "QR",
     "Code",
     "Transaction Type",
     "Planned Date",
@@ -80,6 +82,13 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
                 key={row.id}
                 className={`border-b border-slate-100 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
               >
+                <td className="whitespace-nowrap px-4 py-3">
+                  <img
+                    src={row.qrDataUrl}
+                    alt={`QR code for transaction ${row.transactionCode}`}
+                    className="h-12 w-12 rounded border border-slate-200"
+                  />
+                </td>
                 <td className="whitespace-nowrap px-4 py-3">{row.transactionCode}</td>
                 <td className="whitespace-nowrap px-4 py-3">{row.matrixTypeName}</td>
                 <td className="whitespace-nowrap px-4 py-3">{row.plannedDate}</td>

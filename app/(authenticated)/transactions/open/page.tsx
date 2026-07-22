@@ -1,3 +1,4 @@
+import QRCode from "qrcode";
 import { prisma } from "@/lib/prisma";
 import { TransactionsView } from "./TransactionsView";
 
@@ -15,44 +16,50 @@ export default async function OpenTransactionsPage() {
     prisma.matrixType.findMany({ orderBy: { name: "asc" } }),
   ]);
 
-  const transactionRows = transactions.map((row) => ({
-    id: row.id,
-    transactionCode: row.transactionCode,
-    matrixTypeName: row.matrixType.name,
-    plannedDate: row.plannedDate
-      ? row.plannedDate.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-          timeZone: "UTC",
-        })
-      : "—",
-    plannedTime: row.plannedTime
-      ? row.plannedTime.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          timeZone: "UTC",
-        })
-      : "—",
-    returnTime: row.returnTime
-      ? row.returnTime.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          timeZone: "UTC",
-        })
-      : "—",
-    originBusinessUnit: row.originBusinessUnit ?? "—",
-    enrouteBusinessUnits:
-      row.enrouteBusinessUnits.length > 0 ? row.enrouteBusinessUnits.join(", ") : "—",
-    reason: row.reason ?? "—",
-    createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
-    statusName: row.status.name,
-    createdAt: row.createdAt.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }),
-  }));
+  const transactionRows = await Promise.all(
+    transactions.map(async (row) => ({
+      id: row.id,
+      transactionCode: row.transactionCode,
+      qrDataUrl: await QRCode.toDataURL(row.transactionCode, {
+        width: 240,
+        margin: 1,
+      }),
+      matrixTypeName: row.matrixType.name,
+      plannedDate: row.plannedDate
+        ? row.plannedDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            timeZone: "UTC",
+          })
+        : "—",
+      plannedTime: row.plannedTime
+        ? row.plannedTime.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            timeZone: "UTC",
+          })
+        : "—",
+      returnTime: row.returnTime
+        ? row.returnTime.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            timeZone: "UTC",
+          })
+        : "—",
+      originBusinessUnit: row.originBusinessUnit ?? "—",
+      enrouteBusinessUnits:
+        row.enrouteBusinessUnits.length > 0 ? row.enrouteBusinessUnits.join(", ") : "—",
+      reason: row.reason ?? "—",
+      createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
+      statusName: row.status.name,
+      createdAt: row.createdAt.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    }))
+  );
 
   return (
     <div className="relative flex flex-1 items-start justify-center overflow-hidden bg-[#eef1ee] p-8">

@@ -10,6 +10,7 @@ const transactions = [
   {
     id: "t1",
     transactionCode: "OT-001",
+    qrDataUrl: "data:image/png;base64,mockqrdata",
     matrixTypeName: "Halfday",
     plannedDate: "Jul 25, 2026",
     plannedTime: "9:00 AM",
@@ -60,6 +61,7 @@ describe("TransactionsView", () => {
     renderView();
     const headers = screen.getAllByRole("columnheader").map((h) => h.textContent);
     expect(headers).toEqual([
+      "QR",
       "Code",
       "Transaction Type",
       "Planned Date",
@@ -76,6 +78,12 @@ describe("TransactionsView", () => {
     expect(screen.getByText("9:00 AM")).toBeInTheDocument();
     expect(screen.getByText("Alpha, Delta")).toBeInTheDocument();
     expect(screen.getByText("Client meeting")).toBeInTheDocument();
+  });
+
+  it("renders a QR code thumbnail for each transaction", () => {
+    renderView();
+    const qrImage = screen.getByAltText("QR code for transaction OT-001");
+    expect(qrImage).toHaveAttribute("src", "data:image/png;base64,mockqrdata");
   });
 
   it("opens the modal and lists matrix type options", () => {
