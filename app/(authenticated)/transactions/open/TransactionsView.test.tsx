@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { TransactionsView } from "./TransactionsView";
 
 vi.mock("next/navigation", () => ({
@@ -84,6 +84,36 @@ describe("TransactionsView", () => {
     renderView();
     const qrImage = screen.getByAltText("QR code for transaction OT-001");
     expect(qrImage).toHaveAttribute("src", "data:image/png;base64,mockqrdata");
+  });
+
+  it("opens an enlarged QR view when the thumbnail is clicked, and closes it via the X", () => {
+    renderView();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "QR code for transaction OT-001",
+      })
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("OT-001")).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("keeps the enlarged QR view open on backdrop click and Escape", () => {
+    renderView();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "QR code for transaction OT-001",
+      })
+    );
+    const dialog = screen.getByRole("dialog");
+
+    fireEvent.click(dialog);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("opens the modal and lists matrix type options", () => {

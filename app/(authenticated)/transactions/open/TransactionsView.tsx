@@ -54,62 +54,118 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
     "Status",
     "Date Filed",
   ];
+  const [enlargedCode, setEnlargedCode] = useState<string | null>(null);
+  const enlargedRow = rows.find((row) => row.transactionCode === enlargedCode) ?? null;
+
   return (
-    <div className="overflow-x-auto rounded-xl bg-white shadow">
-      <table className="w-full border-collapse text-left text-sm text-slate-600">
-        <thead>
-          <tr className="bg-[#2C7001]">
-            {columns.map((column) => (
-              <th
-                key={column}
-                className="whitespace-nowrap px-4 py-3 text-xs font-bold text-white"
-              >
-                {column}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.length === 0 ? (
-            <tr>
-              <td colSpan={columns.length} className="px-4 py-8 text-center text-slate-500">
-                No open transactions yet.
-              </td>
+    <>
+      <div className="overflow-x-auto rounded-xl bg-white shadow">
+        <table className="w-full border-collapse text-left text-sm text-slate-600">
+          <thead>
+            <tr className="bg-[#2C7001]">
+              {columns.map((column) => (
+                <th
+                  key={column}
+                  className="whitespace-nowrap px-4 py-3 text-xs font-bold text-white"
+                >
+                  {column}
+                </th>
+              ))}
             </tr>
-          ) : (
-            rows.map((row, index) => (
-              <tr
-                key={row.id}
-                className={`border-b border-slate-100 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
-              >
-                <td className="whitespace-nowrap px-4 py-3">
-                  <img
-                    src={row.qrDataUrl}
-                    alt={`QR code for transaction ${row.transactionCode}`}
-                    className="h-12 w-12 rounded border border-slate-200"
-                  />
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="px-4 py-8 text-center text-slate-500">
+                  No open transactions yet.
                 </td>
-                <td className="whitespace-nowrap px-4 py-3">{row.transactionCode}</td>
-                <td className="whitespace-nowrap px-4 py-3">{row.matrixTypeName}</td>
-                <td className="whitespace-nowrap px-4 py-3">{row.plannedDate}</td>
-                <td className="whitespace-nowrap px-4 py-3">{row.plannedTime}</td>
-                <td className="whitespace-nowrap px-4 py-3">{row.returnTime}</td>
-                <td className="whitespace-nowrap px-4 py-3">{row.originBusinessUnit}</td>
-                <td className="max-w-[220px] px-4 py-3">{row.enrouteBusinessUnits}</td>
-                <td className="max-w-[220px] px-4 py-3">{row.reason}</td>
-                <td className="whitespace-nowrap px-4 py-3">{row.createdBy}</td>
-                <td className="whitespace-nowrap px-4 py-3">
-                  <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
-                    {row.statusName}
-                  </span>
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-slate-500">{row.createdAt}</td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
+            ) : (
+              rows.map((row, index) => (
+                <tr
+                  key={row.id}
+                  className={`border-b border-slate-100 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
+                >
+                  <td className="whitespace-nowrap px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => setEnlargedCode(row.transactionCode)}
+                      className="h-12 w-12 overflow-hidden rounded border border-slate-200 transition-colors hover:border-[#2C7001] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35"
+                    >
+                      <img
+                        src={row.qrDataUrl}
+                        alt={`QR code for transaction ${row.transactionCode}`}
+                        className="h-full w-full"
+                      />
+                    </button>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.transactionCode}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.matrixTypeName}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.plannedDate}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.plannedTime}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.returnTime}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.originBusinessUnit}</td>
+                  <td className="max-w-[220px] px-4 py-3">{row.enrouteBusinessUnits}</td>
+                  <td className="max-w-[220px] px-4 py-3">{row.reason}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.createdBy}</td>
+                  <td className="whitespace-nowrap px-4 py-3">
+                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                      {row.statusName}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-slate-500">{row.createdAt}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {enlargedRow && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="qr-modal-title"
+          className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/35"
+        >
+          <div className="flex min-h-full items-center justify-center p-6">
+            <div className="w-full max-w-[320px] overflow-hidden rounded-xl bg-white shadow-xl">
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
+                <div
+                  aria-hidden
+                  className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
+                />
+                <div
+                  aria-hidden
+                  className="absolute -bottom-10 -left-5 h-28 w-28 rounded-full bg-white/5"
+                />
+                <h2
+                  id="qr-modal-title"
+                  className="text-lg font-extrabold tracking-widest text-white"
+                >
+                  {enlargedRow.transactionCode}
+                </h2>
+                <button
+                  type="button"
+                  aria-label="Close"
+                  onClick={() => setEnlargedCode(null)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 motion-reduce:transition-none"
+                >
+                  <CloseIcon />
+                </button>
+              </div>
+              <div className="flex justify-center px-8 py-7">
+                <img
+                  src={enlargedRow.qrDataUrl}
+                  alt={`QR code for transaction ${enlargedRow.transactionCode}`}
+                  className="h-56 w-56"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
