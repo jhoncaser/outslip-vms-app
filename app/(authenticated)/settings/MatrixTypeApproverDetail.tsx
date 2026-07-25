@@ -54,8 +54,11 @@ function BackIcon() {
 const labelClassName = "mb-1 block text-xs font-semibold text-slate-600";
 const inputClassName =
   "w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-[#2C7001] focus:outline-none focus:ring-1 focus:ring-[#2C7001]";
-const filterClassName =
-  "rounded border border-slate-300 px-3 py-1.5 text-xs text-slate-700 focus:border-[#2C7001] focus:outline-none focus:ring-1 focus:ring-[#2C7001]";
+const filterButtonClassName =
+  "rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35";
+const filterButtonActiveClassName = "bg-[#2C7001] text-white";
+const filterButtonInactiveClassName =
+  "border border-slate-300 bg-white text-slate-600 hover:border-[#2C7001] hover:bg-[#f2f8ee]";
 
 export function MatrixTypeApproverDetail({
   matrixType,
@@ -76,7 +79,6 @@ export function MatrixTypeApproverDetail({
 }) {
   const router = useRouter();
   const [businessUnitFilter, setBusinessUnitFilter] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [approverId, setApproverId] = useState("");
   const [level, setLevel] = useState("");
@@ -95,7 +97,6 @@ export function MatrixTypeApproverDetail({
 
   const filtered = assignments.filter((row) => {
     if (businessUnitFilter && row.businessUnit !== businessUnitFilter) return false;
-    if (locationFilter && row.location !== locationFilter) return false;
     return true;
   });
 
@@ -192,33 +193,36 @@ export function MatrixTypeApproverDetail({
         </div>
       </div>
 
-      <div className="my-4 flex gap-3">
-        <select
-          aria-label="Filter by Business Unit"
-          value={businessUnitFilter}
-          onChange={(event) => setBusinessUnitFilter(event.target.value)}
-          className={filterClassName}
+      <div
+        role="group"
+        aria-label="Filter by Business Unit"
+        className="my-4 flex flex-wrap gap-2"
+      >
+        <button
+          type="button"
+          aria-pressed={businessUnitFilter === ""}
+          onClick={() => setBusinessUnitFilter("")}
+          className={`${filterButtonClassName} ${
+            businessUnitFilter === "" ? filterButtonActiveClassName : filterButtonInactiveClassName
+          }`}
         >
-          <option value="">Business Unit: All</option>
-          {businessUnits.map((bu) => (
-            <option key={bu.id} value={bu.name}>
-              {bu.name}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Filter by Location"
-          value={locationFilter}
-          onChange={(event) => setLocationFilter(event.target.value)}
-          className={filterClassName}
-        >
-          <option value="">Location: All</option>
-          {locations.map((loc) => (
-            <option key={loc.id} value={loc.name}>
-              {loc.name}
-            </option>
-          ))}
-        </select>
+          All
+        </button>
+        {businessUnits.map((bu) => (
+          <button
+            key={bu.id}
+            type="button"
+            aria-pressed={businessUnitFilter === bu.name}
+            onClick={() => setBusinessUnitFilter(bu.name)}
+            className={`${filterButtonClassName} ${
+              businessUnitFilter === bu.name
+                ? filterButtonActiveClassName
+                : filterButtonInactiveClassName
+            }`}
+          >
+            {bu.name}
+          </button>
+        ))}
       </div>
 
       <div className="overflow-x-auto rounded-xl bg-white shadow">

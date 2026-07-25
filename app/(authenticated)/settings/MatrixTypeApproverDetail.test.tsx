@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import {
   MatrixTypeApproverDetail,
   type ApproverAssignmentRow,
@@ -92,21 +92,16 @@ describe("MatrixTypeApproverDetail", () => {
     expect(screen.getByText(/no approvers assigned yet/i)).toBeInTheDocument();
   });
 
-  it("filters the table by Business Unit", () => {
+  it("filters the table by Business Unit via the filter buttons, and All resets it", () => {
     renderDetail();
-    fireEvent.change(screen.getByLabelText(/filter by business unit/i), {
-      target: { value: "Ayala" },
-    });
+    const group = screen.getByRole("group", { name: /filter by business unit/i });
+
+    fireEvent.click(within(group).getByRole("button", { name: "Ayala" }));
     expect(screen.queryByText("Jhon Caser")).not.toBeInTheDocument();
     expect(screen.getByText("Analyn Gentizon")).toBeInTheDocument();
-  });
 
-  it("filters the table by Location", () => {
-    renderDetail();
-    fireEvent.change(screen.getByLabelText(/filter by location/i), {
-      target: { value: "Manila" },
-    });
-    expect(screen.queryByText("Jhon Caser")).not.toBeInTheDocument();
+    fireEvent.click(within(group).getByRole("button", { name: "All" }));
+    expect(screen.getByText("Jhon Caser")).toBeInTheDocument();
     expect(screen.getByText("Analyn Gentizon")).toBeInTheDocument();
   });
 
