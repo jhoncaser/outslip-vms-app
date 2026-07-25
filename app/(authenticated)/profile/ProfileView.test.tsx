@@ -36,4 +36,10 @@ describe("ProfileView", () => {
     expect(screen.getByText("Member Since")).toBeInTheDocument();
     expect(screen.getByText("Jul 18, 2026")).toBeInTheDocument();
   });
+
+  it("renders a Change Password link pointing to /change-password", () => {
+    render(<ProfileView {...sampleProps} />);
+    const link = screen.getByRole("link", { name: /change password/i });
+    expect(link).toHaveAttribute("href", "/change-password");
+  });
 });

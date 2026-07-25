@@ -1,3 +1,23 @@
+import Link from "next/link";
+
+function LockIcon() {
+  return (
+    <svg
+      aria-hidden
+      className="h-3.5 w-3.5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </svg>
+  );
+}
+
 export type ProfileViewProps = {
   fullName: string;
   initials: string;
@@ -35,6 +55,13 @@ export function ProfileView({
           aria-hidden
           className="absolute -bottom-10 -left-5 h-28 w-28 rounded-full bg-white/5"
         />
+        <Link
+          href="/change-password"
+          className="absolute right-6 top-6 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+        >
+          <LockIcon />
+          Change Password
+        </Link>
         <div className="relative flex items-center gap-4">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/20 text-lg font-bold text-white">
             {initials}
