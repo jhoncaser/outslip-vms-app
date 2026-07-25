@@ -57,7 +57,7 @@ export function ProfileView({
         />
         <Link
           href="/change-password"
-          className="absolute right-6 top-6 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          className="absolute right-6 top-6 z-10 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
         >
           <LockIcon />
           Change Password
