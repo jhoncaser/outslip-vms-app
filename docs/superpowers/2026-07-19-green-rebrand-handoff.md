@@ -411,7 +411,7 @@ Key design decisions: only exact-name `"Visitor Pass"` gets the custom set, ever
 
 Progress ledger for this plan: `.superpowers/sdd/2026-07-25-visitor-pass-fields/progress.md` (this plan's own dedicated workspace directory, per the current skill version's per-plan-workspace convention — a departure from earlier plans on this branch, which logged into the single flat `.superpowers/sdd/progress.md`; Tasks 1-2's entries were transcribed into the new ledger from that flat file for continuity).
 
-**Status: mid-plan, paused for check-in after Task 3.** Local is not yet pushed to `origin/green-rebrand` (4 commits ahead as of Tasks 1-2, plus Task 3's 2 commits and this handoff update, still unpushed pending the plan actually finishing or an explicit push request). `main` untouched, per standing convention.
+**Status: mid-plan, paused for check-in after Task 3.** User asked to pick this back up "the day after tomorrow" (2026-07-27) — next continuation dispatches Task 4, not a fresh plan. Pushed to `origin/green-rebrand` per explicit request (see §6). `main` untouched, per standing convention.
 
 ## 4. Environment & secrets
 
