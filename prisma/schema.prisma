@@ -16,21 +16,24 @@ enum Role {
 }
 
 model Department {
-  id    String @id @default(cuid())
-  name  String @unique
-  users User[]
+  id                  String               @id @default(cuid())
+  name                String               @unique
+  users               User[]
+  matrixTypeApprovers MatrixTypeApprover[]
 }
 
 model BusinessUnit {
-  id    String @id @default(cuid())
-  name  String @unique
-  users User[]
+  id                  String               @id @default(cuid())
+  name                String               @unique
+  users               User[]
+  matrixTypeApprovers MatrixTypeApprover[]
 }
 
 model Location {
-  id    String @id @default(cuid())
-  name  String @unique
-  users User[]
+  id                  String               @id @default(cuid())
+  name                String               @unique
+  users               User[]
+  matrixTypeApprovers MatrixTypeApprover[]
 }
 
 model User {
@@ -56,6 +59,7 @@ model User {
 
   matrixTypesCreated  MatrixType[]
   transactionsCreated Transaction[]
+  approverAssignments MatrixTypeApprover[]
 }
 
 model MatrixType {
@@ -64,9 +68,34 @@ model MatrixType {
   name       String   @unique
   createdAt  DateTime @default(now())
 
-  creator      User          @relation(fields: [creatorId], references: [id])
+  creator      User                 @relation(fields: [creatorId], references: [id])
   creatorId    String
   transactions Transaction[]
+  approvers    MatrixTypeApprover[]
+}
+
+model MatrixTypeApprover {
+  id        String   @id @default(cuid())
+  level     Int
+  createdAt DateTime @default(now())
+
+  matrixType   MatrixType @relation(fields: [matrixTypeId], references: [id])
+  matrixTypeId String
+
+  department   Department @relation(fields: [departmentId], references: [id])
+  departmentId String
+
+  businessUnit   BusinessUnit @relation(fields: [businessUnitId], references: [id])
+  businessUnitId String
+
+  location   Location @relation(fields: [locationId], references: [id])
+  locationId String
+
+  approver   User   @relation(fields: [approverId], references: [id])
+  approverId String
+
+  @@unique([matrixTypeId, level, departmentId, businessUnitId, locationId])
+  @@unique([matrixTypeId, approverId, departmentId, businessUnitId, locationId])
 }
 
 model TransactionStatus {
