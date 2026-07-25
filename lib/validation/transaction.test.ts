@@ -17,7 +17,7 @@ describe("transactionSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts a body with all fields populated", () => {
+  it("accepts a body with all fields populated, including the Visitor Pass fields", () => {
     const result = transactionSchema.safeParse({
       matrixTypeId: "abc123",
       plannedDate: "2026-07-25",
@@ -26,6 +26,12 @@ describe("transactionSchema", () => {
       originBusinessUnit: "Cawit",
       enrouteBusinessUnits: ["Alpha", "Delta"],
       reason: "Client meeting",
+      visitorType: "Supplier",
+      personToMeet: "Analyn Gentizon",
+      departmentId: "dept123",
+      visitLocation: "Lobby, Room 204",
+      transportType: "Car",
+      plateNo: "ABC-1234",
     });
     expect(result.success).toBe(true);
   });
@@ -42,6 +48,22 @@ describe("transactionSchema", () => {
     const result = transactionSchema.safeParse({
       matrixTypeId: "abc123",
       enrouteBusinessUnits: ["Alpha", "Not A Real Unit"],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a visitorType value outside the fixed list", () => {
+    const result = transactionSchema.safeParse({
+      matrixTypeId: "abc123",
+      visitorType: "Not A Real Type",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a transportType value outside the fixed list", () => {
+    const result = transactionSchema.safeParse({
+      matrixTypeId: "abc123",
+      transportType: "Not A Real Type",
     });
     expect(result.success).toBe(false);
   });

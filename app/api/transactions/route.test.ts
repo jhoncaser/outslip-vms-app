@@ -8,6 +8,7 @@ import { createSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 let userToken: string;
 let userId: string;
 let matrixTypeId: string;
+let departmentId: string;
 
 function requestWithCookie(token: string | undefined, body?: unknown) {
   return new NextRequest("http://localhost/api/transactions", {
@@ -30,6 +31,8 @@ describe("POST /api/transactions", () => {
       update: {},
       create: { name: "ICT" },
     });
+    departmentId = department.id;
+
     const businessUnit = await prisma.businessUnit.upsert({
       where: { name: "Cawit" },
       update: {},
@@ -51,7 +54,7 @@ describe("POST /api/transactions", () => {
         email: "transactions-route-test-user@example.com",
         passwordHash: "unused",
         role: "CREATOR",
-        departmentId: department.id,
+        departmentId,
         businessUnitId: businessUnit.id,
         locationId: location.id,
         mustChangePassword: false,
@@ -129,7 +132,7 @@ describe("POST /api/transactions", () => {
     expect(created?.status.name).toBe("Open");
   });
 
-  it("creates a transaction with all optional fields populated and round-trips them correctly", async () => {
+  it("creates a transaction with all optional fields populated, including Visitor Pass fields, and round-trips them correctly", async () => {
     const response = await POST(
       requestWithCookie(userToken, {
         matrixTypeId,
@@ -139,6 +142,12 @@ describe("POST /api/transactions", () => {
         originBusinessUnit: "Cawit",
         enrouteBusinessUnits: ["Alpha", "Delta"],
         reason: "Client meeting",
+        visitorType: "Supplier",
+        personToMeet: "Analyn Gentizon",
+        departmentId,
+        visitLocation: "Lobby, Room 204",
+        transportType: "Car",
+        plateNo: "ABC-1234",
       })
     );
     expect(response.status).toBe(201);
@@ -154,6 +163,12 @@ describe("POST /api/transactions", () => {
     expect(created.originBusinessUnit).toBe("Cawit");
     expect(created.enrouteBusinessUnits).toEqual(["Alpha", "Delta"]);
     expect(created.reason).toBe("Client meeting");
+    expect(created.visitorType).toBe("Supplier");
+    expect(created.personToMeet).toBe("Analyn Gentizon");
+    expect(created.departmentId).toBe(departmentId);
+    expect(created.visitLocation).toBe("Lobby, Room 204");
+    expect(created.transportType).toBe("Car");
+    expect(created.plateNo).toBe("ABC-1234");
   });
 
   it("creates a transaction successfully when all optional fields are omitted", async () => {
@@ -171,6 +186,12 @@ describe("POST /api/transactions", () => {
     expect(created.originBusinessUnit).toBeNull();
     expect(created.enrouteBusinessUnits).toEqual([]);
     expect(created.reason).toBeNull();
+    expect(created.visitorType).toBeNull();
+    expect(created.personToMeet).toBeNull();
+    expect(created.departmentId).toBeNull();
+    expect(created.visitLocation).toBeNull();
+    expect(created.transportType).toBeNull();
+    expect(created.plateNo).toBeNull();
   });
 
   it("returns 400 for an originBusinessUnit value outside the fixed list", async () => {
@@ -178,6 +199,16 @@ describe("POST /api/transactions", () => {
       requestWithCookie(userToken, {
         matrixTypeId,
         originBusinessUnit: "Not A Real Unit",
+      })
+    );
+    expect(response.status).toBe(400);
+  });
+
+  it("returns 400 for a visitorType value outside the fixed list", async () => {
+    const response = await POST(
+      requestWithCookie(userToken, {
+        matrixTypeId,
+        visitorType: "Not A Real Type",
       })
     );
     expect(response.status).toBe(400);

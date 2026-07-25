@@ -47,6 +47,12 @@ export async function POST(request: NextRequest) {
           originBusinessUnit: parsed.data.originBusinessUnit,
           enrouteBusinessUnits: parsed.data.enrouteBusinessUnits ?? [],
           reason: parsed.data.reason,
+          visitorType: parsed.data.visitorType,
+          personToMeet: parsed.data.personToMeet,
+          departmentId: parsed.data.departmentId,
+          visitLocation: parsed.data.visitLocation,
+          transportType: parsed.data.transportType,
+          plateNo: parsed.data.plateNo,
         },
       });
       return NextResponse.json(created, { status: 201 });
