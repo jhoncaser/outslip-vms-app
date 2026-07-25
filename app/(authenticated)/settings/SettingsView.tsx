@@ -2,6 +2,11 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import {
+  MatrixTypeApproverDetail,
+  type ApproverAssignmentRow,
+  type UserOption,
+} from "./MatrixTypeApproverDetail";
 
 export type ReferenceRow = { id: string; name: string };
 export type MatrixTypeRow = {
@@ -39,7 +44,13 @@ function CloseIcon() {
   );
 }
 
-function MatrixTypeTable({ rows }: { rows: MatrixTypeRow[] }) {
+function MatrixTypeTable({
+  rows,
+  onSelect,
+}: {
+  rows: MatrixTypeRow[];
+  onSelect: (row: MatrixTypeRow) => void;
+}) {
   const columns = ["Matrix Code", "Matrix Type", "Creator", "Date Created"];
   return (
     <div className="overflow-x-auto rounded-xl bg-white shadow">
@@ -64,10 +75,19 @@ function MatrixTypeTable({ rows }: { rows: MatrixTypeRow[] }) {
             rows.map((row, index) => (
               <tr
                 key={row.id}
-                className={`border-b border-slate-100 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
+                onClick={() => onSelect(row)}
+                className={`cursor-pointer border-b border-slate-100 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
               >
                 <td className="px-4 py-3">{row.matrixCode}</td>
-                <td className="px-4 py-3">{row.name}</td>
+                <td className="px-4 py-3">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(row)}
+                    className="font-semibold text-[#2C7001] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2C7001]/40 rounded"
+                  >
+                    {row.name}
+                  </button>
+                </td>
                 <td className="px-4 py-3">{row.creator}</td>
                 <td className="px-4 py-3 text-slate-500">{row.createdAt}</td>
               </tr>
@@ -116,20 +136,26 @@ export function SettingsView({
   departments,
   businessUnits,
   locations,
+  approverAssignments,
+  users,
 }: {
   matrixTypes: MatrixTypeRow[];
   departments: ReferenceRow[];
   businessUnits: ReferenceRow[];
   locations: ReferenceRow[];
+  approverAssignments: ApproverAssignmentRow[];
+  users: UserOption[];
 }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>("matrixType");
+  const [selectedMatrixTypeId, setSelectedMatrixTypeId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const activeLabel = TABS.find((tab) => tab.key === activeTab)!.label;
+  const selectedMatrixType = matrixTypes.find((mt) => mt.id === selectedMatrixTypeId) ?? null;
 
   function openModal() {
     setName("");
@@ -167,118 +193,137 @@ export function SettingsView({
 
   return (
     <div className="w-full">
-      <div className="mb-4">
-        <h1 className="text-lg font-bold text-slate-800">Settings</h1>
-        <p className="text-xs text-slate-500">Manage setup values used across the app</p>
-      </div>
-
-      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            aria-pressed={activeTab === tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`rounded border border-l-4 border-slate-200 border-l-[#2C7001] bg-white px-3 py-3 text-center text-xs font-bold uppercase tracking-wide text-slate-500 transition-all duration-150 ${
-              activeTab === tab.key ? "border-l-[6px] bg-[#fbfdf9] text-[#2C7001]" : ""
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="mb-4">
-        <button
-          type="button"
-          onClick={openModal}
-          className="rounded-full bg-[#2C7001] px-5 py-2 text-xs font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-        >
-          + Add {activeLabel}
-        </button>
-      </div>
-
-      {activeTab === "matrixType" ? (
-        <MatrixTypeTable rows={matrixTypes} />
-      ) : (
-        <SimpleTable
-          label={activeLabel}
-          rows={
-            activeTab === "department"
-              ? departments
-              : activeTab === "businessUnit"
-                ? businessUnits
-                : locations
-          }
+      {selectedMatrixType ? (
+        <MatrixTypeApproverDetail
+          matrixType={selectedMatrixType}
+          assignments={approverAssignments.filter(
+            (row) => row.matrixTypeId === selectedMatrixType.id
+          )}
+          users={users}
+          departments={departments}
+          businessUnits={businessUnits}
+          locations={locations}
+          onBack={() => setSelectedMatrixTypeId(null)}
         />
-      )}
-
-      {modalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="settings-modal-title"
-          className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/35"
-        >
-          <div className="flex min-h-full items-center justify-center p-6">
-            <div className="w-full max-w-[420px] overflow-hidden rounded-xl bg-white shadow-xl">
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
-                <div
-                  aria-hidden
-                  className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
-                />
-                <div
-                  aria-hidden
-                  className="absolute -bottom-10 -left-5 h-28 w-28 rounded-full bg-white/5"
-                />
-                <h2
-                  id="settings-modal-title"
-                  className="text-lg font-extrabold tracking-widest text-white"
-                >
-                  ADD {activeLabel.toUpperCase()}
-                </h2>
-                <button
-                  type="button"
-                  aria-label="Close"
-                  onClick={() => setModalOpen(false)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 motion-reduce:transition-none"
-                >
-                  <CloseIcon />
-                </button>
-              </div>
-              <form onSubmit={handleSubmit} className="space-y-4 px-8 py-7">
-                <div>
-                  <label
-                    htmlFor="setup-name"
-                    className="mb-1 block text-xs font-semibold text-slate-600"
-                  >
-                    Name
-                  </label>
-                  <input
-                    id="setup-name"
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    className="w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-[#2C7001] focus:outline-none focus:ring-1 focus:ring-[#2C7001]"
-                  />
-                </div>
-                {error && (
-                  <p role="alert" className="text-xs text-red-600">
-                    {error}
-                  </p>
-                )}
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full rounded-full bg-[#2C7001] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] disabled:pointer-events-none disabled:opacity-60"
-                >
-                  {submitting ? "Saving…" : "Save"}
-                </button>
-              </form>
-            </div>
+      ) : (
+        <>
+          <div className="mb-4">
+            <h1 className="text-lg font-bold text-slate-800">Settings</h1>
+            <p className="text-xs text-slate-500">Manage setup values used across the app</p>
           </div>
-        </div>
+
+          <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                aria-pressed={activeTab === tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`rounded border border-l-4 border-slate-200 border-l-[#2C7001] bg-white px-3 py-3 text-center text-xs font-bold uppercase tracking-wide text-slate-500 transition-all duration-150 ${
+                  activeTab === tab.key ? "border-l-[6px] bg-[#fbfdf9] text-[#2C7001]" : ""
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={openModal}
+              className="rounded-full bg-[#2C7001] px-5 py-2 text-xs font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+            >
+              + Add {activeLabel}
+            </button>
+          </div>
+
+          {activeTab === "matrixType" ? (
+            <MatrixTypeTable
+              rows={matrixTypes}
+              onSelect={(row) => setSelectedMatrixTypeId(row.id)}
+            />
+          ) : (
+            <SimpleTable
+              label={activeLabel}
+              rows={
+                activeTab === "department"
+                  ? departments
+                  : activeTab === "businessUnit"
+                    ? businessUnits
+                    : locations
+              }
+            />
+          )}
+
+          {modalOpen && (
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="settings-modal-title"
+              className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/35"
+            >
+              <div className="flex min-h-full items-center justify-center p-6">
+                <div className="w-full max-w-[420px] overflow-hidden rounded-xl bg-white shadow-xl">
+                  <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
+                    <div
+                      aria-hidden
+                      className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
+                    />
+                    <div
+                      aria-hidden
+                      className="absolute -bottom-10 -left-5 h-28 w-28 rounded-full bg-white/5"
+                    />
+                    <h2
+                      id="settings-modal-title"
+                      className="text-lg font-extrabold tracking-widest text-white"
+                    >
+                      ADD {activeLabel.toUpperCase()}
+                    </h2>
+                    <button
+                      type="button"
+                      aria-label="Close"
+                      onClick={() => setModalOpen(false)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 motion-reduce:transition-none"
+                    >
+                      <CloseIcon />
+                    </button>
+                  </div>
+                  <form onSubmit={handleSubmit} className="space-y-4 px-8 py-7">
+                    <div>
+                      <label
+                        htmlFor="setup-name"
+                        className="mb-1 block text-xs font-semibold text-slate-600"
+                      >
+                        Name
+                      </label>
+                      <input
+                        id="setup-name"
+                        type="text"
+                        required
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-[#2C7001] focus:outline-none focus:ring-1 focus:ring-[#2C7001]"
+                      />
+                    </div>
+                    {error && (
+                      <p role="alert" className="text-xs text-red-600">
+                        {error}
+                      </p>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full rounded-full bg-[#2C7001] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] disabled:pointer-events-none disabled:opacity-60"
+                    >
+                      {submitting ? "Saving…" : "Save"}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

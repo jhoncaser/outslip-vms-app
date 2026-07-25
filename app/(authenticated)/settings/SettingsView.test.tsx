@@ -18,6 +18,18 @@ const matrixTypes = [
 const departments = [{ id: "d1", name: "ICT" }];
 const businessUnits = [{ id: "b1", name: "Cawit" }];
 const locations = [{ id: "l1", name: "Zamboanga" }];
+const approverAssignments = [
+  {
+    id: "a1",
+    matrixTypeId: "mt1",
+    approverName: "Jhon Caser",
+    level: 1,
+    department: "ICT",
+    businessUnit: "Cawit",
+    location: "Zamboanga",
+  },
+];
+const users = [{ id: "u1", name: "Jhon Caser" }];
 
 function renderView() {
   return render(
@@ -26,6 +38,8 @@ function renderView() {
       departments={departments}
       businessUnits={businessUnits}
       locations={locations}
+      approverAssignments={approverAssignments}
+      users={users}
     />
   );
 }
@@ -127,5 +141,24 @@ describe("SettingsView", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     );
+  });
+
+  it("shows the approver detail view when a Matrix Type row is clicked, and returns to the list on back", () => {
+    renderView();
+    fireEvent.click(screen.getByRole("button", { name: "Halfday" }));
+
+    expect(screen.getByText("HALFDAY")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /\+ add approver/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Matrix Type" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /settings \/ matrix type/i }));
+    expect(screen.getByRole("button", { name: "Matrix Type" })).toBeInTheDocument();
+    expect(screen.queryByText("HALFDAY")).not.toBeInTheDocument();
+  });
+
+  it("shows that matrix type's assigned approvers in the detail view", () => {
+    renderView();
+    fireEvent.click(screen.getByRole("button", { name: "Halfday" }));
+    expect(screen.getByText("Jhon Caser")).toBeInTheDocument();
   });
 });
