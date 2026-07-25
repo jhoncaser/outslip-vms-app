@@ -1,9 +1,15 @@
+import { cookies } from "next/headers";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/prisma";
+import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { TransactionsView } from "./TransactionsView";
 
 export default async function OpenTransactionsPage() {
-  const [transactions, matrixTypes] = await Promise.all([
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const session = token ? await verifySessionToken(token) : null;
+
+  const [transactions, matrixTypes, currentUser] = await Promise.all([
     prisma.transaction.findMany({
       where: { status: { name: "Open" } },
       orderBy: { createdAt: "desc" },
@@ -14,7 +20,15 @@ export default async function OpenTransactionsPage() {
       },
     }),
     prisma.matrixType.findMany({ orderBy: { name: "asc" } }),
+    session
+      ? prisma.user.findUnique({
+          where: { id: session.sub },
+          select: { businessUnit: { select: { name: true } } },
+        })
+      : null,
   ]);
+
+  const currentUserBusinessUnit = currentUser?.businessUnit.name ?? "";
 
   const transactionRows = await Promise.all(
     transactions.map(async (row) => ({
@@ -68,7 +82,11 @@ export default async function OpenTransactionsPage() {
         className="pointer-events-none absolute inset-0 bg-[url('/mfc-logo.png')] bg-cover bg-center bg-no-repeat opacity-[0.18]"
       />
       <div className="relative z-10 w-full">
-        <TransactionsView transactions={transactionRows} matrixTypes={matrixTypes} />
+        <TransactionsView
+          transactions={transactionRows}
+          matrixTypes={matrixTypes}
+          currentUserBusinessUnit={currentUserBusinessUnit}
+        />
       </div>
     </div>
   );

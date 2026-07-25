@@ -28,9 +28,13 @@ const matrixTypes = [
   { id: "mt2", name: "Undertime" },
 ];
 
-function renderView() {
+function renderView(currentUserBusinessUnit = "") {
   return render(
-    <TransactionsView transactions={transactions} matrixTypes={matrixTypes} />
+    <TransactionsView
+      transactions={transactions}
+      matrixTypes={matrixTypes}
+      currentUserBusinessUnit={currentUserBusinessUnit}
+    />
   );
 }
 
@@ -210,6 +214,44 @@ describe("TransactionsView", () => {
         })
       )
     );
+  });
+
+  it("pre-fills Origin Business Unit with the current user's business unit when it's a valid option", () => {
+    renderView("Cawit");
+    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    expect(
+      (screen.getByLabelText(/^origin business unit$/i) as HTMLSelectElement).value
+    ).toBe("Cawit");
+  });
+
+  it("still allows changing the pre-filled Origin Business Unit before submitting", async () => {
+    renderView("Cawit");
+    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    fireEvent.change(screen.getByLabelText(/transaction type/i), {
+      target: { value: "mt2" },
+    });
+    fireEvent.change(screen.getByLabelText(/^origin business unit$/i), {
+      target: { value: "Delta" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ matrixTypeId: "mt2", originBusinessUnit: "Delta" }),
+        })
+      )
+    );
+  });
+
+  it("leaves Origin Business Unit unset when the current user's business unit isn't one of the fixed options", () => {
+    renderView("MSC");
+    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    expect(
+      (screen.getByLabelText(/^origin business unit$/i) as HTMLSelectElement).value
+    ).toBe("");
   });
 
   it("closes the modal after a successful submit", async () => {

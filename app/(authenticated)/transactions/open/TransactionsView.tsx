@@ -176,9 +176,11 @@ const labelClassName = "mb-1 block text-xs font-semibold text-slate-600";
 export function TransactionsView({
   transactions,
   matrixTypes,
+  currentUserBusinessUnit,
 }: {
   transactions: TransactionRow[];
   matrixTypes: MatrixTypeOption[];
+  currentUserBusinessUnit: string;
 }) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
@@ -197,7 +199,11 @@ export function TransactionsView({
     setPlannedDate("");
     setPlannedTime("");
     setReturnTime("");
-    setOriginBusinessUnit("");
+    setOriginBusinessUnit(
+      (BUSINESS_UNIT_OPTIONS as readonly string[]).includes(currentUserBusinessUnit)
+        ? currentUserBusinessUnit
+        : ""
+    );
     setEnrouteBusinessUnits([]);
     setReason("");
     setError("");
