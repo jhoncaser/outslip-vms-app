@@ -219,8 +219,10 @@ export function SettingsView({
                 type="button"
                 aria-pressed={activeTab === tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`rounded border border-l-4 border-slate-200 border-l-[#2C7001] bg-white px-3 py-3 text-center text-xs font-bold uppercase tracking-wide text-slate-500 transition-all duration-150 ${
-                  activeTab === tab.key ? "border-l-[6px] bg-[#fbfdf9] text-[#2C7001]" : ""
+                className={`rounded border border-l-4 px-3 py-3 text-center text-xs font-bold uppercase tracking-wide transition-all duration-150 ${
+                  activeTab === tab.key
+                    ? "border-[#2C7001] border-l-[6px] bg-[#2C7001] text-white shadow-[0_4px_10px_rgba(44,112,1,0.25)]"
+                    : "border-slate-200 border-l-[#2C7001] bg-white text-slate-500 hover:bg-[#fbfdf9]"
                 }`}
               >
                 {tab.label}

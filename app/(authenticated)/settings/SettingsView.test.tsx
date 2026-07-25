@@ -151,7 +151,7 @@ describe("SettingsView", () => {
     expect(screen.getByRole("button", { name: /\+ add approver/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Matrix Type" })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /settings \/ matrix type/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^back$/i }));
     expect(screen.getByRole("button", { name: "Matrix Type" })).toBeInTheDocument();
     expect(screen.queryByText("HALFDAY")).not.toBeInTheDocument();
   });
