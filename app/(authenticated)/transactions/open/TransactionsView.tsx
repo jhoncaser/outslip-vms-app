@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { BUSINESS_UNIT_OPTIONS } from "@/lib/businessUnitOptions";
+import { VISITOR_TYPE_OPTIONS } from "@/lib/visitorTypeOptions";
+import { TRANSPORT_TYPE_OPTIONS } from "@/lib/transportTypeOptions";
 
 export type TransactionRow = {
   id: string;
@@ -15,11 +17,18 @@ export type TransactionRow = {
   originBusinessUnit: string;
   enrouteBusinessUnits: string;
   reason: string;
+  visitorType: string;
+  personToMeet: string;
+  department: string;
+  location: string;
+  transportType: string;
+  plateNo: string;
   createdBy: string;
   statusName: string;
   createdAt: string;
 };
 export type MatrixTypeOption = { id: string; name: string };
+export type DepartmentOption = { id: string; name: string };
 
 function CloseIcon() {
   return (
@@ -50,6 +59,12 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
     "Origin Business Unit",
     "Enroute to Other Business Unit",
     "Reason",
+    "Visitor Type",
+    "Person to Meet",
+    "Department",
+    "Location",
+    "Transport Type",
+    "Plate No.",
     "Created By",
     "Status",
     "Date Filed",
@@ -107,6 +122,12 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
                   <td className="whitespace-nowrap px-4 py-3">{row.originBusinessUnit}</td>
                   <td className="max-w-[220px] px-4 py-3">{row.enrouteBusinessUnits}</td>
                   <td className="max-w-[220px] px-4 py-3">{row.reason}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.visitorType}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.personToMeet}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.department}</td>
+                  <td className="max-w-[220px] px-4 py-3">{row.location}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.transportType}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.plateNo}</td>
                   <td className="whitespace-nowrap px-4 py-3">{row.createdBy}</td>
                   <td className="whitespace-nowrap px-4 py-3">
                     <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
@@ -177,10 +198,12 @@ export function TransactionsView({
   transactions,
   matrixTypes,
   currentUserBusinessUnit,
+  departments,
 }: {
   transactions: TransactionRow[];
   matrixTypes: MatrixTypeOption[];
   currentUserBusinessUnit: string;
+  departments: DepartmentOption[];
 }) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
@@ -191,8 +214,17 @@ export function TransactionsView({
   const [originBusinessUnit, setOriginBusinessUnit] = useState("");
   const [enrouteBusinessUnits, setEnrouteBusinessUnits] = useState<string[]>([]);
   const [reason, setReason] = useState("");
+  const [visitorType, setVisitorType] = useState("");
+  const [personToMeet, setPersonToMeet] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [visitLocation, setVisitLocation] = useState("");
+  const [transportType, setTransportType] = useState("");
+  const [plateNo, setPlateNo] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const isVisitorPass =
+    matrixTypes.find((option) => option.id === matrixTypeId)?.name === "Visitor Pass";
 
   function openModal() {
     setMatrixTypeId("");
@@ -206,6 +238,12 @@ export function TransactionsView({
     );
     setEnrouteBusinessUnits([]);
     setReason("");
+    setVisitorType("");
+    setPersonToMeet("");
+    setDepartmentId("");
+    setVisitLocation("");
+    setTransportType("");
+    setPlateNo("");
     setError("");
     setModalOpen(true);
   }
@@ -230,6 +268,12 @@ export function TransactionsView({
     if (originBusinessUnit) body.originBusinessUnit = originBusinessUnit;
     if (enrouteBusinessUnits.length > 0) body.enrouteBusinessUnits = enrouteBusinessUnits;
     if (reason) body.reason = reason;
+    if (visitorType) body.visitorType = visitorType;
+    if (personToMeet) body.personToMeet = personToMeet;
+    if (departmentId) body.departmentId = departmentId;
+    if (visitLocation) body.visitLocation = visitLocation;
+    if (transportType) body.transportType = transportType;
+    if (plateNo) body.plateNo = plateNo;
 
     const response = await fetch("/api/transactions", {
       method: "POST",
@@ -323,98 +367,245 @@ export function TransactionsView({
                   </select>
                 </div>
 
-                <div>
-                  <label htmlFor="planned-date" className={labelClassName}>
-                    Planned Date
-                  </label>
-                  <input
-                    id="planned-date"
-                    type="date"
-                    value={plannedDate}
-                    onChange={(event) => setPlannedDate(event.target.value)}
-                    className={inputClassName}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="planned-time" className={labelClassName}>
-                    Planned Time
-                  </label>
-                  <input
-                    id="planned-time"
-                    type="time"
-                    value={plannedTime}
-                    onChange={(event) => setPlannedTime(event.target.value)}
-                    className={inputClassName}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="return-time" className={labelClassName}>
-                    Return Time
-                  </label>
-                  <input
-                    id="return-time"
-                    type="time"
-                    value={returnTime}
-                    onChange={(event) => setReturnTime(event.target.value)}
-                    className={inputClassName}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="origin-business-unit" className={labelClassName}>
-                    Origin Business Unit
-                  </label>
-                  <select
-                    id="origin-business-unit"
-                    value={originBusinessUnit}
-                    onChange={(event) => setOriginBusinessUnit(event.target.value)}
-                    className={inputClassName}
-                  >
-                    <option value="" disabled>
-                      Select a business unit
-                    </option>
-                    {BUSINESS_UNIT_OPTIONS.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <fieldset>
-                  <legend className={labelClassName}>Enroute to Other Business Unit</legend>
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded border border-slate-300 p-3">
-                    {BUSINESS_UNIT_OPTIONS.map((option) => (
-                      <label
-                        key={option}
-                        className="flex items-center gap-2 text-sm text-slate-700"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={enrouteBusinessUnits.includes(option)}
-                          onChange={() => toggleEnrouteBusinessUnit(option)}
-                          className="h-4 w-4 rounded border-slate-300 text-[#2C7001] focus:ring-1 focus:ring-[#2C7001]"
-                        />
-                        {option}
+                {isVisitorPass ? (
+                  <>
+                    <div>
+                      <label htmlFor="visitor-type" className={labelClassName}>
+                        Visitor Type
                       </label>
-                    ))}
-                  </div>
-                </fieldset>
+                      <select
+                        id="visitor-type"
+                        value={visitorType}
+                        onChange={(event) => setVisitorType(event.target.value)}
+                        className={inputClassName}
+                      >
+                        <option value="" disabled>
+                          Select a visitor type
+                        </option>
+                        {VISITOR_TYPE_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                <div>
-                  <label htmlFor="reason" className={labelClassName}>
-                    Reason
-                  </label>
-                  <textarea
-                    id="reason"
-                    rows={3}
-                    value={reason}
-                    onChange={(event) => setReason(event.target.value)}
-                    className={inputClassName}
-                  />
-                </div>
+                    <div>
+                      <label htmlFor="planned-date" className={labelClassName}>
+                        Planned Date
+                      </label>
+                      <input
+                        id="planned-date"
+                        type="date"
+                        value={plannedDate}
+                        onChange={(event) => setPlannedDate(event.target.value)}
+                        className={inputClassName}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="planned-time" className={labelClassName}>
+                        Planned Time
+                      </label>
+                      <input
+                        id="planned-time"
+                        type="time"
+                        value={plannedTime}
+                        onChange={(event) => setPlannedTime(event.target.value)}
+                        className={inputClassName}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="person-to-meet" className={labelClassName}>
+                        Person to Meet
+                      </label>
+                      <input
+                        id="person-to-meet"
+                        type="text"
+                        value={personToMeet}
+                        onChange={(event) => setPersonToMeet(event.target.value)}
+                        className={inputClassName}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="visitor-department" className={labelClassName}>
+                        Department
+                      </label>
+                      <select
+                        id="visitor-department"
+                        value={departmentId}
+                        onChange={(event) => setDepartmentId(event.target.value)}
+                        className={inputClassName}
+                      >
+                        <option value="" disabled>
+                          Select a department
+                        </option>
+                        {departments.map((department) => (
+                          <option key={department.id} value={department.id}>
+                            {department.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="reason" className={labelClassName}>
+                        Reason
+                      </label>
+                      <textarea
+                        id="reason"
+                        rows={3}
+                        value={reason}
+                        onChange={(event) => setReason(event.target.value)}
+                        className={inputClassName}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="visit-location" className={labelClassName}>
+                        Location
+                      </label>
+                      <input
+                        id="visit-location"
+                        type="text"
+                        value={visitLocation}
+                        onChange={(event) => setVisitLocation(event.target.value)}
+                        className={inputClassName}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="transport-type" className={labelClassName}>
+                        Transport Type
+                      </label>
+                      <select
+                        id="transport-type"
+                        value={transportType}
+                        onChange={(event) => setTransportType(event.target.value)}
+                        className={inputClassName}
+                      >
+                        <option value="" disabled>
+                          Select a transport type
+                        </option>
+                        {TRANSPORT_TYPE_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="plate-no" className={labelClassName}>
+                        Plate No.
+                      </label>
+                      <input
+                        id="plate-no"
+                        type="text"
+                        value={plateNo}
+                        onChange={(event) => setPlateNo(event.target.value)}
+                        className={inputClassName}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label htmlFor="planned-date" className={labelClassName}>
+                        Planned Date
+                      </label>
+                      <input
+                        id="planned-date"
+                        type="date"
+                        value={plannedDate}
+                        onChange={(event) => setPlannedDate(event.target.value)}
+                        className={inputClassName}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="planned-time" className={labelClassName}>
+                        Planned Time
+                      </label>
+                      <input
+                        id="planned-time"
+                        type="time"
+                        value={plannedTime}
+                        onChange={(event) => setPlannedTime(event.target.value)}
+                        className={inputClassName}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="return-time" className={labelClassName}>
+                        Return Time
+                      </label>
+                      <input
+                        id="return-time"
+                        type="time"
+                        value={returnTime}
+                        onChange={(event) => setReturnTime(event.target.value)}
+                        className={inputClassName}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="origin-business-unit" className={labelClassName}>
+                        Origin Business Unit
+                      </label>
+                      <select
+                        id="origin-business-unit"
+                        value={originBusinessUnit}
+                        onChange={(event) => setOriginBusinessUnit(event.target.value)}
+                        className={inputClassName}
+                      >
+                        <option value="" disabled>
+                          Select a business unit
+                        </option>
+                        {BUSINESS_UNIT_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <fieldset>
+                      <legend className={labelClassName}>Enroute to Other Business Unit</legend>
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded border border-slate-300 p-3">
+                        {BUSINESS_UNIT_OPTIONS.map((option) => (
+                          <label
+                            key={option}
+                            className="flex items-center gap-2 text-sm text-slate-700"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={enrouteBusinessUnits.includes(option)}
+                              onChange={() => toggleEnrouteBusinessUnit(option)}
+                              className="h-4 w-4 rounded border-slate-300 text-[#2C7001] focus:ring-1 focus:ring-[#2C7001]"
+                            />
+                            {option}
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
+
+                    <div>
+                      <label htmlFor="reason" className={labelClassName}>
+                        Reason
+                      </label>
+                      <textarea
+                        id="reason"
+                        rows={3}
+                        value={reason}
+                        onChange={(event) => setReason(event.target.value)}
+                        className={inputClassName}
+                      />
+                    </div>
+                  </>
+                )}
 
                 {error && (
                   <p role="alert" className="text-xs text-red-600">

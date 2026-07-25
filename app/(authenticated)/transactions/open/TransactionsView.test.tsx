@@ -18,14 +18,48 @@ const transactions = [
     originBusinessUnit: "Cawit",
     enrouteBusinessUnits: "Alpha, Delta",
     reason: "Client meeting",
+    visitorType: "—",
+    personToMeet: "—",
+    department: "—",
+    location: "—",
+    transportType: "—",
+    plateNo: "—",
     createdBy: "Jhon Caser",
     statusName: "Open",
     createdAt: "Jul 21, 2026",
   },
 ];
+const visitorPassTransactions = [
+  {
+    id: "t2",
+    transactionCode: "OT-002",
+    qrDataUrl: "data:image/png;base64,mockqrdata",
+    matrixTypeName: "Visitor Pass",
+    plannedDate: "Jul 26, 2026",
+    plannedTime: "10:30 AM",
+    returnTime: "—",
+    originBusinessUnit: "—",
+    enrouteBusinessUnits: "—",
+    reason: "Product demo for a prospective supplier",
+    visitorType: "Supplier",
+    personToMeet: "Analyn Gentizon",
+    department: "ICT",
+    location: "Lobby, Room 204",
+    transportType: "Car",
+    plateNo: "ABC-1234",
+    createdBy: "Jhon Caser",
+    statusName: "Open",
+    createdAt: "Jul 25, 2026",
+  },
+];
 const matrixTypes = [
   { id: "mt1", name: "Halfday" },
   { id: "mt2", name: "Undertime" },
+  { id: "mt3", name: "Visitor Pass" },
+];
+const departments = [
+  { id: "d1", name: "ICT" },
+  { id: "d2", name: "HR" },
 ];
 
 function renderView(currentUserBusinessUnit = "") {
@@ -34,6 +68,7 @@ function renderView(currentUserBusinessUnit = "") {
       transactions={transactions}
       matrixTypes={matrixTypes}
       currentUserBusinessUnit={currentUserBusinessUnit}
+      departments={departments}
     />
   );
 }
@@ -61,7 +96,7 @@ describe("TransactionsView", () => {
     expect(screen.getByText("Jhon Caser")).toBeInTheDocument();
   });
 
-  it("renders the additional fields as table columns before Created By", () => {
+  it("renders the additional fields as table columns before Created By, including the Visitor Pass columns", () => {
     renderView();
     const headers = screen.getAllByRole("columnheader").map((h) => h.textContent);
     expect(headers).toEqual([
@@ -74,6 +109,12 @@ describe("TransactionsView", () => {
       "Origin Business Unit",
       "Enroute to Other Business Unit",
       "Reason",
+      "Visitor Type",
+      "Person to Meet",
+      "Department",
+      "Location",
+      "Transport Type",
+      "Plate No.",
       "Created By",
       "Status",
       "Date Filed",
@@ -82,6 +123,21 @@ describe("TransactionsView", () => {
     expect(screen.getByText("9:00 AM")).toBeInTheDocument();
     expect(screen.getByText("Alpha, Delta")).toBeInTheDocument();
     expect(screen.getByText("Client meeting")).toBeInTheDocument();
+  });
+
+  it("renders populated Visitor Pass column values for a Visitor Pass row", () => {
+    render(
+      <TransactionsView
+        transactions={visitorPassTransactions}
+        matrixTypes={matrixTypes}
+        currentUserBusinessUnit=""
+        departments={departments}
+      />
+    );
+    expect(screen.getByText("Supplier")).toBeInTheDocument();
+    expect(screen.getByText("Analyn Gentizon")).toBeInTheDocument();
+    expect(screen.getByText("Lobby, Room 204")).toBeInTheDocument();
+    expect(screen.getByText("ABC-1234")).toBeInTheDocument();
   });
 
   it("renders a QR code thumbnail for each transaction", () => {
@@ -143,6 +199,42 @@ describe("TransactionsView", () => {
     expect(screen.getByLabelText(/^reason$/i)).toBeInTheDocument();
   });
 
+  it("shows the Visitor Pass field set and hides Return Time, Origin Business Unit, and Enroute to Other Business Unit when Visitor Pass is selected", () => {
+    renderView();
+    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    fireEvent.change(screen.getByLabelText(/transaction type/i), {
+      target: { value: "mt3" },
+    });
+
+    expect(screen.getByLabelText(/^visitor type$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/planned date/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/planned time/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/person to meet/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^department$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^reason$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^location$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^transport type$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/plate no\./i)).toBeInTheDocument();
+
+    expect(screen.queryByLabelText(/return time/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^origin business unit$/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("group", { name: /enroute to other business unit/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the default field set when a non-Visitor-Pass matrix type is selected", () => {
+    renderView();
+    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    fireEvent.change(screen.getByLabelText(/transaction type/i), {
+      target: { value: "mt1" },
+    });
+
+    expect(screen.getByLabelText(/return time/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^origin business unit$/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^visitor type$/i)).not.toBeInTheDocument();
+  });
+
   it("includes populated optional fields in the submitted body", async () => {
     renderView();
     fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
@@ -166,6 +258,63 @@ describe("TransactionsView", () => {
             matrixTypeId: "mt1",
             plannedDate: "2026-07-25",
             reason: "Client meeting",
+          }),
+        })
+      )
+    );
+  });
+
+  it("submits populated Visitor Pass fields in the request body", async () => {
+    renderView();
+    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    fireEvent.change(screen.getByLabelText(/transaction type/i), {
+      target: { value: "mt3" },
+    });
+    fireEvent.change(screen.getByLabelText(/^visitor type$/i), {
+      target: { value: "Supplier" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned date/i), {
+      target: { value: "2026-07-26" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned time/i), {
+      target: { value: "10:30" },
+    });
+    fireEvent.change(screen.getByLabelText(/person to meet/i), {
+      target: { value: "Analyn Gentizon" },
+    });
+    fireEvent.change(screen.getByLabelText(/^department$/i), {
+      target: { value: "d1" },
+    });
+    fireEvent.change(screen.getByLabelText(/^reason$/i), {
+      target: { value: "Product demo for a prospective supplier" },
+    });
+    fireEvent.change(screen.getByLabelText(/^location$/i), {
+      target: { value: "Lobby, Room 204" },
+    });
+    fireEvent.change(screen.getByLabelText(/^transport type$/i), {
+      target: { value: "Car" },
+    });
+    fireEvent.change(screen.getByLabelText(/plate no\./i), {
+      target: { value: "ABC-1234" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            matrixTypeId: "mt3",
+            plannedDate: "2026-07-26",
+            plannedTime: "10:30",
+            reason: "Product demo for a prospective supplier",
+            visitorType: "Supplier",
+            personToMeet: "Analyn Gentizon",
+            departmentId: "d1",
+            visitLocation: "Lobby, Room 204",
+            transportType: "Car",
+            plateNo: "ABC-1234",
           }),
         })
       )
