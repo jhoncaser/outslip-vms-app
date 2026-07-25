@@ -20,6 +20,7 @@ model Department {
   name                String               @unique
   users               User[]
   matrixTypeApprovers MatrixTypeApprover[]
+  transactions        Transaction[]
 }
 
 model BusinessUnit {
@@ -126,4 +127,14 @@ model Transaction {
   originBusinessUnit   String?
   enrouteBusinessUnits String[]  @default([])
   reason               String?
+
+  visitorType  String?
+  personToMeet String?
+
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId String?
+
+  visitLocation String?
+  transportType String?
+  plateNo       String?
 }
