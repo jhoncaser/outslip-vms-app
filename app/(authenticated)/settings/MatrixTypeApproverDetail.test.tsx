@@ -110,10 +110,10 @@ describe("MatrixTypeApproverDetail", () => {
     expect(screen.getByText("Analyn Gentizon")).toBeInTheDocument();
   });
 
-  it("calls onBack when the breadcrumb is clicked", () => {
+  it("calls onBack when the Back button is clicked", () => {
     const onBack = vi.fn();
     renderDetail(onBack);
-    fireEvent.click(screen.getByRole("button", { name: /settings \/ matrix type/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^back$/i }));
     expect(onBack).toHaveBeenCalled();
   });
 
