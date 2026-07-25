@@ -264,16 +264,20 @@ export function TransactionsView({
     const body: Record<string, unknown> = { matrixTypeId };
     if (plannedDate) body.plannedDate = plannedDate;
     if (plannedTime) body.plannedTime = plannedTime;
-    if (returnTime) body.returnTime = returnTime;
-    if (originBusinessUnit) body.originBusinessUnit = originBusinessUnit;
-    if (enrouteBusinessUnits.length > 0) body.enrouteBusinessUnits = enrouteBusinessUnits;
+    if (!isVisitorPass) {
+      if (returnTime) body.returnTime = returnTime;
+      if (originBusinessUnit) body.originBusinessUnit = originBusinessUnit;
+      if (enrouteBusinessUnits.length > 0) body.enrouteBusinessUnits = enrouteBusinessUnits;
+    }
     if (reason) body.reason = reason;
-    if (visitorType) body.visitorType = visitorType;
-    if (personToMeet) body.personToMeet = personToMeet;
-    if (departmentId) body.departmentId = departmentId;
-    if (visitLocation) body.visitLocation = visitLocation;
-    if (transportType) body.transportType = transportType;
-    if (plateNo) body.plateNo = plateNo;
+    if (isVisitorPass) {
+      if (visitorType) body.visitorType = visitorType;
+      if (personToMeet) body.personToMeet = personToMeet;
+      if (departmentId) body.departmentId = departmentId;
+      if (visitLocation) body.visitLocation = visitLocation;
+      if (transportType) body.transportType = transportType;
+      if (plateNo) body.plateNo = plateNo;
+    }
 
     const response = await fetch("/api/transactions", {
       method: "POST",

@@ -415,4 +415,42 @@ describe("TransactionsView", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     );
   });
+
+  it("does not leak originBusinessUnit to Visitor Pass submission when auto-filled", async () => {
+    renderView("Cawit");
+    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    fireEvent.change(screen.getByLabelText(/transaction type/i), {
+      target: { value: "mt3" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions",
+        expect.objectContaining({
+          method: "POST",
+          body: expect.not.stringContaining("originBusinessUnit"),
+        })
+      )
+    );
+  });
+
+  it("does not leak Visitor Pass fields to non-Visitor-Pass submission", async () => {
+    renderView();
+    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    fireEvent.change(screen.getByLabelText(/transaction type/i), {
+      target: { value: "mt1" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions",
+        expect.objectContaining({
+          method: "POST",
+          body: expect.not.stringContaining("visitorType"),
+        })
+      )
+    );
+  });
 });
