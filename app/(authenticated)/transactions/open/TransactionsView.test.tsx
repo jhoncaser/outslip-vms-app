@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { TransactionsView } from "./TransactionsView";
 
 vi.mock("next/navigation", () => ({
@@ -190,6 +191,19 @@ describe("TransactionsView", () => {
 
     fireEvent.keyDown(dialog, { key: "Escape" });
     expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("pressing Enter on the QR thumbnail opens the enlarge dialog, not the row's expand panel", async () => {
+    const user = userEvent.setup();
+    renderView();
+    const qrButton = screen.getByRole("button", {
+      name: "QR code for transaction OT-001",
+    });
+    qrButton.focus();
+    await user.keyboard("{Enter}");
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.queryByText("Client meeting")).not.toBeInTheDocument();
   });
 
   it("opens the modal and lists matrix type options", () => {
