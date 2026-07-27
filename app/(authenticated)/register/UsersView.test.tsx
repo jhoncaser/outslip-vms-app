@@ -31,6 +31,13 @@ const sampleUsers: UserRow[] = [
   },
 ];
 
+function rowFor(firstName: string) {
+  const cell = screen.getByText(firstName);
+  const row = cell.closest("tr");
+  if (!row) throw new Error(`No <tr> ancestor found for ${firstName}`);
+  return row;
+}
+
 describe("UsersView", () => {
   beforeEach(() => {
     // The wizard inside the modal fetches reference data on mount, and in
@@ -70,35 +77,50 @@ describe("UsersView", () => {
     );
   });
 
-  it("renders all nine column headers", () => {
+  it("renders the 4 core column headers", () => {
     render(<UsersView users={sampleUsers} />);
-    for (const header of [
-      "First Name",
-      "Last Name",
-      "Job Title",
-      "Role",
-      "Department",
-      "Business Unit",
-      "Location",
-      "Created",
-      "Actions",
-    ]) {
+    for (const header of ["First Name", "Last Name", "Role", "Actions"]) {
       expect(
         screen.getByRole("columnheader", { name: header })
       ).toBeInTheDocument();
     }
   });
 
-  it("renders user rows with role labels, details, and count", () => {
+  it("renders user rows with names, role labels, and count", () => {
     render(<UsersView users={sampleUsers} />);
     expect(screen.getByText("Juan")).toBeInTheDocument();
     expect(screen.getByText("Dela Cruz")).toBeInTheDocument();
-    expect(screen.getByText("IT Officer")).toBeInTheDocument();
     expect(screen.getByText("Creator")).toBeInTheDocument();
     expect(screen.getByText("1st Level Approver")).toBeInTheDocument();
-    expect(screen.getByText("ICT")).toBeInTheDocument();
-    expect(screen.getByText("Jul 18, 2026")).toBeInTheDocument();
     expect(screen.getByText("2 users")).toBeInTheDocument();
+  });
+
+  it("does not show detail fields until a row is expanded", () => {
+    render(<UsersView users={sampleUsers} />);
+    expect(screen.queryByText("IT Officer")).not.toBeInTheDocument();
+    expect(screen.queryByText("Jul 18, 2026")).not.toBeInTheDocument();
+  });
+
+  it("expands a row to reveal Job Title, Department, Business Unit, Location, and Created, and collapses again on second click", () => {
+    render(<UsersView users={sampleUsers} />);
+    fireEvent.click(rowFor("Juan"));
+
+    expect(screen.getByText("IT Officer")).toBeInTheDocument();
+    expect(screen.getByText("ICT")).toBeInTheDocument();
+    expect(screen.getByText("Cawit")).toBeInTheDocument();
+    expect(screen.getByText("Zamboanga")).toBeInTheDocument();
+    expect(screen.getByText("Jul 18, 2026")).toBeInTheDocument();
+
+    fireEvent.click(rowFor("Juan"));
+    expect(screen.queryByText("IT Officer")).not.toBeInTheDocument();
+  });
+
+  it("clicking Edit does not also expand the row", () => {
+    render(<UsersView users={sampleUsers} />);
+    fireEvent.click(screen.getAllByRole("button", { name: /^edit$/i })[0]);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.queryByText("IT Officer")).not.toBeInTheDocument();
   });
 
   it("shows the empty state when there are no users", () => {

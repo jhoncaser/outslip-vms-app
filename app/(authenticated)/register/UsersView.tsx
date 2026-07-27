@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { RegistrationWizard } from "./RegistrationWizard";
 import { ROLE_LABELS, type RoleValue } from "@/lib/roles";
 
@@ -42,17 +42,7 @@ const ROLE_PILL_CLASSES: Record<RoleValue, string> = {
   GUARD_PERSONNEL: "bg-purple-100 text-purple-800",
 };
 
-const COLUMNS = [
-  "First Name",
-  "Last Name",
-  "Job Title",
-  "Role",
-  "Department",
-  "Business Unit",
-  "Location",
-  "Created",
-  "Actions",
-];
+const COLUMNS = ["First Name", "Last Name", "Role", "Actions"];
 
 type ModalState =
   | { mode: "closed" }
@@ -79,6 +69,7 @@ function CloseIcon() {
 
 export function UsersView({ users }: { users: UserRow[] }) {
   const [modal, setModal] = useState<ModalState>({ mode: "closed" });
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
 
   return (
     <div className="w-full">
@@ -104,6 +95,7 @@ export function UsersView({ users }: { users: UserRow[] }) {
         <table className="w-full border-collapse text-left text-sm text-slate-600">
           <thead>
             <tr className="bg-[#2C7001]">
+              <th className="w-9 px-2 py-3" aria-hidden="true" />
               {COLUMNS.map((column) => (
                 <th
                   key={column}
@@ -118,50 +110,105 @@ export function UsersView({ users }: { users: UserRow[] }) {
             {users.length === 0 ? (
               <tr>
                 <td
-                  colSpan={COLUMNS.length}
+                  colSpan={COLUMNS.length + 1}
                   className="px-4 py-8 text-center text-slate-500"
                 >
                   No users registered yet.
                 </td>
               </tr>
             ) : (
-              users.map((user, index) => (
-                <tr
-                  key={user.id}
-                  className={`border-b border-slate-100 ${
-                    index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"
-                  }`}
-                >
-                  <td className="px-4 py-3">{user.firstName}</td>
-                  <td className="px-4 py-3">{user.lastName}</td>
-                  <td className="px-4 py-3">{user.jobTitle}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${ROLE_PILL_CLASSES[user.role]}`}
-                    >
-                      {ROLE_LABELS[user.role]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">{user.department}</td>
-                  <td className="px-4 py-3">{user.businessUnit}</td>
-                  <td className="px-4 py-3">{user.location}</td>
-                  <td className="px-4 py-3 text-slate-500">
-                    {user.createdAt}
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
+              users.map((user, index) => {
+                const isExpanded = expandedUserId === user.id;
+                return (
+                  <Fragment key={user.id}>
+                    <tr
                       onClick={() =>
-                        setModal({ mode: "edit", userId: user.id })
+                        setExpandedUserId(isExpanded ? null : user.id)
                       }
-                      className="inline-flex items-center gap-1.5 rounded-full border border-[#cfe3c4] bg-white px-2.5 py-1 text-xs font-semibold text-[#2C7001] transition-colors duration-150 hover:border-[#2C7001] hover:bg-[#f2f8ee] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none"
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setExpandedUserId(isExpanded ? null : user.id);
+                        }
+                      }}
+                      tabIndex={0}
+                      aria-expanded={isExpanded}
+                      className={`cursor-pointer border-b border-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2C7001]/40 ${
+                        index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"
+                      }`}
                     >
-                      <EditIcon />
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))
+                      <td className="px-2 py-3 text-center text-slate-400">
+                        <span
+                          aria-hidden
+                          className={`inline-block transition-transform duration-150 ${isExpanded ? "rotate-90" : ""}`}
+                        >
+                          ▸
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">{user.firstName}</td>
+                      <td className="px-4 py-3">{user.lastName}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${ROLE_PILL_CLASSES[user.role]}`}
+                        >
+                          {ROLE_LABELS[user.role]}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setModal({ mode: "edit", userId: user.id });
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-[#cfe3c4] bg-white px-2.5 py-1 text-xs font-semibold text-[#2C7001] transition-colors duration-150 hover:border-[#2C7001] hover:bg-[#f2f8ee] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none"
+                        >
+                          <EditIcon />
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr className="bg-[#fbfdf9]">
+                        <td colSpan={COLUMNS.length + 1} className="px-4 py-0">
+                          <div className="grid grid-cols-2 gap-x-6 gap-y-3 py-4 pl-9 sm:grid-cols-3">
+                            <div>
+                              <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                Job Title
+                              </div>
+                              <div className="text-sm text-slate-700">{user.jobTitle}</div>
+                            </div>
+                            <div>
+                              <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                Department
+                              </div>
+                              <div className="text-sm text-slate-700">{user.department}</div>
+                            </div>
+                            <div>
+                              <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                Business Unit
+                              </div>
+                              <div className="text-sm text-slate-700">{user.businessUnit}</div>
+                            </div>
+                            <div>
+                              <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                Location
+                              </div>
+                              <div className="text-sm text-slate-700">{user.location}</div>
+                            </div>
+                            <div>
+                              <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                Created
+                              </div>
+                              <div className="text-sm text-slate-700">{user.createdAt}</div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })
             )}
           </tbody>
         </table>
