@@ -55,4 +55,11 @@ describe("Sidebar", () => {
       screen.getByRole("link", { name: /dashboard/i })
     ).not.toHaveAttribute("aria-current");
   });
+
+  it("only renders at tablet width and up (hidden below md)", () => {
+    render(<Sidebar canProvisionUsers={false} />);
+    const nav = screen.getByRole("navigation");
+    expect(nav.className).toContain("hidden");
+    expect(nav.className).toContain("md:flex");
+  });
 });

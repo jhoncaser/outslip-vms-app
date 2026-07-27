@@ -59,3 +59,10 @@ body {
     animation: none;
   }
 }
+
+@media (hover: none) {
+  .rail-flyout {
+    opacity: 1 !important;
+    transform: translate(0, -50%) !important;
+  }
+}
