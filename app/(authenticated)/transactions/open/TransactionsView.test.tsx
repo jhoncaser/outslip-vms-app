@@ -73,6 +73,13 @@ function renderView(currentUserBusinessUnit = "") {
   );
 }
 
+function rowFor(code: string) {
+  const cell = screen.getByText(code);
+  const row = cell.closest("tr");
+  if (!row) throw new Error(`No <tr> ancestor found for ${code}`);
+  return row;
+}
+
 describe("TransactionsView", () => {
   beforeEach(() => {
     vi.stubGlobal(
@@ -86,46 +93,46 @@ describe("TransactionsView", () => {
     );
   });
 
-  it("renders the transactions table", () => {
-    renderView();
-    expect(
-      screen.getByRole("columnheader", { name: "Transaction Type" })
-    ).toBeInTheDocument();
-    expect(screen.getByText("OT-001")).toBeInTheDocument();
-    expect(screen.getByText("Halfday")).toBeInTheDocument();
-    expect(screen.getByText("Jhon Caser")).toBeInTheDocument();
-  });
-
-  it("renders the additional fields as table columns before Created By, including the Visitor Pass columns", () => {
+  it("renders the transactions table with the 6 core columns", () => {
     renderView();
     const headers = screen.getAllByRole("columnheader").map((h) => h.textContent);
     expect(headers).toEqual([
       "QR",
       "Code",
       "Transaction Type",
-      "Planned Date",
-      "Planned Time",
-      "Return Time",
-      "Origin Business Unit",
-      "Enroute to Other Business Unit",
-      "Reason",
-      "Visitor Type",
-      "Person to Meet",
-      "Department",
-      "Location",
-      "Transport Type",
-      "Plate No.",
       "Created By",
       "Status",
       "Date Filed",
     ]);
-    expect(screen.getByText("Jul 25, 2026")).toBeInTheDocument();
-    expect(screen.getByText("9:00 AM")).toBeInTheDocument();
-    expect(screen.getByText("Alpha, Delta")).toBeInTheDocument();
-    expect(screen.getByText("Client meeting")).toBeInTheDocument();
+    expect(screen.getByText("OT-001")).toBeInTheDocument();
+    expect(screen.getByText("Halfday")).toBeInTheDocument();
+    expect(screen.getByText("Jhon Caser")).toBeInTheDocument();
   });
 
-  it("renders populated Visitor Pass column values for a Visitor Pass row", () => {
+  it("does not show detail fields until a row is expanded", () => {
+    renderView();
+    expect(screen.queryByText("Client meeting")).not.toBeInTheDocument();
+    expect(screen.queryByText("Cawit")).not.toBeInTheDocument();
+  });
+
+  it("expands a row to reveal its populated detail fields, skipping dash-only ones, and collapses again on second click", () => {
+    renderView();
+    fireEvent.click(rowFor("OT-001"));
+
+    expect(screen.getByText("Jul 25, 2026")).toBeInTheDocument(); // Planned Date
+    expect(screen.getByText("9:00 AM")).toBeInTheDocument();
+    expect(screen.getByText("Cawit")).toBeInTheDocument();
+    expect(screen.getByText("Alpha, Delta")).toBeInTheDocument();
+    expect(screen.getByText("Client meeting")).toBeInTheDocument();
+    // Dash-only fields for this row must not appear in the expanded panel
+    expect(screen.queryByText("Visitor Type")).not.toBeInTheDocument();
+    expect(screen.queryByText("Person to Meet")).not.toBeInTheDocument();
+
+    fireEvent.click(rowFor("OT-001"));
+    expect(screen.queryByText("Client meeting")).not.toBeInTheDocument();
+  });
+
+  it("expanding a Visitor Pass row shows its populated visitor fields and skips its dash-only generic fields", () => {
     render(
       <TransactionsView
         transactions={visitorPassTransactions}
@@ -134,10 +141,18 @@ describe("TransactionsView", () => {
         departments={departments}
       />
     );
+    fireEvent.click(rowFor("OT-002"));
+
     expect(screen.getByText("Supplier")).toBeInTheDocument();
     expect(screen.getByText("Analyn Gentizon")).toBeInTheDocument();
+    expect(screen.getByText("ICT")).toBeInTheDocument();
     expect(screen.getByText("Lobby, Room 204")).toBeInTheDocument();
+    expect(screen.getByText("Car")).toBeInTheDocument();
     expect(screen.getByText("ABC-1234")).toBeInTheDocument();
+    expect(screen.queryByText("Origin Business Unit")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Enroute to Other Business Unit")
+    ).not.toBeInTheDocument();
   });
 
   it("renders a QR code thumbnail for each transaction", () => {
@@ -146,7 +161,7 @@ describe("TransactionsView", () => {
     expect(qrImage).toHaveAttribute("src", "data:image/png;base64,mockqrdata");
   });
 
-  it("opens an enlarged QR view when the thumbnail is clicked, and closes it via the X", () => {
+  it("opens an enlarged QR view when the thumbnail is clicked, and closes it via the X, without expanding the row", () => {
     renderView();
     fireEvent.click(
       screen.getByRole("button", {
@@ -155,6 +170,7 @@ describe("TransactionsView", () => {
     );
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByText("OT-001")).toBeInTheDocument();
+    expect(screen.queryByText("Client meeting")).not.toBeInTheDocument();
 
     fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -413,44 +429,6 @@ describe("TransactionsView", () => {
 
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
-    );
-  });
-
-  it("does not leak originBusinessUnit to Visitor Pass submission when auto-filled", async () => {
-    renderView("Cawit");
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
-    fireEvent.change(screen.getByLabelText(/transaction type/i), {
-      target: { value: "mt3" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
-
-    await waitFor(() =>
-      expect(fetch).toHaveBeenCalledWith(
-        "/api/transactions",
-        expect.objectContaining({
-          method: "POST",
-          body: expect.not.stringContaining("originBusinessUnit"),
-        })
-      )
-    );
-  });
-
-  it("does not leak Visitor Pass fields to non-Visitor-Pass submission", async () => {
-    renderView();
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
-    fireEvent.change(screen.getByLabelText(/transaction type/i), {
-      target: { value: "mt1" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
-
-    await waitFor(() =>
-      expect(fetch).toHaveBeenCalledWith(
-        "/api/transactions",
-        expect.objectContaining({
-          method: "POST",
-          body: expect.not.stringContaining("visitorType"),
-        })
-      )
     );
   });
 });

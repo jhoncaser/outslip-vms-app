@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { Fragment, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { BUSINESS_UNIT_OPTIONS } from "@/lib/businessUnitOptions";
 import { VISITOR_TYPE_OPTIONS } from "@/lib/visitorTypeOptions";
@@ -48,29 +48,31 @@ function CloseIcon() {
   );
 }
 
-function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
-  const columns = [
-    "QR",
-    "Code",
-    "Transaction Type",
-    "Planned Date",
-    "Planned Time",
-    "Return Time",
-    "Origin Business Unit",
-    "Enroute to Other Business Unit",
-    "Reason",
-    "Visitor Type",
-    "Person to Meet",
-    "Department",
-    "Location",
-    "Transport Type",
-    "Plate No.",
-    "Created By",
-    "Status",
-    "Date Filed",
+type DetailField = { label: string; value: string };
+
+function transactionDetailFields(row: TransactionRow): DetailField[] {
+  const candidates: DetailField[] = [
+    { label: "Planned Date", value: row.plannedDate },
+    { label: "Planned Time", value: row.plannedTime },
+    { label: "Return Time", value: row.returnTime },
+    { label: "Origin Business Unit", value: row.originBusinessUnit },
+    { label: "Enroute to Other Business Unit", value: row.enrouteBusinessUnits },
+    { label: "Reason", value: row.reason },
+    { label: "Visitor Type", value: row.visitorType },
+    { label: "Person to Meet", value: row.personToMeet },
+    { label: "Department", value: row.department },
+    { label: "Location", value: row.location },
+    { label: "Transport Type", value: row.transportType },
+    { label: "Plate No.", value: row.plateNo },
   ];
+  return candidates.filter((field) => field.value !== "—");
+}
+
+function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
+  const columns = ["QR", "Code", "Transaction Type", "Created By", "Status", "Date Filed"];
   const [enlargedCode, setEnlargedCode] = useState<string | null>(null);
   const enlargedRow = rows.find((row) => row.transactionCode === enlargedCode) ?? null;
+  const [expandedCode, setExpandedCode] = useState<string | null>(null);
 
   return (
     <>
@@ -78,6 +80,7 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
         <table className="w-full border-collapse text-left text-sm text-slate-600">
           <thead>
             <tr className="bg-[#2C7001]">
+              <th className="w-9 px-2 py-3" aria-hidden="true" />
               {columns.map((column) => (
                 <th
                   key={column}
@@ -91,52 +94,87 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={columns.length + 1} className="px-4 py-8 text-center text-slate-500">
                   No open transactions yet.
                 </td>
               </tr>
             ) : (
-              rows.map((row, index) => (
-                <tr
-                  key={row.id}
-                  className={`border-b border-slate-100 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
-                >
-                  <td className="whitespace-nowrap px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => setEnlargedCode(row.transactionCode)}
-                      className="h-12 w-12 overflow-hidden rounded border border-slate-200 transition-colors hover:border-[#2C7001] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35"
+              rows.map((row, index) => {
+                const isExpanded = expandedCode === row.transactionCode;
+                const detailFields = transactionDetailFields(row);
+                return (
+                  <Fragment key={row.id}>
+                    <tr
+                      onClick={() => setExpandedCode(isExpanded ? null : row.transactionCode)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setExpandedCode(isExpanded ? null : row.transactionCode);
+                        }
+                      }}
+                      tabIndex={0}
+                      aria-expanded={isExpanded}
+                      className={`cursor-pointer border-b border-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2C7001]/40 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
                     >
-                      <img
-                        src={row.qrDataUrl}
-                        alt={`QR code for transaction ${row.transactionCode}`}
-                        className="h-full w-full"
-                      />
-                    </button>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.transactionCode}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.matrixTypeName}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.plannedDate}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.plannedTime}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.returnTime}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.originBusinessUnit}</td>
-                  <td className="max-w-[220px] px-4 py-3">{row.enrouteBusinessUnits}</td>
-                  <td className="max-w-[220px] px-4 py-3">{row.reason}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.visitorType}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.personToMeet}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.department}</td>
-                  <td className="max-w-[220px] px-4 py-3">{row.location}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.transportType}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.plateNo}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{row.createdBy}</td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
-                      {row.statusName}
-                    </span>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-slate-500">{row.createdAt}</td>
-                </tr>
-              ))
+                      <td className="px-2 py-3 text-center text-slate-400">
+                        <span
+                          aria-hidden
+                          className={`inline-block transition-transform duration-150 ${isExpanded ? "rotate-90" : ""}`}
+                        >
+                          ▸
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setEnlargedCode(row.transactionCode);
+                          }}
+                          className="h-12 w-12 overflow-hidden rounded border border-slate-200 transition-colors hover:border-[#2C7001] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35"
+                        >
+                          <img
+                            src={row.qrDataUrl}
+                            alt={`QR code for transaction ${row.transactionCode}`}
+                            className="h-full w-full"
+                          />
+                        </button>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">{row.transactionCode}</td>
+                      <td className="whitespace-nowrap px-4 py-3">{row.matrixTypeName}</td>
+                      <td className="whitespace-nowrap px-4 py-3">{row.createdBy}</td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                          {row.statusName}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-slate-500">{row.createdAt}</td>
+                    </tr>
+                    {isExpanded && (
+                      <tr className="bg-[#fbfdf9]">
+                        <td colSpan={columns.length + 1} className="px-4 py-0">
+                          <div className="grid grid-cols-2 gap-x-6 gap-y-3 py-4 pl-9 sm:grid-cols-3">
+                            {detailFields.length === 0 ? (
+                              <p className="col-span-full text-xs text-slate-400">
+                                No additional details for this transaction.
+                              </p>
+                            ) : (
+                              detailFields.map((field) => (
+                                <div key={field.label}>
+                                  <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                    {field.label}
+                                  </div>
+                                  <div className="text-sm text-slate-700">{field.value}</div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })
             )}
           </tbody>
         </table>
