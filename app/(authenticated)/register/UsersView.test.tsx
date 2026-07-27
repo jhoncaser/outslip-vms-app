@@ -123,6 +123,17 @@ describe("UsersView", () => {
     expect(screen.queryByText("IT Officer")).not.toBeInTheDocument();
   });
 
+  it("pressing Enter on the Edit button opens the edit modal, not the row's expand panel", () => {
+    render(<UsersView users={sampleUsers} />);
+    const editButton = screen.getAllByRole("button", { name: /^edit$/i })[0];
+    editButton.focus();
+    fireEvent.keyDown(editButton, { key: "Enter", code: "Enter" });
+    fireEvent.click(editButton);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.queryByText("IT Officer")).not.toBeInTheDocument();
+  });
+
   it("shows the empty state when there are no users", () => {
     render(<UsersView users={[]} />);
     expect(
