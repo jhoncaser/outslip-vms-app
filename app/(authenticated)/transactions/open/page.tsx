@@ -9,7 +9,7 @@ export default async function OpenTransactionsPage() {
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const session = token ? await verifySessionToken(token) : null;
 
-  const [transactions, matrixTypes, currentUser] = await Promise.all([
+  const [transactions, matrixTypes, currentUser, departments] = await Promise.all([
     prisma.transaction.findMany({
       where: { status: { name: "Open" } },
       orderBy: { createdAt: "desc" },
@@ -17,6 +17,7 @@ export default async function OpenTransactionsPage() {
         matrixType: { select: { name: true } },
         status: { select: { name: true } },
         creator: { select: { firstName: true, lastName: true } },
+        department: { select: { name: true } },
       },
     }),
     prisma.matrixType.findMany({ orderBy: { name: "asc" } }),
@@ -26,6 +27,7 @@ export default async function OpenTransactionsPage() {
           select: { businessUnit: { select: { name: true } } },
         })
       : null,
+    prisma.department.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   const currentUserBusinessUnit = currentUser?.businessUnit.name ?? "";
@@ -65,6 +67,12 @@ export default async function OpenTransactionsPage() {
       enrouteBusinessUnits:
         row.enrouteBusinessUnits.length > 0 ? row.enrouteBusinessUnits.join(", ") : "—",
       reason: row.reason ?? "—",
+      visitorType: row.visitorType ?? "—",
+      personToMeet: row.personToMeet ?? "—",
+      department: row.department?.name ?? "—",
+      location: row.visitLocation ?? "—",
+      transportType: row.transportType ?? "—",
+      plateNo: row.plateNo ?? "—",
       createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
       statusName: row.status.name,
       createdAt: row.createdAt.toLocaleDateString("en-US", {
@@ -86,6 +94,7 @@ export default async function OpenTransactionsPage() {
           transactions={transactionRows}
           matrixTypes={matrixTypes}
           currentUserBusinessUnit={currentUserBusinessUnit}
+          departments={departments}
         />
       </div>
     </div>
