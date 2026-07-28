@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { transactionSchema } from "@/lib/validation/transaction";
+import { TRANSACTION_FIELD_LABELS, findMissingRequiredField } from "@/lib/transactionFieldSets";
 
 const MAX_CODE_ATTEMPTS = 5;
 
@@ -18,6 +19,24 @@ export async function POST(request: NextRequest) {
   const parsed = transactionSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  const matrixType = await prisma.matrixType.findUnique({
+    where: { id: parsed.data.matrixTypeId },
+    select: { name: true },
+  });
+  if (!matrixType) {
+    return NextResponse.json({ error: "Invalid transaction type" }, { status: 400 });
+  }
+
+  const missingField = findMissingRequiredField(matrixType.name, parsed.data);
+  if (missingField) {
+    return NextResponse.json(
+      {
+        error: `${TRANSACTION_FIELD_LABELS[missingField]} is required for this transaction type`,
+      },
+      { status: 400 }
+    );
   }
 
   const openStatus = await prisma.transactionStatus.findUniqueOrThrow({

@@ -9,6 +9,8 @@ let userToken: string;
 let userId: string;
 let matrixTypeId: string;
 let departmentId: string;
+let halfdayMatrixTypeId: string;
+let routingMatrixTypeId: string;
 
 function requestWithCookie(token: string | undefined, body?: unknown) {
   return new NextRequest("http://localhost/api/transactions", {
@@ -89,7 +91,31 @@ describe("POST /api/transactions", () => {
     });
     matrixTypeId = matrixType.id;
 
+    const halfdayMatrixType = await prisma.matrixType.upsert({
+      where: { name: "Halfday" },
+      update: {},
+      create: {
+        matrixCode: "MT-HALFDAYFIXTURE",
+        name: "Halfday",
+        creatorId: user.id,
+      },
+    });
+    halfdayMatrixTypeId = halfdayMatrixType.id;
+
+    const routingMatrixType = await prisma.matrixType.upsert({
+      where: { name: "Routing to other Business Unit" },
+      update: {},
+      create: {
+        matrixCode: "MT-ROUTINGFIXTURE",
+        name: "Routing to other Business Unit",
+        creatorId: user.id,
+      },
+    });
+    routingMatrixTypeId = routingMatrixType.id;
+
     await prisma.transaction.deleteMany({ where: { matrixTypeId } });
+    await prisma.transaction.deleteMany({ where: { matrixTypeId: halfdayMatrixTypeId } });
+    await prisma.transaction.deleteMany({ where: { matrixTypeId: routingMatrixTypeId } });
   });
 
   it("returns 401 with no session", async () => {
@@ -243,8 +269,71 @@ describe("POST /api/transactions", () => {
     countSpy.mockRestore();
   });
 
+  it("returns a specific message when a required field is missing for Halfday", async () => {
+    const response = await POST(
+      requestWithCookie(userToken, {
+        matrixTypeId: halfdayMatrixTypeId,
+        plannedDate: "2026-07-25",
+        plannedTime: "09:00",
+      })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toBe("Reason is required for this transaction type");
+  });
+
+  it("creates a transaction when all of Halfday's required fields are provided", async () => {
+    const response = await POST(
+      requestWithCookie(userToken, {
+        matrixTypeId: halfdayMatrixTypeId,
+        plannedDate: "2026-07-25",
+        plannedTime: "09:00",
+        reason: "Family errand",
+      })
+    );
+    expect(response.status).toBe(201);
+  });
+
+  it("returns a specific message when Enroute to Other Business Unit is missing for Routing to other Business Unit", async () => {
+    const response = await POST(
+      requestWithCookie(userToken, {
+        matrixTypeId: routingMatrixTypeId,
+        plannedDate: "2026-07-25",
+        plannedTime: "09:00",
+        originBusinessUnit: "Cawit",
+        reason: "Delivering documents",
+      })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toBe(
+      "Enroute to Other Business Unit is required for this transaction type"
+    );
+  });
+
+  it("creates a transaction when all of Routing to other Business Unit's required fields are provided", async () => {
+    const response = await POST(
+      requestWithCookie(userToken, {
+        matrixTypeId: routingMatrixTypeId,
+        plannedDate: "2026-07-25",
+        plannedTime: "09:00",
+        originBusinessUnit: "Cawit",
+        enrouteBusinessUnits: ["Delta"],
+        reason: "Delivering documents",
+      })
+    );
+    expect(response.status).toBe(201);
+  });
+
+  it("requires nothing beyond the matrix type itself for a type with no configured field set", async () => {
+    const response = await POST(requestWithCookie(userToken, { matrixTypeId }));
+    expect(response.status).toBe(201);
+  });
+
   afterAll(async () => {
     await prisma.transaction.deleteMany({ where: { matrixTypeId } });
+    await prisma.transaction.deleteMany({ where: { matrixTypeId: halfdayMatrixTypeId } });
+    await prisma.transaction.deleteMany({ where: { matrixTypeId: routingMatrixTypeId } });
     await prisma.matrixType.deleteMany({ where: { id: matrixTypeId } });
     await prisma.$disconnect();
   });
