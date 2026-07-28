@@ -1,0 +1,68 @@
+export type TransactionFieldKey =
+  | "plannedDate"
+  | "plannedTime"
+  | "returnTime"
+  | "originBusinessUnit"
+  | "enrouteBusinessUnits"
+  | "reason"
+  | "visitorType"
+  | "personToMeet"
+  | "departmentId"
+  | "visitLocation"
+  | "transportType"
+  | "plateNo";
+
+export const TRANSACTION_FIELD_SETS: Record<string, readonly TransactionFieldKey[]> = {
+  Halfday: ["plannedDate", "plannedTime", "reason"],
+  Undertime: ["plannedDate", "plannedTime", "reason"],
+  Others: ["plannedDate", "plannedTime", "reason"],
+  "Out for Lunch": ["plannedDate", "plannedTime", "returnTime", "reason"],
+  "Routing to other Business Unit": [
+    "plannedDate",
+    "plannedTime",
+    "originBusinessUnit",
+    "enrouteBusinessUnits",
+    "reason",
+  ],
+  "Visitor Pass": [
+    "visitorType",
+    "plannedDate",
+    "plannedTime",
+    "personToMeet",
+    "departmentId",
+    "reason",
+    "visitLocation",
+    "transportType",
+    "plateNo",
+  ],
+};
+
+export const TRANSACTION_FIELD_LABELS: Record<TransactionFieldKey, string> = {
+  plannedDate: "Planned Date",
+  plannedTime: "Planned Time",
+  returnTime: "Return Time",
+  originBusinessUnit: "Origin Business Unit",
+  enrouteBusinessUnits: "Enroute to Other Business Unit",
+  reason: "Reason",
+  visitorType: "Visitor Type",
+  personToMeet: "Person to Meet",
+  departmentId: "Department",
+  visitLocation: "Location",
+  transportType: "Transport Type",
+  plateNo: "Plate No.",
+};
+
+export function findMissingRequiredField(
+  matrixTypeName: string,
+  values: Partial<Record<TransactionFieldKey, string | string[] | undefined>>
+): TransactionFieldKey | null {
+  const required = TRANSACTION_FIELD_SETS[matrixTypeName] ?? [];
+  for (const key of required) {
+    const value = values[key];
+    const isEmpty = Array.isArray(value)
+      ? value.length === 0
+      : !value || value.trim() === "";
+    if (isEmpty) return key;
+  }
+  return null;
+}
