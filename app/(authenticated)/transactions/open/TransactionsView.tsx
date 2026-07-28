@@ -6,9 +6,9 @@ import { BUSINESS_UNIT_OPTIONS } from "@/lib/businessUnitOptions";
 import { VISITOR_TYPE_OPTIONS } from "@/lib/visitorTypeOptions";
 import { TRANSPORT_TYPE_OPTIONS } from "@/lib/transportTypeOptions";
 import {
-  TRANSACTION_FIELD_SETS,
   TRANSACTION_FIELD_LABELS,
   findMissingRequiredField,
+  getActiveFields,
   type TransactionFieldKey,
 } from "@/lib/transactionFieldSets";
 
@@ -271,8 +271,22 @@ export function TransactionsView({
   const selectedTypeName = matrixTypes.find(
     (option) => option.id === matrixTypeId
   )?.name;
+  const fieldValues: Record<TransactionFieldKey, string | string[]> = {
+    plannedDate,
+    plannedTime,
+    returnTime,
+    originBusinessUnit,
+    enrouteBusinessUnits,
+    reason,
+    visitorType,
+    personToMeet,
+    departmentId,
+    visitLocation,
+    transportType,
+    plateNo,
+  };
   const activeFields: readonly TransactionFieldKey[] = selectedTypeName
-    ? TRANSACTION_FIELD_SETS[selectedTypeName] ?? []
+    ? getActiveFields(selectedTypeName, fieldValues)
     : [];
 
   function openModal() {
@@ -497,7 +511,11 @@ export function TransactionsView({
             <select
               id="transport-type"
               value={transportType}
-              onChange={(event) => setTransportType(event.target.value)}
+              onChange={(event) => {
+                const value = event.target.value;
+                setTransportType(value);
+                if (value === "Walk-In") setPlateNo("");
+              }}
               className={inputClassName}
             >
               <option value="" disabled>
@@ -534,21 +552,6 @@ export function TransactionsView({
     setError("");
 
     if (!selectedTypeName) return;
-
-    const fieldValues: Record<TransactionFieldKey, string | string[]> = {
-      plannedDate,
-      plannedTime,
-      returnTime,
-      originBusinessUnit,
-      enrouteBusinessUnits,
-      reason,
-      visitorType,
-      personToMeet,
-      departmentId,
-      visitLocation,
-      transportType,
-      plateNo,
-    };
 
     const missingField = findMissingRequiredField(selectedTypeName, fieldValues);
     if (missingField) {

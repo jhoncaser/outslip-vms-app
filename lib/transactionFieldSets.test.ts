@@ -3,6 +3,7 @@ import {
   TRANSACTION_FIELD_SETS,
   TRANSACTION_FIELD_LABELS,
   findMissingRequiredField,
+  getActiveFields,
 } from "./transactionFieldSets";
 
 describe("TRANSACTION_FIELD_SETS", () => {
@@ -112,5 +113,74 @@ describe("findMissingRequiredField", () => {
 
   it("returns null (nothing required) for a matrix type with no configured field set", () => {
     expect(findMissingRequiredField("Some Unconfigured Type", {})).toBeNull();
+  });
+
+  it("does not require Plate No. for Visitor Pass when Transport Type is Walk-In", () => {
+    expect(
+      findMissingRequiredField("Visitor Pass", {
+        visitorType: "Supplier",
+        plannedDate: "2026-07-25",
+        plannedTime: "09:00",
+        personToMeet: "Analyn Gentizon",
+        departmentId: "d1",
+        reason: "Delivery",
+        visitLocation: "Lobby",
+        transportType: "Walk-In",
+      })
+    ).toBeNull();
+  });
+
+  it("still requires Plate No. for Visitor Pass when Transport Type is not Walk-In", () => {
+    expect(
+      findMissingRequiredField("Visitor Pass", {
+        visitorType: "Supplier",
+        plannedDate: "2026-07-25",
+        plannedTime: "09:00",
+        personToMeet: "Analyn Gentizon",
+        departmentId: "d1",
+        reason: "Delivery",
+        visitLocation: "Lobby",
+        transportType: "Car",
+      })
+    ).toBe("plateNo");
+  });
+});
+
+describe("getActiveFields", () => {
+  it("excludes plateNo from Visitor Pass's field set when Transport Type is Walk-In", () => {
+    expect(
+      getActiveFields("Visitor Pass", { transportType: "Walk-In" })
+    ).toEqual([
+      "visitorType",
+      "plannedDate",
+      "plannedTime",
+      "personToMeet",
+      "departmentId",
+      "reason",
+      "visitLocation",
+      "transportType",
+    ]);
+  });
+
+  it("keeps plateNo in Visitor Pass's field set for any other Transport Type", () => {
+    expect(getActiveFields("Visitor Pass", { transportType: "Car" })).toEqual(
+      TRANSACTION_FIELD_SETS["Visitor Pass"]
+    );
+  });
+
+  it("keeps plateNo in Visitor Pass's field set when Transport Type isn't set yet", () => {
+    expect(getActiveFields("Visitor Pass", {})).toEqual(
+      TRANSACTION_FIELD_SETS["Visitor Pass"]
+    );
+  });
+
+  it("is unaffected by a transportType value for matrix types other than Visitor Pass", () => {
+    expect(
+      getActiveFields("Halfday", { transportType: "Walk-In" })
+    ).toEqual(TRANSACTION_FIELD_SETS["Halfday"]);
+  });
+
+  it("returns an empty array for a matrix type with no configured field set", () => {
+    expect(getActiveFields("Some Unconfigured Type", {})).toEqual([]);
   });
 });

@@ -11,6 +11,7 @@ let matrixTypeId: string;
 let departmentId: string;
 let halfdayMatrixTypeId: string;
 let routingMatrixTypeId: string;
+let visitorPassMatrixTypeId: string;
 const createdTransactionIds: string[] = [];
 
 function requestWithCookie(token: string | undefined, body?: unknown) {
@@ -113,6 +114,17 @@ describe("POST /api/transactions", () => {
       },
     });
     routingMatrixTypeId = routingMatrixType.id;
+
+    const visitorPassMatrixType = await prisma.matrixType.upsert({
+      where: { name: "Visitor Pass" },
+      update: {},
+      create: {
+        matrixCode: "MT-VISITORPASSFIXTURE",
+        name: "Visitor Pass",
+        creatorId: user.id,
+      },
+    });
+    visitorPassMatrixTypeId = visitorPassMatrixType.id;
 
     await prisma.transaction.deleteMany({ where: { matrixTypeId } });
   });
@@ -338,6 +350,50 @@ describe("POST /api/transactions", () => {
     expect(response.status).toBe(201);
     const body = await response.json();
     createdTransactionIds.push(body.id);
+  });
+
+  it("returns a specific message when Plate No. is missing for Visitor Pass with a non-Walk-In Transport Type", async () => {
+    const response = await POST(
+      requestWithCookie(userToken, {
+        matrixTypeId: visitorPassMatrixTypeId,
+        visitorType: "Supplier",
+        plannedDate: "2026-07-28",
+        plannedTime: "10:30",
+        personToMeet: "Analyn Gentizon",
+        departmentId,
+        reason: "Delivery",
+        visitLocation: "Lobby, Room 204",
+        transportType: "Car",
+      })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toBe("Plate No. is required for this transaction type");
+  });
+
+  it("creates a Visitor Pass transaction with Transport Type Walk-In and no Plate No.", async () => {
+    const response = await POST(
+      requestWithCookie(userToken, {
+        matrixTypeId: visitorPassMatrixTypeId,
+        visitorType: "Supplier",
+        plannedDate: "2026-07-28",
+        plannedTime: "10:30",
+        personToMeet: "Analyn Gentizon",
+        departmentId,
+        reason: "Delivery",
+        visitLocation: "Lobby, Room 204",
+        transportType: "Walk-In",
+      })
+    );
+    expect(response.status).toBe(201);
+    const body = await response.json();
+    createdTransactionIds.push(body.id);
+
+    const created = await prisma.transaction.findUniqueOrThrow({
+      where: { id: body.id },
+    });
+    expect(created.transportType).toBe("Walk-In");
+    expect(created.plateNo).toBeNull();
   });
 
   afterAll(async () => {

@@ -307,6 +307,101 @@ describe("TransactionsView", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("hides Plate No. when Transport Type is Walk-In for Visitor Pass", () => {
+    renderView();
+    openModal();
+    selectType("mt3");
+    expect(screen.getByLabelText(/plate no\./i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/^transport type$/i), {
+      target: { value: "Walk-In" },
+    });
+
+    expect(screen.queryByLabelText(/plate no\./i)).not.toBeInTheDocument();
+    // The rest of the Visitor Pass field set is unaffected
+    expect(screen.getByLabelText(/^visitor type$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^location$/i)).toBeInTheDocument();
+  });
+
+  it("clears an already-entered Plate No. when Transport Type changes to Walk-In", () => {
+    renderView();
+    openModal();
+    selectType("mt3");
+    fireEvent.change(screen.getByLabelText(/^transport type$/i), {
+      target: { value: "Car" },
+    });
+    fireEvent.change(screen.getByLabelText(/plate no\./i), {
+      target: { value: "ABC-1234" },
+    });
+    expect(
+      (screen.getByLabelText(/plate no\./i) as HTMLInputElement).value
+    ).toBe("ABC-1234");
+
+    fireEvent.change(screen.getByLabelText(/^transport type$/i), {
+      target: { value: "Walk-In" },
+    });
+    expect(screen.queryByLabelText(/plate no\./i)).not.toBeInTheDocument();
+
+    // Switching back to a non-Walk-In transport type shows Plate No. empty again
+    fireEvent.change(screen.getByLabelText(/^transport type$/i), {
+      target: { value: "Car" },
+    });
+    expect(
+      (screen.getByLabelText(/plate no\./i) as HTMLInputElement).value
+    ).toBe("");
+  });
+
+  it("submits Visitor Pass with Transport Type Walk-In successfully without Plate No.", async () => {
+    renderView();
+    openModal();
+    selectType("mt3");
+    fireEvent.change(screen.getByLabelText(/^visitor type$/i), {
+      target: { value: "Supplier" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned date/i), {
+      target: { value: "2026-07-28" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned time/i), {
+      target: { value: "10:30" },
+    });
+    fireEvent.change(screen.getByLabelText(/person to meet/i), {
+      target: { value: "Analyn Gentizon" },
+    });
+    fireEvent.change(screen.getByLabelText(/^department$/i), {
+      target: { value: "d1" },
+    });
+    fireEvent.change(screen.getByLabelText(/^reason$/i), {
+      target: { value: "Delivery" },
+    });
+    fireEvent.change(screen.getByLabelText(/^location$/i), {
+      target: { value: "Lobby, Room 204" },
+    });
+    fireEvent.change(screen.getByLabelText(/^transport type$/i), {
+      target: { value: "Walk-In" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            matrixTypeId: "mt3",
+            visitorType: "Supplier",
+            plannedDate: "2026-07-28",
+            plannedTime: "10:30",
+            personToMeet: "Analyn Gentizon",
+            departmentId: "d1",
+            reason: "Delivery",
+            visitLocation: "Lobby, Room 204",
+            transportType: "Walk-In",
+          }),
+        })
+      )
+    );
+  });
+
   it("switching from Visitor Pass to Halfday swaps the field set", () => {
     renderView();
     openModal();
