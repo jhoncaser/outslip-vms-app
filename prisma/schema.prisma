@@ -61,6 +61,8 @@ model User {
   matrixTypesCreated  MatrixType[]
   transactionsCreated Transaction[]
   approverAssignments MatrixTypeApprover[]
+
+  lineItemAssignments TransactionLineItem[]
 }
 
 model MatrixType {
@@ -137,4 +139,31 @@ model Transaction {
   visitLocation String?
   transportType String?
   plateNo       String?
+
+  lineItems TransactionLineItem[]
+}
+
+model TransactionLineItem {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionId String
+
+  // Visitor Pass variant
+  visitorName    String?
+  jobTitle       String?
+  company        String?
+  contactNumber  String?
+  emailAddress   String?
+  uploadFileUrl  String?
+  uploadFileName String?
+  transportType  String?
+
+  // Every other matrix type ("employee" variant)
+  employeeType String?
+  employee     User?   @relation(fields: [employeeId], references: [id])
+  employeeId   String?
+  name         String?
+  remarks      String?
 }
