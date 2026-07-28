@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import { BUSINESS_UNIT_OPTIONS } from "@/lib/businessUnitOptions";
 import { VISITOR_TYPE_OPTIONS } from "@/lib/visitorTypeOptions";
 import { TRANSPORT_TYPE_OPTIONS } from "@/lib/transportTypeOptions";
+import {
+  TRANSACTION_FIELD_SETS,
+  TRANSACTION_FIELD_LABELS,
+  findMissingRequiredField,
+  type TransactionFieldKey,
+} from "@/lib/transactionFieldSets";
 
 export type TransactionRow = {
   id: string;
@@ -262,8 +268,12 @@ export function TransactionsView({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const isVisitorPass =
-    matrixTypes.find((option) => option.id === matrixTypeId)?.name === "Visitor Pass";
+  const selectedTypeName = matrixTypes.find(
+    (option) => option.id === matrixTypeId
+  )?.name;
+  const activeFields: readonly TransactionFieldKey[] = selectedTypeName
+    ? TRANSACTION_FIELD_SETS[selectedTypeName] ?? []
+    : [];
 
   function openModal() {
     setMatrixTypeId("");
@@ -295,27 +305,264 @@ export function TransactionsView({
     );
   }
 
+  function renderField(key: TransactionFieldKey) {
+    switch (key) {
+      case "plannedDate":
+        return (
+          <div>
+            <label htmlFor="planned-date" className={labelClassName}>
+              Planned Date
+            </label>
+            <input
+              id="planned-date"
+              type="date"
+              value={plannedDate}
+              onChange={(event) => setPlannedDate(event.target.value)}
+              className={inputClassName}
+            />
+          </div>
+        );
+      case "plannedTime":
+        return (
+          <div>
+            <label htmlFor="planned-time" className={labelClassName}>
+              Planned Time
+            </label>
+            <input
+              id="planned-time"
+              type="time"
+              value={plannedTime}
+              onChange={(event) => setPlannedTime(event.target.value)}
+              className={inputClassName}
+            />
+          </div>
+        );
+      case "returnTime":
+        return (
+          <div>
+            <label htmlFor="return-time" className={labelClassName}>
+              Return Time
+            </label>
+            <input
+              id="return-time"
+              type="time"
+              value={returnTime}
+              onChange={(event) => setReturnTime(event.target.value)}
+              className={inputClassName}
+            />
+          </div>
+        );
+      case "originBusinessUnit":
+        return (
+          <div>
+            <label htmlFor="origin-business-unit" className={labelClassName}>
+              Origin Business Unit
+            </label>
+            <select
+              id="origin-business-unit"
+              value={originBusinessUnit}
+              onChange={(event) => setOriginBusinessUnit(event.target.value)}
+              className={inputClassName}
+            >
+              <option value="" disabled>
+                Select a business unit
+              </option>
+              {BUSINESS_UNIT_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      case "enrouteBusinessUnits":
+        return (
+          <fieldset>
+            <legend className={labelClassName}>Enroute to Other Business Unit</legend>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded border border-slate-300 p-3">
+              {BUSINESS_UNIT_OPTIONS.map((option) => (
+                <label
+                  key={option}
+                  className="flex items-center gap-2 text-sm text-slate-700"
+                >
+                  <input
+                    type="checkbox"
+                    checked={enrouteBusinessUnits.includes(option)}
+                    onChange={() => toggleEnrouteBusinessUnit(option)}
+                    className="h-4 w-4 rounded border-slate-300 text-[#2C7001] focus:ring-1 focus:ring-[#2C7001]"
+                  />
+                  {option}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        );
+      case "reason":
+        return (
+          <div>
+            <label htmlFor="reason" className={labelClassName}>
+              Reason
+            </label>
+            <textarea
+              id="reason"
+              rows={3}
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              className={inputClassName}
+            />
+          </div>
+        );
+      case "visitorType":
+        return (
+          <div>
+            <label htmlFor="visitor-type" className={labelClassName}>
+              Visitor Type
+            </label>
+            <select
+              id="visitor-type"
+              value={visitorType}
+              onChange={(event) => setVisitorType(event.target.value)}
+              className={inputClassName}
+            >
+              <option value="" disabled>
+                Select a visitor type
+              </option>
+              {VISITOR_TYPE_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      case "personToMeet":
+        return (
+          <div>
+            <label htmlFor="person-to-meet" className={labelClassName}>
+              Person to Meet
+            </label>
+            <input
+              id="person-to-meet"
+              type="text"
+              value={personToMeet}
+              onChange={(event) => setPersonToMeet(event.target.value)}
+              className={inputClassName}
+            />
+          </div>
+        );
+      case "departmentId":
+        return (
+          <div>
+            <label htmlFor="visitor-department" className={labelClassName}>
+              Department
+            </label>
+            <select
+              id="visitor-department"
+              value={departmentId}
+              onChange={(event) => setDepartmentId(event.target.value)}
+              className={inputClassName}
+            >
+              <option value="" disabled>
+                Select a department
+              </option>
+              {departments.map((department) => (
+                <option key={department.id} value={department.id}>
+                  {department.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      case "visitLocation":
+        return (
+          <div>
+            <label htmlFor="visit-location" className={labelClassName}>
+              Location
+            </label>
+            <input
+              id="visit-location"
+              type="text"
+              value={visitLocation}
+              onChange={(event) => setVisitLocation(event.target.value)}
+              className={inputClassName}
+            />
+          </div>
+        );
+      case "transportType":
+        return (
+          <div>
+            <label htmlFor="transport-type" className={labelClassName}>
+              Transport Type
+            </label>
+            <select
+              id="transport-type"
+              value={transportType}
+              onChange={(event) => setTransportType(event.target.value)}
+              className={inputClassName}
+            >
+              <option value="" disabled>
+                Select a transport type
+              </option>
+              {TRANSPORT_TYPE_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      case "plateNo":
+        return (
+          <div>
+            <label htmlFor="plate-no" className={labelClassName}>
+              Plate No.
+            </label>
+            <input
+              id="plate-no"
+              type="text"
+              value={plateNo}
+              onChange={(event) => setPlateNo(event.target.value)}
+              className={inputClassName}
+            />
+          </div>
+        );
+    }
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    setSubmitting(true);
     setError("");
 
-    const body: Record<string, unknown> = { matrixTypeId };
-    if (plannedDate) body.plannedDate = plannedDate;
-    if (plannedTime) body.plannedTime = plannedTime;
-    if (!isVisitorPass) {
-      if (returnTime) body.returnTime = returnTime;
-      if (originBusinessUnit) body.originBusinessUnit = originBusinessUnit;
-      if (enrouteBusinessUnits.length > 0) body.enrouteBusinessUnits = enrouteBusinessUnits;
+    if (!selectedTypeName) return;
+
+    const fieldValues: Record<TransactionFieldKey, string | string[]> = {
+      plannedDate,
+      plannedTime,
+      returnTime,
+      originBusinessUnit,
+      enrouteBusinessUnits,
+      reason,
+      visitorType,
+      personToMeet,
+      departmentId,
+      visitLocation,
+      transportType,
+      plateNo,
+    };
+
+    const missingField = findMissingRequiredField(selectedTypeName, fieldValues);
+    if (missingField) {
+      setError(
+        `${TRANSACTION_FIELD_LABELS[missingField]} is required for this transaction type`
+      );
+      return;
     }
-    if (reason) body.reason = reason;
-    if (isVisitorPass) {
-      if (visitorType) body.visitorType = visitorType;
-      if (personToMeet) body.personToMeet = personToMeet;
-      if (departmentId) body.departmentId = departmentId;
-      if (visitLocation) body.visitLocation = visitLocation;
-      if (transportType) body.transportType = transportType;
-      if (plateNo) body.plateNo = plateNo;
+
+    setSubmitting(true);
+
+    const body: Record<string, unknown> = { matrixTypeId };
+    for (const key of activeFields) {
+      body[key] = fieldValues[key];
     }
 
     const response = await fetch("/api/transactions", {
@@ -410,245 +657,9 @@ export function TransactionsView({
                   </select>
                 </div>
 
-                {isVisitorPass ? (
-                  <>
-                    <div>
-                      <label htmlFor="visitor-type" className={labelClassName}>
-                        Visitor Type
-                      </label>
-                      <select
-                        id="visitor-type"
-                        value={visitorType}
-                        onChange={(event) => setVisitorType(event.target.value)}
-                        className={inputClassName}
-                      >
-                        <option value="" disabled>
-                          Select a visitor type
-                        </option>
-                        {VISITOR_TYPE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label htmlFor="planned-date" className={labelClassName}>
-                        Planned Date
-                      </label>
-                      <input
-                        id="planned-date"
-                        type="date"
-                        value={plannedDate}
-                        onChange={(event) => setPlannedDate(event.target.value)}
-                        className={inputClassName}
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="planned-time" className={labelClassName}>
-                        Planned Time
-                      </label>
-                      <input
-                        id="planned-time"
-                        type="time"
-                        value={plannedTime}
-                        onChange={(event) => setPlannedTime(event.target.value)}
-                        className={inputClassName}
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="person-to-meet" className={labelClassName}>
-                        Person to Meet
-                      </label>
-                      <input
-                        id="person-to-meet"
-                        type="text"
-                        value={personToMeet}
-                        onChange={(event) => setPersonToMeet(event.target.value)}
-                        className={inputClassName}
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="visitor-department" className={labelClassName}>
-                        Department
-                      </label>
-                      <select
-                        id="visitor-department"
-                        value={departmentId}
-                        onChange={(event) => setDepartmentId(event.target.value)}
-                        className={inputClassName}
-                      >
-                        <option value="" disabled>
-                          Select a department
-                        </option>
-                        {departments.map((department) => (
-                          <option key={department.id} value={department.id}>
-                            {department.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label htmlFor="reason" className={labelClassName}>
-                        Reason
-                      </label>
-                      <textarea
-                        id="reason"
-                        rows={3}
-                        value={reason}
-                        onChange={(event) => setReason(event.target.value)}
-                        className={inputClassName}
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="visit-location" className={labelClassName}>
-                        Location
-                      </label>
-                      <input
-                        id="visit-location"
-                        type="text"
-                        value={visitLocation}
-                        onChange={(event) => setVisitLocation(event.target.value)}
-                        className={inputClassName}
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="transport-type" className={labelClassName}>
-                        Transport Type
-                      </label>
-                      <select
-                        id="transport-type"
-                        value={transportType}
-                        onChange={(event) => setTransportType(event.target.value)}
-                        className={inputClassName}
-                      >
-                        <option value="" disabled>
-                          Select a transport type
-                        </option>
-                        {TRANSPORT_TYPE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label htmlFor="plate-no" className={labelClassName}>
-                        Plate No.
-                      </label>
-                      <input
-                        id="plate-no"
-                        type="text"
-                        value={plateNo}
-                        onChange={(event) => setPlateNo(event.target.value)}
-                        className={inputClassName}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      <label htmlFor="planned-date" className={labelClassName}>
-                        Planned Date
-                      </label>
-                      <input
-                        id="planned-date"
-                        type="date"
-                        value={plannedDate}
-                        onChange={(event) => setPlannedDate(event.target.value)}
-                        className={inputClassName}
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="planned-time" className={labelClassName}>
-                        Planned Time
-                      </label>
-                      <input
-                        id="planned-time"
-                        type="time"
-                        value={plannedTime}
-                        onChange={(event) => setPlannedTime(event.target.value)}
-                        className={inputClassName}
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="return-time" className={labelClassName}>
-                        Return Time
-                      </label>
-                      <input
-                        id="return-time"
-                        type="time"
-                        value={returnTime}
-                        onChange={(event) => setReturnTime(event.target.value)}
-                        className={inputClassName}
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="origin-business-unit" className={labelClassName}>
-                        Origin Business Unit
-                      </label>
-                      <select
-                        id="origin-business-unit"
-                        value={originBusinessUnit}
-                        onChange={(event) => setOriginBusinessUnit(event.target.value)}
-                        className={inputClassName}
-                      >
-                        <option value="" disabled>
-                          Select a business unit
-                        </option>
-                        {BUSINESS_UNIT_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <fieldset>
-                      <legend className={labelClassName}>Enroute to Other Business Unit</legend>
-                      <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded border border-slate-300 p-3">
-                        {BUSINESS_UNIT_OPTIONS.map((option) => (
-                          <label
-                            key={option}
-                            className="flex items-center gap-2 text-sm text-slate-700"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={enrouteBusinessUnits.includes(option)}
-                              onChange={() => toggleEnrouteBusinessUnit(option)}
-                              className="h-4 w-4 rounded border-slate-300 text-[#2C7001] focus:ring-1 focus:ring-[#2C7001]"
-                            />
-                            {option}
-                          </label>
-                        ))}
-                      </div>
-                    </fieldset>
-
-                    <div>
-                      <label htmlFor="reason" className={labelClassName}>
-                        Reason
-                      </label>
-                      <textarea
-                        id="reason"
-                        rows={3}
-                        value={reason}
-                        onChange={(event) => setReason(event.target.value)}
-                        className={inputClassName}
-                      />
-                    </div>
-                  </>
-                )}
+                {activeFields.map((key) => (
+                  <Fragment key={key}>{renderField(key)}</Fragment>
+                ))}
 
                 {error && (
                   <p role="alert" className="text-xs text-red-600">

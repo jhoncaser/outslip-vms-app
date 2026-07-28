@@ -57,6 +57,8 @@ const matrixTypes = [
   { id: "mt1", name: "Halfday" },
   { id: "mt2", name: "Undertime" },
   { id: "mt3", name: "Visitor Pass" },
+  { id: "mt4", name: "Routing to other Business Unit" },
+  { id: "mt5", name: "Out for Lunch" },
 ];
 const departments = [
   { id: "d1", name: "ICT" },
@@ -79,6 +81,16 @@ function rowFor(code: string) {
   const row = cell.closest("tr");
   if (!row) throw new Error(`No <tr> ancestor found for ${code}`);
   return row;
+}
+
+function openModal() {
+  fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+}
+
+function selectType(id: string) {
+  fireEvent.change(screen.getByLabelText(/transaction type/i), {
+    target: { value: id },
+  });
 }
 
 describe("TransactionsView", () => {
@@ -208,33 +220,75 @@ describe("TransactionsView", () => {
 
   it("opens the modal and lists matrix type options", () => {
     renderView();
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    openModal();
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Halfday" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Undertime" })).toBeInTheDocument();
   });
 
-  it("renders the additional optional fields in the Add Transaction modal", () => {
+  it("shows no extra fields until a Transaction Type is selected", () => {
     renderView();
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    openModal();
+    expect(screen.queryByLabelText(/planned date/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^reason$/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^visitor type$/i)).not.toBeInTheDocument();
+  });
+
+  it("shows exactly Halfday's required fields when Halfday is selected", () => {
+    renderView();
+    openModal();
+    selectType("mt1");
+
+    expect(screen.getByLabelText(/planned date/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/planned time/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^reason$/i)).toBeInTheDocument();
+
+    expect(screen.queryByLabelText(/return time/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^origin business unit$/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("group", { name: /enroute to other business unit/i })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^visitor type$/i)).not.toBeInTheDocument();
+  });
+
+  it("shows exactly Out for Lunch's required fields when selected", () => {
+    renderView();
+    openModal();
+    selectType("mt5");
+
     expect(screen.getByLabelText(/planned date/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/planned time/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/return time/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^reason$/i)).toBeInTheDocument();
+
+    expect(screen.queryByLabelText(/^origin business unit$/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("group", { name: /enroute to other business unit/i })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^visitor type$/i)).not.toBeInTheDocument();
+  });
+
+  it("shows exactly Routing to other Business Unit's required fields when selected", () => {
+    renderView();
+    openModal();
+    selectType("mt4");
+
+    expect(screen.getByLabelText(/planned date/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/planned time/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^origin business unit$/i)).toBeInTheDocument();
     expect(
       screen.getByRole("group", { name: /enroute to other business unit/i })
     ).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: "Alpha" })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: "Delta" })).toBeInTheDocument();
     expect(screen.getByLabelText(/^reason$/i)).toBeInTheDocument();
+
+    expect(screen.queryByLabelText(/return time/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^visitor type$/i)).not.toBeInTheDocument();
   });
 
-  it("shows the Visitor Pass field set and hides Return Time, Origin Business Unit, and Enroute to Other Business Unit when Visitor Pass is selected", () => {
+  it("shows the Visitor Pass field set when Visitor Pass is selected", () => {
     renderView();
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
-    fireEvent.change(screen.getByLabelText(/transaction type/i), {
-      target: { value: "mt3" },
-    });
+    openModal();
+    selectType("mt3");
 
     expect(screen.getByLabelText(/^visitor type$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/planned date/i)).toBeInTheDocument();
@@ -253,26 +307,62 @@ describe("TransactionsView", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("keeps the default field set when a non-Visitor-Pass matrix type is selected", () => {
+  it("switching from Visitor Pass to Halfday swaps the field set", () => {
     renderView();
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
-    fireEvent.change(screen.getByLabelText(/transaction type/i), {
-      target: { value: "mt1" },
-    });
+    openModal();
+    selectType("mt3");
+    expect(screen.getByLabelText(/^visitor type$/i)).toBeInTheDocument();
 
-    expect(screen.getByLabelText(/return time/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^origin business unit$/i)).toBeInTheDocument();
+    selectType("mt1");
     expect(screen.queryByLabelText(/^visitor type$/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/^reason$/i)).toBeInTheDocument();
   });
 
-  it("includes populated optional fields in the submitted body", async () => {
+  it("shows a specific error and does not submit when a required field is missing", () => {
     renderView();
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
-    fireEvent.change(screen.getByLabelText(/transaction type/i), {
-      target: { value: "mt1" },
-    });
+    openModal();
+    selectType("mt1");
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    expect(
+      screen.getByRole("alert")
+    ).toHaveTextContent("Planned Date is required for this transaction type");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("shows a specific error when Enroute to Other Business Unit has no boxes checked", () => {
+    renderView();
+    openModal();
+    selectType("mt4");
     fireEvent.change(screen.getByLabelText(/planned date/i), {
       target: { value: "2026-07-25" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned time/i), {
+      target: { value: "09:00" },
+    });
+    fireEvent.change(screen.getByLabelText(/^origin business unit$/i), {
+      target: { value: "Cawit" },
+    });
+    fireEvent.change(screen.getByLabelText(/^reason$/i), {
+      target: { value: "Delivering documents" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Enroute to Other Business Unit is required for this transaction type"
+    );
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("submits Halfday's required fields in the request body", async () => {
+    renderView();
+    openModal();
+    selectType("mt1");
+    fireEvent.change(screen.getByLabelText(/planned date/i), {
+      target: { value: "2026-07-25" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned time/i), {
+      target: { value: "09:00" },
     });
     fireEvent.change(screen.getByLabelText(/^reason$/i), {
       target: { value: "Client meeting" },
@@ -287,7 +377,81 @@ describe("TransactionsView", () => {
           body: JSON.stringify({
             matrixTypeId: "mt1",
             plannedDate: "2026-07-25",
+            plannedTime: "09:00",
             reason: "Client meeting",
+          }),
+        })
+      )
+    );
+  });
+
+  it("submits Out for Lunch's required fields in the request body", async () => {
+    renderView();
+    openModal();
+    selectType("mt5");
+    fireEvent.change(screen.getByLabelText(/planned date/i), {
+      target: { value: "2026-07-25" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned time/i), {
+      target: { value: "12:00" },
+    });
+    fireEvent.change(screen.getByLabelText(/return time/i), {
+      target: { value: "13:00" },
+    });
+    fireEvent.change(screen.getByLabelText(/^reason$/i), {
+      target: { value: "Lunch out" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            matrixTypeId: "mt5",
+            plannedDate: "2026-07-25",
+            plannedTime: "12:00",
+            returnTime: "13:00",
+            reason: "Lunch out",
+          }),
+        })
+      )
+    );
+  });
+
+  it("submits Routing to other Business Unit's required fields, including checked Enroute boxes", async () => {
+    renderView();
+    openModal();
+    selectType("mt4");
+    fireEvent.change(screen.getByLabelText(/planned date/i), {
+      target: { value: "2026-07-25" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned time/i), {
+      target: { value: "09:00" },
+    });
+    fireEvent.change(screen.getByLabelText(/^origin business unit$/i), {
+      target: { value: "Cawit" },
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Alpha" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Delta" }));
+    fireEvent.change(screen.getByLabelText(/^reason$/i), {
+      target: { value: "Delivering documents" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            matrixTypeId: "mt4",
+            plannedDate: "2026-07-25",
+            plannedTime: "09:00",
+            originBusinessUnit: "Cawit",
+            enrouteBusinessUnits: ["Alpha", "Delta"],
+            reason: "Delivering documents",
           }),
         })
       )
@@ -296,10 +460,8 @@ describe("TransactionsView", () => {
 
   it("submits populated Visitor Pass fields in the request body", async () => {
     renderView();
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
-    fireEvent.change(screen.getByLabelText(/transaction type/i), {
-      target: { value: "mt3" },
-    });
+    openModal();
+    selectType("mt3");
     fireEvent.change(screen.getByLabelText(/^visitor type$/i), {
       target: { value: "Supplier" },
     });
@@ -336,12 +498,12 @@ describe("TransactionsView", () => {
           method: "POST",
           body: JSON.stringify({
             matrixTypeId: "mt3",
+            visitorType: "Supplier",
             plannedDate: "2026-07-26",
             plannedTime: "10:30",
-            reason: "Product demo for a prospective supplier",
-            visitorType: "Supplier",
             personToMeet: "Analyn Gentizon",
             departmentId: "d1",
+            reason: "Product demo for a prospective supplier",
             visitLocation: "Lobby, Room 204",
             transportType: "Car",
             plateNo: "ABC-1234",
@@ -351,53 +513,10 @@ describe("TransactionsView", () => {
     );
   });
 
-  it("includes all checked values when submitting the Enroute to Other Business Unit checkboxes", async () => {
-    renderView();
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
-    fireEvent.change(screen.getByLabelText(/transaction type/i), {
-      target: { value: "mt1" },
-    });
-
-    fireEvent.click(screen.getByRole("checkbox", { name: "Alpha" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Delta" }));
-
-    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
-
-    await waitFor(() =>
-      expect(fetch).toHaveBeenCalledWith(
-        "/api/transactions",
-        expect.objectContaining({
-          method: "POST",
-          body: expect.stringContaining(
-            '"enrouteBusinessUnits":["Alpha","Delta"]'
-          ),
-        })
-      )
-    );
-  });
-
-  it("submits the selected matrix type to /api/transactions", async () => {
-    renderView();
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
-    fireEvent.change(screen.getByLabelText(/transaction type/i), {
-      target: { value: "mt2" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
-
-    await waitFor(() =>
-      expect(fetch).toHaveBeenCalledWith(
-        "/api/transactions",
-        expect.objectContaining({
-          method: "POST",
-          body: JSON.stringify({ matrixTypeId: "mt2" }),
-        })
-      )
-    );
-  });
-
-  it("pre-fills Origin Business Unit with the current user's business unit when it's a valid option", () => {
+  it("pre-fills Origin Business Unit with the current user's business unit when Routing to other Business Unit is selected", () => {
     renderView("Cawit");
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    openModal();
+    selectType("mt4");
     expect(
       (screen.getByLabelText(/^origin business unit$/i) as HTMLSelectElement).value
     ).toBe("Cawit");
@@ -405,12 +524,20 @@ describe("TransactionsView", () => {
 
   it("still allows changing the pre-filled Origin Business Unit before submitting", async () => {
     renderView("Cawit");
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
-    fireEvent.change(screen.getByLabelText(/transaction type/i), {
-      target: { value: "mt2" },
-    });
+    openModal();
+    selectType("mt4");
     fireEvent.change(screen.getByLabelText(/^origin business unit$/i), {
       target: { value: "Delta" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned date/i), {
+      target: { value: "2026-07-25" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned time/i), {
+      target: { value: "09:00" },
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Alpha" }));
+    fireEvent.change(screen.getByLabelText(/^reason$/i), {
+      target: { value: "Delivering documents" },
     });
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
 
@@ -419,7 +546,7 @@ describe("TransactionsView", () => {
         "/api/transactions",
         expect.objectContaining({
           method: "POST",
-          body: JSON.stringify({ matrixTypeId: "mt2", originBusinessUnit: "Delta" }),
+          body: expect.stringContaining('"originBusinessUnit":"Delta"'),
         })
       )
     );
@@ -427,7 +554,8 @@ describe("TransactionsView", () => {
 
   it("leaves Origin Business Unit unset when the current user's business unit isn't one of the fixed options", () => {
     renderView("MSC");
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
+    openModal();
+    selectType("mt4");
     expect(
       (screen.getByLabelText(/^origin business unit$/i) as HTMLSelectElement).value
     ).toBe("");
@@ -435,9 +563,16 @@ describe("TransactionsView", () => {
 
   it("closes the modal after a successful submit", async () => {
     renderView();
-    fireEvent.click(screen.getByRole("button", { name: /\+ add transaction/i }));
-    fireEvent.change(screen.getByLabelText(/transaction type/i), {
-      target: { value: "mt1" },
+    openModal();
+    selectType("mt1");
+    fireEvent.change(screen.getByLabelText(/planned date/i), {
+      target: { value: "2026-07-25" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned time/i), {
+      target: { value: "09:00" },
+    });
+    fireEvent.change(screen.getByLabelText(/^reason$/i), {
+      target: { value: "Client meeting" },
     });
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
 
