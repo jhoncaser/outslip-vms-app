@@ -55,29 +55,31 @@ export function ProfileView({
           aria-hidden
           className="absolute -bottom-10 -left-5 h-28 w-28 rounded-full bg-white/5"
         />
-        <Link
-          href="/change-password"
-          className="absolute right-6 top-6 z-10 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-        >
-          <LockIcon />
-          Change Password
-        </Link>
-        <div className="relative flex items-center gap-4">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/20 text-lg font-bold text-white">
-            {initials}
-          </span>
-          <div>
-            <h1 className="text-lg font-bold text-white">{fullName}</h1>
-            <div className="mt-1 flex items-center gap-2 text-sm text-white/80">
-              <span>{jobTitle}</span>
-              <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white">
-                {roleLabel}
-              </span>
+        <div className="relative flex flex-col gap-4 sm:block">
+          <Link
+            href="/change-password"
+            className="z-10 inline-flex w-fit items-center gap-1.5 self-end rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:absolute sm:right-6 sm:top-6"
+          >
+            <LockIcon />
+            Change Password
+          </Link>
+          <div className="flex items-center gap-4">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/20 text-lg font-bold text-white">
+              {initials}
+            </span>
+            <div>
+              <h1 className="text-lg font-bold text-white">{fullName}</h1>
+              <div className="mt-1 flex items-center gap-2 text-sm text-white/80">
+                <span>{jobTitle}</span>
+                <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white">
+                  {roleLabel}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-x-8 gap-y-4 rounded-b-xl bg-white px-8 py-7">
+      <div className="grid grid-cols-1 gap-x-8 gap-y-4 rounded-b-xl bg-white px-8 py-7 sm:grid-cols-2">
         <div>
           <p className={fieldLabelClassName}>Email</p>
           <p className={fieldValueClassName}>{email}</p>

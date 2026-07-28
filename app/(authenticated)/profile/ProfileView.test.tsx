@@ -42,4 +42,11 @@ describe("ProfileView", () => {
     const link = screen.getByRole("link", { name: /change password/i });
     expect(link).toHaveAttribute("href", "/change-password");
   });
+
+  it("collapses the details grid to one column below sm, two columns at sm and up", () => {
+    const { container } = render(<ProfileView {...sampleProps} />);
+    const grid = container.querySelector(".grid");
+    expect(grid?.className).toContain("grid-cols-1");
+    expect(grid?.className).toContain("sm:grid-cols-2");
+  });
 });
