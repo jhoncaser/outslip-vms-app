@@ -11,6 +11,7 @@ let matrixTypeId: string;
 let departmentId: string;
 let halfdayMatrixTypeId: string;
 let routingMatrixTypeId: string;
+const createdTransactionIds: string[] = [];
 
 function requestWithCookie(token: string | undefined, body?: unknown) {
   return new NextRequest("http://localhost/api/transactions", {
@@ -114,8 +115,6 @@ describe("POST /api/transactions", () => {
     routingMatrixTypeId = routingMatrixType.id;
 
     await prisma.transaction.deleteMany({ where: { matrixTypeId } });
-    await prisma.transaction.deleteMany({ where: { matrixTypeId: halfdayMatrixTypeId } });
-    await prisma.transaction.deleteMany({ where: { matrixTypeId: routingMatrixTypeId } });
   });
 
   it("returns 401 with no session", async () => {
@@ -147,6 +146,7 @@ describe("POST /api/transactions", () => {
     expect(response.status).toBe(201);
 
     const body = await response.json();
+    createdTransactionIds.push(body.id);
     expect(body.transactionCode).toBe(`OT-${String(before + 1).padStart(3, "0")}`);
     expect(body.matrixTypeId).toBe(matrixTypeId);
 
@@ -179,6 +179,7 @@ describe("POST /api/transactions", () => {
     expect(response.status).toBe(201);
 
     const body = await response.json();
+    createdTransactionIds.push(body.id);
     const created = await prisma.transaction.findUniqueOrThrow({
       where: { id: body.id },
     });
@@ -202,6 +203,7 @@ describe("POST /api/transactions", () => {
     expect(response.status).toBe(201);
 
     const body = await response.json();
+    createdTransactionIds.push(body.id);
     const created = await prisma.transaction.findUniqueOrThrow({
       where: { id: body.id },
     });
@@ -247,7 +249,7 @@ describe("POST /api/transactions", () => {
     const before = await prisma.transaction.count();
     const staleCode = `OT-${String(before + 1).padStart(3, "0")}`;
 
-    await prisma.transaction.create({
+    const staleTransaction = await prisma.transaction.create({
       data: {
         transactionCode: staleCode,
         matrixTypeId,
@@ -255,6 +257,7 @@ describe("POST /api/transactions", () => {
         creatorId: userId,
       },
     });
+    createdTransactionIds.push(staleTransaction.id);
 
     const countSpy = vi
       .spyOn(prisma.transaction, "count")
@@ -264,6 +267,7 @@ describe("POST /api/transactions", () => {
     expect(response.status).toBe(201);
 
     const body = await response.json();
+    createdTransactionIds.push(body.id);
     expect(body.transactionCode).not.toBe(staleCode);
 
     countSpy.mockRestore();
@@ -292,6 +296,8 @@ describe("POST /api/transactions", () => {
       })
     );
     expect(response.status).toBe(201);
+    const body = await response.json();
+    createdTransactionIds.push(body.id);
   });
 
   it("returns a specific message when Enroute to Other Business Unit is missing for Routing to other Business Unit", async () => {
@@ -323,17 +329,20 @@ describe("POST /api/transactions", () => {
       })
     );
     expect(response.status).toBe(201);
+    const body = await response.json();
+    createdTransactionIds.push(body.id);
   });
 
   it("requires nothing beyond the matrix type itself for a type with no configured field set", async () => {
     const response = await POST(requestWithCookie(userToken, { matrixTypeId }));
     expect(response.status).toBe(201);
+    const body = await response.json();
+    createdTransactionIds.push(body.id);
   });
 
   afterAll(async () => {
+    await prisma.transaction.deleteMany({ where: { id: { in: createdTransactionIds } } });
     await prisma.transaction.deleteMany({ where: { matrixTypeId } });
-    await prisma.transaction.deleteMany({ where: { matrixTypeId: halfdayMatrixTypeId } });
-    await prisma.transaction.deleteMany({ where: { matrixTypeId: routingMatrixTypeId } });
     await prisma.matrixType.deleteMany({ where: { id: matrixTypeId } });
     await prisma.$disconnect();
   });
