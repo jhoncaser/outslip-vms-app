@@ -394,17 +394,19 @@ export function TransactionDetailView({
                   <td className="whitespace-nowrap px-4 py-3">
                     <button
                       type="button"
+                      title="Edit"
                       aria-label={`Edit ${isVisitorPass ? item.visitorName : item.employeeName}`}
                       onClick={() => openEditModal(item)}
-                      className="mr-2 text-slate-400 hover:text-[#2C7001]"
+                      className="mr-2 inline-block text-slate-400 transition-transform duration-150 hover:-translate-y-0.5 hover:scale-125 hover:text-[#2C7001] motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100"
                     >
                       ✏️
                     </button>
                     <button
                       type="button"
+                      title="Delete"
                       aria-label={`Delete ${isVisitorPass ? item.visitorName : item.employeeName}`}
                       onClick={() => handleDelete(item.id)}
-                      className="text-slate-400 hover:text-red-600"
+                      className="inline-block text-slate-400 transition-transform duration-150 hover:-translate-y-0.5 hover:scale-125 hover:text-red-600 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100"
                     >
                       🗑️
                     </button>
