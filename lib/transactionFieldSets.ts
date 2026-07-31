@@ -8,7 +8,8 @@ export type TransactionFieldKey =
   | "visitorType"
   | "personToMeet"
   | "departmentId"
-  | "visitLocation"
+  | "businessUnitId"
+  | "locationId"
   | "transportType"
   | "plateNo";
 
@@ -30,8 +31,9 @@ export const TRANSACTION_FIELD_SETS: Record<string, readonly TransactionFieldKey
     "plannedTime",
     "personToMeet",
     "departmentId",
+    "businessUnitId",
+    "locationId",
     "reason",
-    "visitLocation",
     "transportType",
     "plateNo",
   ],
@@ -47,7 +49,8 @@ export const TRANSACTION_FIELD_LABELS: Record<TransactionFieldKey, string> = {
   visitorType: "Visitor Type",
   personToMeet: "Person to Meet",
   departmentId: "Department",
-  visitLocation: "Location",
+  businessUnitId: "Business Unit",
+  locationId: "Location",
   transportType: "Transport Type",
   plateNo: "Plate No.",
 };

@@ -42,8 +42,9 @@ describe("TRANSACTION_FIELD_SETS", () => {
       "plannedTime",
       "personToMeet",
       "departmentId",
+      "businessUnitId",
+      "locationId",
       "reason",
-      "visitLocation",
       "transportType",
       "plateNo",
     ]);
@@ -123,8 +124,9 @@ describe("findMissingRequiredField", () => {
         plannedTime: "09:00",
         personToMeet: "Analyn Gentizon",
         departmentId: "d1",
+        businessUnitId: "bu1",
+        locationId: "loc1",
         reason: "Delivery",
-        visitLocation: "Lobby",
         transportType: "Walk-In",
       })
     ).toBeNull();
@@ -138,11 +140,44 @@ describe("findMissingRequiredField", () => {
         plannedTime: "09:00",
         personToMeet: "Analyn Gentizon",
         departmentId: "d1",
+        businessUnitId: "bu1",
+        locationId: "loc1",
         reason: "Delivery",
-        visitLocation: "Lobby",
         transportType: "Car",
       })
     ).toBe("plateNo");
+  });
+
+  it("returns businessUnitId as missing when Business Unit isn't provided for Visitor Pass", () => {
+    expect(
+      findMissingRequiredField("Visitor Pass", {
+        visitorType: "Supplier",
+        plannedDate: "2026-07-25",
+        plannedTime: "09:00",
+        personToMeet: "Analyn Gentizon",
+        departmentId: "d1",
+        locationId: "loc1",
+        reason: "Delivery",
+        transportType: "Car",
+        plateNo: "ABC-1234",
+      })
+    ).toBe("businessUnitId");
+  });
+
+  it("returns locationId as missing when Location isn't provided for Visitor Pass", () => {
+    expect(
+      findMissingRequiredField("Visitor Pass", {
+        visitorType: "Supplier",
+        plannedDate: "2026-07-25",
+        plannedTime: "09:00",
+        personToMeet: "Analyn Gentizon",
+        departmentId: "d1",
+        businessUnitId: "bu1",
+        reason: "Delivery",
+        transportType: "Car",
+        plateNo: "ABC-1234",
+      })
+    ).toBe("locationId");
   });
 });
 
@@ -156,8 +191,9 @@ describe("getActiveFields", () => {
       "plannedTime",
       "personToMeet",
       "departmentId",
+      "businessUnitId",
+      "locationId",
       "reason",
-      "visitLocation",
       "transportType",
     ]);
   });
