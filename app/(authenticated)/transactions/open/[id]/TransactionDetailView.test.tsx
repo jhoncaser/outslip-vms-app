@@ -106,7 +106,6 @@ const employees = [
 describe("TransactionDetailView", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true })));
-    vi.stubGlobal("confirm", vi.fn(() => true));
   });
 
   it("renders the header card with QR, code, and populated detail fields", () => {
@@ -188,7 +187,7 @@ describe("TransactionDetailView", () => {
     expect(screen.getByText(/no line items yet/i)).toBeInTheDocument();
   });
 
-  it("deletes a line item after confirming, and not when the confirm is declined", async () => {
+  it("opens the delete-confirmation modal with the Visitor Pass row's details", () => {
     render(
       <TransactionDetailView
         transaction={visitorPassTransaction}
@@ -197,19 +196,133 @@ describe("TransactionDetailView", () => {
         remarksDefault="Sample reason"
       />
     );
+    fireEvent.click(screen.getByRole("button", { name: "Delete Analyn Gentizon" }));
 
-    vi.stubGlobal("confirm", vi.fn(() => false));
-    fireEvent.click(screen.getByRole("button", { name: /delete/i }));
+    const dialog = screen.getByRole("dialog", { name: /delete this line item/i });
+    expect(within(dialog).getByText("Analyn Gentizon")).toBeInTheDocument();
+    expect(dialog.textContent).toContain("Procurement Officer · Acme Supplies");
+  });
+
+  it("opens the delete-confirmation modal with an employee-variant row's details", () => {
+    render(
+      <TransactionDetailView
+        transaction={otherTransaction}
+        lineItems={employeeLineItems}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete Mark Reyes" }));
+
+    const dialog = screen.getByRole("dialog", { name: /delete this line item/i });
+    expect(within(dialog).getByText("Third-Party — Mark Reyes")).toBeInTheDocument();
+  });
+
+  it("opens the delete-confirmation modal with a Mega Employee row's details", () => {
+    render(
+      <TransactionDetailView
+        transaction={otherTransaction}
+        lineItems={megaEmployeeLineItems}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete Jhon Niño Caser" }));
+
+    const dialog = screen.getByRole("dialog", { name: /delete this line item/i });
+    expect(within(dialog).getByText("Mega Employee — Jhon Niño Caser")).toBeInTheDocument();
+  });
+
+  it("cancels without making a network request", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={visitorPassLineItems}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete Analyn Gentizon" }));
+    fireEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
+
+    expect(
+      screen.queryByRole("dialog", { name: /delete this line item/i })
+    ).not.toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
+  });
 
-    vi.stubGlobal("confirm", vi.fn(() => true));
-    fireEvent.click(screen.getByRole("button", { name: /delete/i }));
+  it("deletes a line item and refreshes on confirm", async () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={visitorPassLineItems}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete Analyn Gentizon" }));
+    const dialog = screen.getByRole("dialog", { name: /delete this line item/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^delete$/i }));
+
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
         "/api/transactions/t1/line-items/li1",
         expect.objectContaining({ method: "DELETE" })
       )
     );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: /delete this line item/i })
+      ).not.toBeInTheDocument()
+    );
+  });
+
+  it("shows an error inside the modal and keeps it open when delete fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          json: () => Promise.resolve({ error: "Failed to delete line item" }),
+        })
+      )
+    );
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={visitorPassLineItems}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete Analyn Gentizon" }));
+    const dialog = screen.getByRole("dialog", { name: /delete this line item/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^delete$/i }));
+
+    await waitFor(() =>
+      expect(within(dialog).getByRole("alert")).toHaveTextContent(
+        "Failed to delete line item"
+      )
+    );
+    expect(screen.getByRole("dialog", { name: /delete this line item/i })).toBeInTheDocument();
+  });
+
+  it("does not close the delete-confirmation modal on a backdrop click or Escape", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={visitorPassLineItems}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete Analyn Gentizon" }));
+    const dialog = screen.getByRole("dialog", { name: /delete this line item/i });
+
+    fireEvent.click(dialog);
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(screen.getByRole("dialog", { name: /delete this line item/i })).toBeInTheDocument();
   });
 
   it("links the file thumbnail to the authenticated file route", () => {

@@ -110,7 +110,9 @@ export function TransactionDetailView({
   const router = useRouter();
   const isVisitorPass = transaction.matrixTypeName === "Visitor Pass";
   const columns = isVisitorPass ? VISITOR_PASS_COLUMNS : EMPLOYEE_COLUMNS;
-  const [deleteError, setDeleteError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<LineItemRow | null>(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const [deleteModalError, setDeleteModalError] = useState("");
   const [modal, setModal] = useState<ModalState>({ mode: "closed" });
 
   // Visitor Pass fields
@@ -244,24 +246,40 @@ export function TransactionDetailView({
     }
   }
 
-  async function handleDelete(lineItemId: string) {
-    if (!confirm("Delete this line item?")) return;
-    setDeleteError("");
+  function openDeleteModal(item: LineItemRow) {
+    setDeleteModalError("");
+    setDeleteTarget(item);
+  }
+
+  function closeDeleteModal() {
+    setDeleteTarget(null);
+    setDeleteModalError("");
+  }
+
+  async function handleConfirmDelete() {
+    if (!deleteTarget) return;
+    setDeleteModalError("");
+    setDeleteSubmitting(true);
 
     try {
-      const response = await fetch(`/api/transactions/${transaction.id}/line-items/${lineItemId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/transactions/${transaction.id}/line-items/${deleteTarget.id}`,
+        { method: "DELETE" }
+      );
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setDeleteError(data.error ?? "Failed to delete line item");
+        setDeleteModalError(data.error ?? "Failed to delete line item");
+        setDeleteSubmitting(false);
         return;
       }
 
+      setDeleteSubmitting(false);
+      setDeleteTarget(null);
       router.refresh();
     } catch (err) {
-      setDeleteError("An error occurred while deleting the line item");
+      setDeleteModalError("An error occurred while deleting the line item");
+      setDeleteSubmitting(false);
     }
   }
 
@@ -328,12 +346,6 @@ export function TransactionDetailView({
           + Add Line Item
         </button>
       </div>
-
-      {deleteError && (
-        <p role="alert" className="mb-3 text-xs text-red-600">
-          {deleteError}
-        </p>
-      )}
 
       <div className="overflow-x-auto rounded-xl bg-white shadow">
         <table className="w-full border-collapse text-left text-sm text-slate-600">
@@ -413,7 +425,7 @@ export function TransactionDetailView({
                       type="button"
                       title="Delete"
                       aria-label={`Delete ${isVisitorPass ? item.visitorName : item.employeeName}`}
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => openDeleteModal(item)}
                       className="inline-block text-slate-400 transition-transform duration-150 hover:-translate-y-0.5 hover:scale-125 hover:text-red-600 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100"
                     >
                       🗑️
@@ -684,6 +696,63 @@ export function TransactionDetailView({
                   {submitting ? "Saving…" : "Save"}
                 </button>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-line-item-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 p-6"
+        >
+          <div className="w-full max-w-[340px] overflow-hidden rounded-xl bg-white p-6 text-center shadow-xl">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-xl">
+              ⚠️
+            </div>
+            <h2
+              id="delete-line-item-modal-title"
+              className="mb-2 text-sm font-extrabold text-slate-800"
+            >
+              Delete this line item?
+            </h2>
+            <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left">
+              <p className="text-xs font-bold text-slate-800">
+                {isVisitorPass
+                  ? deleteTarget.visitorName
+                  : `${deleteTarget.employeeType} — ${deleteTarget.employeeName}`}
+              </p>
+              {isVisitorPass && (
+                <p className="text-[11px] text-slate-400">
+                  {deleteTarget.jobTitle} · {deleteTarget.company}
+                </p>
+              )}
+            </div>
+            <p className="mb-4 text-xs text-slate-500">This action cannot be undone.</p>
+            {deleteModalError && (
+              <p role="alert" className="mb-3 text-xs text-red-600">
+                {deleteModalError}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                disabled={deleteSubmitting}
+                className="flex-1 rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-600 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleteSubmitting}
+                className="flex-1 rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+              >
+                {deleteSubmitting ? "Deleting…" : "Delete"}
+              </button>
             </div>
           </div>
         </div>
