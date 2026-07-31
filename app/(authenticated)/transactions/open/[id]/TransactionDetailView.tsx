@@ -741,7 +741,7 @@ export function TransactionDetailView({
                 type="button"
                 onClick={closeDeleteModal}
                 disabled={deleteSubmitting}
-                className="flex-1 rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-600 disabled:opacity-60"
+                className="flex-1 rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-600 transition-all duration-150 ease-out hover:-translate-y-0.5 hover:bg-slate-200 active:translate-y-0 active:bg-slate-300 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-slate-300 disabled:opacity-60 disabled:hover:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
               >
                 Cancel
               </button>
@@ -749,7 +749,7 @@ export function TransactionDetailView({
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={deleteSubmitting}
-                className="flex-1 rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+                className="flex-1 rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-all duration-150 ease-out hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-[0_8px_18px_rgba(220,38,38,0.35)] active:translate-y-0 active:bg-red-800 active:shadow-[0_3px_8px_rgba(220,38,38,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-300 disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none motion-reduce:transition-none motion-reduce:hover:translate-y-0"
               >
                 {deleteSubmitting ? "Deleting…" : "Delete"}
               </button>
