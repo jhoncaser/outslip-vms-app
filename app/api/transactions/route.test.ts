@@ -9,6 +9,8 @@ let userToken: string;
 let userId: string;
 let matrixTypeId: string;
 let departmentId: string;
+let businessUnitId: string;
+let locationId: string;
 let halfdayMatrixTypeId: string;
 let routingMatrixTypeId: string;
 let visitorPassMatrixTypeId: string;
@@ -42,11 +44,13 @@ describe("POST /api/transactions", () => {
       update: {},
       create: { name: "Cawit" },
     });
+    businessUnitId = businessUnit.id;
     const location = await prisma.location.upsert({
       where: { name: "Zamboanga" },
       update: {},
       create: { name: "Zamboanga" },
     });
+    locationId = location.id;
 
     const user = await prisma.user.upsert({
       where: { email: "transactions-route-test-user@example.com" },
@@ -183,7 +187,8 @@ describe("POST /api/transactions", () => {
         visitorType: "Supplier",
         personToMeet: "Analyn Gentizon",
         departmentId,
-        visitLocation: "Lobby, Room 204",
+        businessUnitId,
+        locationId,
         transportType: "Car",
         plateNo: "ABC-1234",
       })
@@ -205,7 +210,8 @@ describe("POST /api/transactions", () => {
     expect(created.visitorType).toBe("Supplier");
     expect(created.personToMeet).toBe("Analyn Gentizon");
     expect(created.departmentId).toBe(departmentId);
-    expect(created.visitLocation).toBe("Lobby, Room 204");
+    expect(created.businessUnitId).toBe(businessUnitId);
+    expect(created.locationId).toBe(locationId);
     expect(created.transportType).toBe("Car");
     expect(created.plateNo).toBe("ABC-1234");
   });
@@ -229,7 +235,8 @@ describe("POST /api/transactions", () => {
     expect(created.visitorType).toBeNull();
     expect(created.personToMeet).toBeNull();
     expect(created.departmentId).toBeNull();
-    expect(created.visitLocation).toBeNull();
+    expect(created.businessUnitId).toBeNull();
+    expect(created.locationId).toBeNull();
     expect(created.transportType).toBeNull();
     expect(created.plateNo).toBeNull();
   });
@@ -361,8 +368,9 @@ describe("POST /api/transactions", () => {
         plannedTime: "10:30",
         personToMeet: "Analyn Gentizon",
         departmentId,
+        businessUnitId,
+        locationId,
         reason: "Delivery",
-        visitLocation: "Lobby, Room 204",
         transportType: "Car",
       })
     );
@@ -380,8 +388,9 @@ describe("POST /api/transactions", () => {
         plannedTime: "10:30",
         personToMeet: "Analyn Gentizon",
         departmentId,
+        businessUnitId,
+        locationId,
         reason: "Delivery",
-        visitLocation: "Lobby, Room 204",
         transportType: "Walk-In",
       })
     );
@@ -394,6 +403,73 @@ describe("POST /api/transactions", () => {
     });
     expect(created.transportType).toBe("Walk-In");
     expect(created.plateNo).toBeNull();
+  });
+
+  it("returns a specific message when Business Unit is missing for Visitor Pass", async () => {
+    const response = await POST(
+      requestWithCookie(userToken, {
+        matrixTypeId: visitorPassMatrixTypeId,
+        visitorType: "Supplier",
+        plannedDate: "2026-07-28",
+        plannedTime: "10:30",
+        personToMeet: "Analyn Gentizon",
+        departmentId,
+        locationId,
+        reason: "Delivery",
+        transportType: "Car",
+        plateNo: "ABC-1234",
+      })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toBe("Business Unit is required for this transaction type");
+  });
+
+  it("returns a specific message when Location is missing for Visitor Pass", async () => {
+    const response = await POST(
+      requestWithCookie(userToken, {
+        matrixTypeId: visitorPassMatrixTypeId,
+        visitorType: "Supplier",
+        plannedDate: "2026-07-28",
+        plannedTime: "10:30",
+        personToMeet: "Analyn Gentizon",
+        departmentId,
+        businessUnitId,
+        reason: "Delivery",
+        transportType: "Car",
+        plateNo: "ABC-1234",
+      })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toBe("Location is required for this transaction type");
+  });
+
+  it("creates a Visitor Pass transaction persisting businessUnitId and locationId, and no longer writes visitLocation", async () => {
+    const response = await POST(
+      requestWithCookie(userToken, {
+        matrixTypeId: visitorPassMatrixTypeId,
+        visitorType: "Supplier",
+        plannedDate: "2026-07-28",
+        plannedTime: "10:30",
+        personToMeet: "Analyn Gentizon",
+        departmentId,
+        businessUnitId,
+        locationId,
+        reason: "Delivery",
+        transportType: "Car",
+        plateNo: "ABC-1234",
+      })
+    );
+    expect(response.status).toBe(201);
+    const body = await response.json();
+    createdTransactionIds.push(body.id);
+    const created = await prisma.transaction.findUniqueOrThrow({
+      where: { id: body.id },
+    });
+    expect(created.businessUnitId).toBe(businessUnitId);
+    expect(created.locationId).toBe(locationId);
+    expect(created.visitLocation).toBeNull();
   });
 
   afterAll(async () => {
