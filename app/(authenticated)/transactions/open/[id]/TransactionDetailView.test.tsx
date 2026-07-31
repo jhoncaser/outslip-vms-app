@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { TransactionDetailView } from "./TransactionDetailView";
 
 vi.mock("next/navigation", () => ({
@@ -256,8 +256,26 @@ describe("TransactionDetailView", () => {
     expect(screen.getByRole("button", { name: "Mega Employee" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Third-Party" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Visitor" })).toBeInTheDocument();
-    // Mega Employee is the default selection: Name dropdown + auto-filled display fields
     expect(screen.getByLabelText(/^name$/i).tagName).toBe("SELECT");
+    // Nothing is pre-selected yet
+    expect(screen.queryByText("Business Analyst and Developer")).not.toBeInTheDocument();
+    expect(screen.queryByText("MFC")).not.toBeInTheDocument();
+  });
+
+  it("shows auto-filled fields when an employee is selected from the Mega Employee dropdown", () => {
+    render(
+      <TransactionDetailView
+        transaction={otherTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /\+ add line item/i }));
+    fireEvent.change(screen.getByLabelText(/^name$/i), {
+      target: { value: "u1" },
+    });
+
     expect(screen.getByText("Business Analyst and Developer")).toBeInTheDocument();
     expect(screen.getByText("MFC")).toBeInTheDocument();
   });
@@ -274,9 +292,10 @@ describe("TransactionDetailView", () => {
     fireEvent.click(screen.getByRole("button", { name: /\+ add line item/i }));
     fireEvent.click(screen.getByRole("button", { name: "Third-Party" }));
 
-    expect(screen.getByLabelText(/^name$/i).tagName).toBe("INPUT");
-    expect(screen.queryByText("Business Analyst and Developer")).not.toBeInTheDocument();
-    expect(screen.queryByText("MFC")).not.toBeInTheDocument();
+    const modal = screen.getByRole("dialog");
+    expect(within(modal).getByLabelText(/^name$/i).tagName).toBe("INPUT");
+    expect(within(modal).queryByText("Business Analyst and Developer")).not.toBeInTheDocument();
+    expect(within(modal).queryByText("MFC")).not.toBeInTheDocument();
   });
 
   it("pre-fills Remarks from remarksDefault and allows editing it", () => {
@@ -368,9 +387,10 @@ describe("TransactionDetailView", () => {
       />
     );
     fireEvent.click(screen.getByRole("button", { name: /edit/i }));
-    expect((screen.getByLabelText(/^name$/i) as HTMLSelectElement).value).toBe("u1");
-    expect(screen.getByText("Business Analyst and Developer")).toBeInTheDocument();
-    expect((screen.getByLabelText(/^remarks$/i) as HTMLInputElement).value).toBe(
+    const modal = screen.getByRole("dialog");
+    expect((within(modal).getByLabelText(/^name$/i) as HTMLSelectElement).value).toBe("u1");
+    expect(within(modal).getByText("Business Analyst and Developer")).toBeInTheDocument();
+    expect((within(modal).getByLabelText(/^remarks$/i) as HTMLInputElement).value).toBe(
       "Sample remarks"
     );
   });

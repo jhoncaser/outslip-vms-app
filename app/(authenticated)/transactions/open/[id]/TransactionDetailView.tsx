@@ -3,7 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { EMPLOYEE_TYPE_OPTIONS } from "@/lib/validation/transactionLineItem";
+import {
+  EMPLOYEE_TYPE_OPTIONS,
+  findMissingVisitorPassLineItemField,
+  findMissingEmployeeLineItemField,
+  VISITOR_PASS_LINE_ITEM_LABELS,
+  EMPLOYEE_LINE_ITEM_LABELS,
+} from "@/lib/validation/transactionLineItem";
 import { TRANSPORT_TYPE_OPTIONS } from "@/lib/transportTypeOptions";
 
 export type TransactionDetailData = {
@@ -116,7 +122,7 @@ export function TransactionDetailView({
     setTransportType("");
     setUploadFile(null);
     setEmployeeType("Mega Employee");
-    setEmployeeId(employees[0]?.id ?? "");
+    setEmployeeId("");
     setName("");
     setRemarks(remarksDefault);
     setError("");
@@ -148,14 +154,25 @@ export function TransactionDetailView({
     setError("");
 
     if (isVisitorPass) {
-      if (!visitorName) return setError("Visitor Name is required");
-      if (!jobTitle) return setError("Job Title is required");
-      if (!company) return setError("Company is required");
-      if (!transportType) return setError("Transport Type is required");
+      const missingField = findMissingVisitorPassLineItemField({
+        visitorName,
+        jobTitle,
+        company,
+        transportType,
+      });
+      if (missingField) {
+        return setError(`${VISITOR_PASS_LINE_ITEM_LABELS[missingField]} is required`);
+      }
     } else {
-      if (employeeType === "Mega Employee" && !employeeId) return setError("Name is required");
-      if (employeeType !== "Mega Employee" && !name.trim()) return setError("Name is required");
-      if (!remarks.trim()) return setError("Remarks is required");
+      const missingField = findMissingEmployeeLineItemField({
+        employeeType,
+        employeeId,
+        name,
+        remarks,
+      });
+      if (missingField) {
+        return setError(`${EMPLOYEE_LINE_ITEM_LABELS[missingField]} is required`);
+      }
     }
 
     setSubmitting(true);
@@ -179,21 +196,27 @@ export function TransactionDetailView({
       modal.mode === "edit"
         ? `/api/transactions/${transaction.id}/line-items/${modal.lineItem.id}`
         : `/api/transactions/${transaction.id}/line-items`;
-    const response = await fetch(url, {
-      method: modal.mode === "edit" ? "PATCH" : "POST",
-      body,
-    });
 
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      setError(data.error ?? "Something went wrong");
+    try {
+      const response = await fetch(url, {
+        method: modal.mode === "edit" ? "PATCH" : "POST",
+        body,
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(data.error ?? "Something went wrong");
+        setSubmitting(false);
+        return;
+      }
+
       setSubmitting(false);
-      return;
+      setModal({ mode: "closed" });
+      router.refresh();
+    } catch (err) {
+      setError("An error occurred while saving the line item");
+      setSubmitting(false);
     }
-
-    setSubmitting(false);
-    setModal({ mode: "closed" });
-    router.refresh();
   }
 
   async function handleDelete(lineItemId: string) {
@@ -286,7 +309,6 @@ export function TransactionDetailView({
         </p>
       )}
 
-      {modal.mode === "closed" && (
       <div className="overflow-x-auto rounded-xl bg-white shadow">
         <table className="w-full border-collapse text-left text-sm text-slate-600">
           <thead>
@@ -374,7 +396,6 @@ export function TransactionDetailView({
           </tbody>
         </table>
       </div>
-      )}
 
       {modal.mode !== "closed" && (
         <div
