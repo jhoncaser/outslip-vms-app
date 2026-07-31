@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/prisma";
+import { findScopeMatchedApprovers } from "@/lib/matchApprovers";
 import { TransactionDetailView, type LineItemRow, type ApproverRow } from "./TransactionDetailView";
 
 export default async function TransactionDetailPage({
@@ -50,28 +51,19 @@ export default async function TransactionDetailPage({
 
   const isVisitorPass = transaction.matrixType.name === "Visitor Pass";
 
-  const matrixTypeApprovers =
-    isVisitorPass &&
-    transaction.departmentId &&
-    transaction.businessUnitId &&
-    transaction.locationId
-      ? await prisma.matrixTypeApprover.findMany({
-          where: {
-            matrixTypeId: transaction.matrixTypeId,
-            departmentId: transaction.departmentId,
-            businessUnitId: transaction.businessUnitId,
-            locationId: transaction.locationId,
-          },
-          include: { approver: { select: { firstName: true, lastName: true } } },
-          orderBy: { level: "asc" },
-        })
-      : [];
+  const matchedApprovers = await findScopeMatchedApprovers({
+    isVisitorPass,
+    matrixTypeId: transaction.matrixTypeId,
+    departmentId: transaction.departmentId,
+    businessUnitId: transaction.businessUnitId,
+    locationId: transaction.locationId,
+  });
 
-  const approvers: ApproverRow[] = matrixTypeApprovers.map((row) => ({
+  const approvers: ApproverRow[] = matchedApprovers.map((row) => ({
     id: row.id,
     level: row.level,
-    approverName: `${row.approver.firstName} ${row.approver.lastName}`,
-    initials: `${row.approver.firstName.charAt(0)}${row.approver.lastName.charAt(0)}`.toUpperCase(),
+    approverName: `${row.approverFirstName} ${row.approverLastName}`,
+    initials: `${row.approverFirstName.charAt(0)}${row.approverLastName.charAt(0)}`.toUpperCase(),
   }));
 
   const detailFieldCandidates: { label: string; value: string }[] = [
