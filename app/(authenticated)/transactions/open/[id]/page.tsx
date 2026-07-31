@@ -10,28 +10,41 @@ export default async function TransactionDetailPage({
 }) {
   const { id } = await params;
 
-  const transaction = await prisma.transaction.findUnique({
-    where: { id },
-    include: {
-      matrixType: { select: { name: true } },
-      status: { select: { name: true } },
-      creator: { select: { firstName: true, lastName: true } },
-      lineItems: {
-        orderBy: { createdAt: "asc" },
-        include: {
-          employee: {
-            select: {
-              firstName: true,
-              lastName: true,
-              jobTitle: true,
-              department: { select: { name: true } },
-              businessUnit: { select: { name: true } },
+  const [transaction, users] = await Promise.all([
+    prisma.transaction.findUnique({
+      where: { id },
+      include: {
+        matrixType: { select: { name: true } },
+        status: { select: { name: true } },
+        creator: { select: { firstName: true, lastName: true } },
+        lineItems: {
+          orderBy: { createdAt: "asc" },
+          include: {
+            employee: {
+              select: {
+                firstName: true,
+                lastName: true,
+                jobTitle: true,
+                department: { select: { name: true } },
+                businessUnit: { select: { name: true } },
+              },
             },
           },
         },
       },
-    },
-  });
+    }),
+    prisma.user.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        jobTitle: true,
+        department: { select: { name: true } },
+        businessUnit: { select: { name: true } },
+      },
+      orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+    }),
+  ]);
 
   if (!transaction) notFound();
 
@@ -99,6 +112,14 @@ export default async function TransactionDetailPage({
     remarks: item.remarks ?? "",
   }));
 
+  const employees = users.map((user) => ({
+    id: user.id,
+    name: `${user.firstName} ${user.lastName}`,
+    jobPosition: user.jobTitle,
+    department: user.department.name,
+    businessUnit: user.businessUnit.name,
+  }));
+
   return (
     <div className="relative flex flex-1 items-start justify-center overflow-hidden bg-[#eef1ee] p-8">
       <div
@@ -106,7 +127,12 @@ export default async function TransactionDetailPage({
         className="pointer-events-none absolute inset-0 bg-[url('/mfc-logo.png')] bg-cover bg-center bg-no-repeat opacity-[0.18]"
       />
       <div className="relative z-10 w-full">
-        <TransactionDetailView transaction={transactionDetail} lineItems={lineItems} />
+        <TransactionDetailView
+          transaction={transactionDetail}
+          lineItems={lineItems}
+          employees={employees}
+          remarksDefault={transaction.reason ?? ""}
+        />
       </div>
     </div>
   );
