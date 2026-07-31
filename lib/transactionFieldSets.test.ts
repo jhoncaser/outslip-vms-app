@@ -43,7 +43,7 @@ describe("TRANSACTION_FIELD_SETS", () => {
       "personToMeet",
       "departmentId",
       "businessUnitId",
-      "locationId",
+      "visitLocation",
       "reason",
       "transportType",
       "plateNo",
@@ -125,7 +125,7 @@ describe("findMissingRequiredField", () => {
         personToMeet: "Analyn Gentizon",
         departmentId: "d1",
         businessUnitId: "bu1",
-        locationId: "loc1",
+        visitLocation: "Lobby, Room 204",
         reason: "Delivery",
         transportType: "Walk-In",
       })
@@ -141,7 +141,7 @@ describe("findMissingRequiredField", () => {
         personToMeet: "Analyn Gentizon",
         departmentId: "d1",
         businessUnitId: "bu1",
-        locationId: "loc1",
+        visitLocation: "Lobby, Room 204",
         reason: "Delivery",
         transportType: "Car",
       })
@@ -156,7 +156,7 @@ describe("findMissingRequiredField", () => {
         plannedTime: "09:00",
         personToMeet: "Analyn Gentizon",
         departmentId: "d1",
-        locationId: "loc1",
+        visitLocation: "Lobby, Room 204",
         reason: "Delivery",
         transportType: "Car",
         plateNo: "ABC-1234",
@@ -164,7 +164,7 @@ describe("findMissingRequiredField", () => {
     ).toBe("businessUnitId");
   });
 
-  it("returns locationId as missing when Location isn't provided for Visitor Pass", () => {
+  it("returns visitLocation as missing when Location isn't provided for Visitor Pass", () => {
     expect(
       findMissingRequiredField("Visitor Pass", {
         visitorType: "Supplier",
@@ -177,7 +177,7 @@ describe("findMissingRequiredField", () => {
         transportType: "Car",
         plateNo: "ABC-1234",
       })
-    ).toBe("locationId");
+    ).toBe("visitLocation");
   });
 });
 
@@ -192,7 +192,7 @@ describe("getActiveFields", () => {
       "personToMeet",
       "departmentId",
       "businessUnitId",
-      "locationId",
+      "visitLocation",
       "reason",
       "transportType",
     ]);

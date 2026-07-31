@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
           personToMeet: parsed.data.personToMeet,
           departmentId: parsed.data.departmentId,
           businessUnitId: parsed.data.businessUnitId,
-          locationId: parsed.data.locationId,
+          visitLocation: parsed.data.visitLocation,
           transportType: parsed.data.transportType,
           plateNo: parsed.data.plateNo,
         },

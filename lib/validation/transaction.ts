@@ -15,7 +15,7 @@ export const transactionSchema = z.object({
   personToMeet: z.string().optional(),
   departmentId: z.string().optional(),
   businessUnitId: z.string().optional(),
-  locationId: z.string().optional(),
+  visitLocation: z.string().optional(),
   transportType: z.enum(TRANSPORT_TYPE_OPTIONS).optional(),
   plateNo: z.string().optional(),
 });

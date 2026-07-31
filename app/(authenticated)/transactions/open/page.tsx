@@ -9,7 +9,7 @@ export default async function OpenTransactionsPage() {
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const session = token ? await verifySessionToken(token) : null;
 
-  const [transactions, matrixTypes, currentUser, departments, businessUnits, locations] =
+  const [transactions, matrixTypes, currentUser, departments, businessUnits] =
     await Promise.all([
       prisma.transaction.findMany({
         where: { status: { name: "Open" } },
@@ -19,7 +19,6 @@ export default async function OpenTransactionsPage() {
           status: { select: { name: true } },
           creator: { select: { firstName: true, lastName: true } },
           department: { select: { name: true } },
-          location: { select: { name: true } },
         },
       }),
       prisma.matrixType.findMany({ orderBy: { name: "asc" } }),
@@ -31,7 +30,6 @@ export default async function OpenTransactionsPage() {
         : null,
       prisma.department.findMany({ orderBy: { name: "asc" } }),
       prisma.businessUnit.findMany({ orderBy: { name: "asc" } }),
-      prisma.location.findMany({ orderBy: { name: "asc" } }),
     ]);
 
   const currentUserBusinessUnit = currentUser?.businessUnit.name ?? "";
@@ -74,7 +72,7 @@ export default async function OpenTransactionsPage() {
       visitorType: row.visitorType ?? "—",
       personToMeet: row.personToMeet ?? "—",
       department: row.department?.name ?? "—",
-      location: row.location?.name ?? row.visitLocation ?? "—",
+      location: row.visitLocation ?? "—",
       transportType: row.transportType ?? "—",
       plateNo: row.plateNo ?? "—",
       createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
@@ -100,7 +98,6 @@ export default async function OpenTransactionsPage() {
           currentUserBusinessUnit={currentUserBusinessUnit}
           departments={departments}
           businessUnits={businessUnits}
-          locations={locations}
         />
       </div>
     </div>

@@ -17,7 +17,7 @@ describe("transactionSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts a body with all fields populated, including Business Unit and Location IDs for Visitor Pass", () => {
+  it("accepts a body with all fields populated, including the Visitor Pass fields", () => {
     const result = transactionSchema.safeParse({
       matrixTypeId: "abc123",
       plannedDate: "2026-07-25",
@@ -30,14 +30,14 @@ describe("transactionSchema", () => {
       personToMeet: "Analyn Gentizon",
       departmentId: "dept123",
       businessUnitId: "bu123",
-      locationId: "loc123",
+      visitLocation: "Lobby, Room 204",
       transportType: "Car",
       plateNo: "ABC-1234",
     });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.businessUnitId).toBe("bu123");
-      expect(result.data.locationId).toBe("loc123");
+      expect(result.data.visitLocation).toBe("Lobby, Room 204");
     }
   });
 

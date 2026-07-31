@@ -69,10 +69,6 @@ const businessUnits = [
   { id: "bu1", name: "Cawit" },
   { id: "bu2", name: "MSC" },
 ];
-const locations = [
-  { id: "loc1", name: "Zamboanga" },
-  { id: "loc2", name: "Davao" },
-];
 
 function renderView(currentUserBusinessUnit = "") {
   return render(
@@ -82,7 +78,6 @@ function renderView(currentUserBusinessUnit = "") {
       currentUserBusinessUnit={currentUserBusinessUnit}
       departments={departments}
       businessUnits={businessUnits}
-      locations={locations}
     />
   );
 }
@@ -308,7 +303,7 @@ describe("TransactionsView", () => {
       target: { value: "d1" },
     });
     fireEvent.change(screen.getByLabelText(/^location$/i), {
-      target: { value: "loc1" },
+      target: { value: "Lobby, Room 204" },
     });
     fireEvent.change(screen.getByLabelText(/^reason$/i), {
       target: { value: "Delivery" },
@@ -394,7 +389,7 @@ describe("TransactionsView", () => {
       target: { value: "bu1" },
     });
     fireEvent.change(screen.getByLabelText(/^location$/i), {
-      target: { value: "loc1" },
+      target: { value: "Lobby, Room 204" },
     });
     fireEvent.change(screen.getByLabelText(/^reason$/i), {
       target: { value: "Delivery" },
@@ -417,7 +412,7 @@ describe("TransactionsView", () => {
             personToMeet: "Analyn Gentizon",
             departmentId: "d1",
             businessUnitId: "bu1",
-            locationId: "loc1",
+            visitLocation: "Lobby, Room 204",
             reason: "Delivery",
             transportType: "Walk-In",
           }),
@@ -600,7 +595,7 @@ describe("TransactionsView", () => {
       target: { value: "bu1" },
     });
     fireEvent.change(screen.getByLabelText(/^location$/i), {
-      target: { value: "loc1" },
+      target: { value: "Lobby, Room 204" },
     });
     fireEvent.change(screen.getByLabelText(/^reason$/i), {
       target: { value: "Product demo for a prospective supplier" },
@@ -626,7 +621,7 @@ describe("TransactionsView", () => {
             personToMeet: "Analyn Gentizon",
             departmentId: "d1",
             businessUnitId: "bu1",
-            locationId: "loc1",
+            visitLocation: "Lobby, Room 204",
             reason: "Product demo for a prospective supplier",
             transportType: "Car",
             plateNo: "ABC-1234",

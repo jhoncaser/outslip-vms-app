@@ -188,7 +188,7 @@ describe("POST /api/transactions", () => {
         personToMeet: "Analyn Gentizon",
         departmentId,
         businessUnitId,
-        locationId,
+        visitLocation: "Lobby, Room 204",
         transportType: "Car",
         plateNo: "ABC-1234",
       })
@@ -211,7 +211,7 @@ describe("POST /api/transactions", () => {
     expect(created.personToMeet).toBe("Analyn Gentizon");
     expect(created.departmentId).toBe(departmentId);
     expect(created.businessUnitId).toBe(businessUnitId);
-    expect(created.locationId).toBe(locationId);
+    expect(created.visitLocation).toBe("Lobby, Room 204");
     expect(created.transportType).toBe("Car");
     expect(created.plateNo).toBe("ABC-1234");
   });
@@ -236,7 +236,7 @@ describe("POST /api/transactions", () => {
     expect(created.personToMeet).toBeNull();
     expect(created.departmentId).toBeNull();
     expect(created.businessUnitId).toBeNull();
-    expect(created.locationId).toBeNull();
+    expect(created.visitLocation).toBeNull();
     expect(created.transportType).toBeNull();
     expect(created.plateNo).toBeNull();
   });
@@ -369,7 +369,7 @@ describe("POST /api/transactions", () => {
         personToMeet: "Analyn Gentizon",
         departmentId,
         businessUnitId,
-        locationId,
+        visitLocation: "Lobby, Room 204",
         reason: "Delivery",
         transportType: "Car",
       })
@@ -389,7 +389,7 @@ describe("POST /api/transactions", () => {
         personToMeet: "Analyn Gentizon",
         departmentId,
         businessUnitId,
-        locationId,
+        visitLocation: "Lobby, Room 204",
         reason: "Delivery",
         transportType: "Walk-In",
       })
@@ -414,7 +414,7 @@ describe("POST /api/transactions", () => {
         plannedTime: "10:30",
         personToMeet: "Analyn Gentizon",
         departmentId,
-        locationId,
+        visitLocation: "Lobby, Room 204",
         reason: "Delivery",
         transportType: "Car",
         plateNo: "ABC-1234",
@@ -445,7 +445,7 @@ describe("POST /api/transactions", () => {
     expect(body.error).toBe("Location is required for this transaction type");
   });
 
-  it("creates a Visitor Pass transaction persisting businessUnitId and locationId, and no longer writes visitLocation", async () => {
+  it("creates a Visitor Pass transaction persisting businessUnitId and visitLocation, without touching locationId", async () => {
     const response = await POST(
       requestWithCookie(userToken, {
         matrixTypeId: visitorPassMatrixTypeId,
@@ -455,7 +455,7 @@ describe("POST /api/transactions", () => {
         personToMeet: "Analyn Gentizon",
         departmentId,
         businessUnitId,
-        locationId,
+        visitLocation: "Lobby, Room 204",
         reason: "Delivery",
         transportType: "Car",
         plateNo: "ABC-1234",
@@ -468,8 +468,8 @@ describe("POST /api/transactions", () => {
       where: { id: body.id },
     });
     expect(created.businessUnitId).toBe(businessUnitId);
-    expect(created.locationId).toBe(locationId);
-    expect(created.visitLocation).toBeNull();
+    expect(created.visitLocation).toBe("Lobby, Room 204");
+    expect(created.locationId).toBeNull();
   });
 
   afterAll(async () => {
