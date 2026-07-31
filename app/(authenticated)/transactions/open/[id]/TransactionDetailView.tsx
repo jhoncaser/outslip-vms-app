@@ -76,6 +76,24 @@ const EMPLOYEE_COLUMNS = [
   "Actions",
 ];
 
+function BackIcon() {
+  return (
+    <svg
+      aria-hidden
+      className="h-3.5 w-3.5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
+    </svg>
+  );
+}
+
 export function TransactionDetailView({
   transaction,
   lineItems,
@@ -244,9 +262,10 @@ export function TransactionDetailView({
     <div className="w-full">
       <Link
         href="/transactions/open"
-        className="mb-4 inline-block text-xs font-semibold text-[#2C7001] hover:underline"
+        className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[#cfe3c4] bg-white px-3 py-1.5 text-xs font-semibold text-[#2C7001] transition-colors duration-150 hover:border-[#2C7001] hover:bg-[#f2f8ee] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none"
       >
-        ← Back to Open Transactions
+        <BackIcon />
+        Back
       </Link>
 
       <div className="mb-6 flex flex-col gap-4 rounded-xl bg-white p-6 shadow sm:flex-row sm:items-start">
