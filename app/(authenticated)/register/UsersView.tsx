@@ -36,9 +36,7 @@ function EditIcon() {
 
 const ROLE_PILL_CLASSES: Record<RoleValue, string> = {
   CREATOR: "bg-sky-100 text-sky-800",
-  FIRST_APPROVER: "bg-amber-100 text-amber-800",
-  SECOND_APPROVER: "bg-green-100 text-green-800",
-  THIRD_APPROVER: "bg-indigo-100 text-indigo-800",
+  APPROVER: "bg-amber-100 text-amber-800",
   GUARD_PERSONNEL: "bg-purple-100 text-purple-800",
 };
 

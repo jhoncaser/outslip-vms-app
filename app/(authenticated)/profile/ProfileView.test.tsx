@@ -6,7 +6,7 @@ const sampleProps: ProfileViewProps = {
   fullName: "Juan Dela Cruz",
   initials: "JD",
   jobTitle: "IT Officer",
-  roleLabel: "1st Level Approver",
+  roleLabel: "Approver",
   email: "juan@example.com",
   department: "ICT",
   businessUnit: "Cawit",
@@ -20,7 +20,7 @@ describe("ProfileView", () => {
     expect(screen.getByText("Juan Dela Cruz")).toBeInTheDocument();
     expect(screen.getByText("JD")).toBeInTheDocument();
     expect(screen.getByText("IT Officer")).toBeInTheDocument();
-    expect(screen.getByText("1st Level Approver")).toBeInTheDocument();
+    expect(screen.getByText("Approver")).toBeInTheDocument();
   });
 
   it("renders the details grid with email, department, business unit, location, and member-since date", () => {

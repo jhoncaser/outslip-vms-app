@@ -42,7 +42,7 @@ describe("findScopeMatchedApprovers", () => {
         jobTitle: "Tester",
         email: "match-approvers-fixture@example.com",
         passwordHash: "unused",
-        role: "FIRST_APPROVER",
+        role: "APPROVER",
         departmentId,
         businessUnitId,
         locationId,

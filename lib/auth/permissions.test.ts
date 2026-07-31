@@ -17,21 +17,15 @@ describe("canManageReferenceData", () => {
 
   it("denies non-Admin-department users", () => {
     expect(
-      canManageReferenceData({ department: "ICT", role: "FIRST_APPROVER" })
+      canManageReferenceData({ department: "ICT", role: "APPROVER" })
     ).toBe(false);
   });
 });
 
 describe("canProvisionUsers", () => {
-  it("allows Admin department with an approver role", () => {
+  it("allows Admin department with the Approver role", () => {
     expect(
-      canProvisionUsers({ department: "Admin", role: "FIRST_APPROVER" })
-    ).toBe(true);
-    expect(
-      canProvisionUsers({ department: "Admin", role: "SECOND_APPROVER" })
-    ).toBe(true);
-    expect(
-      canProvisionUsers({ department: "Admin", role: "THIRD_APPROVER" })
+      canProvisionUsers({ department: "Admin", role: "APPROVER" })
     ).toBe(true);
   });
 
@@ -44,23 +38,20 @@ describe("canProvisionUsers", () => {
     ).toBe(false);
   });
 
-  it("denies non-Admin-department users even with an approver role", () => {
+  it("denies non-Admin-department users even with the Approver role", () => {
     expect(
-      canProvisionUsers({ department: "ICT", role: "FIRST_APPROVER" })
+      canProvisionUsers({ department: "ICT", role: "APPROVER" })
     ).toBe(false);
   });
 });
 
 describe("canViewApprovals", () => {
-  it("allows any department with an approver role", () => {
+  it("allows any department with the Approver role", () => {
     expect(
-      canViewApprovals({ department: "ICT", role: "FIRST_APPROVER" })
+      canViewApprovals({ department: "ICT", role: "APPROVER" })
     ).toBe(true);
     expect(
-      canViewApprovals({ department: "ICT", role: "SECOND_APPROVER" })
-    ).toBe(true);
-    expect(
-      canViewApprovals({ department: "Admin", role: "THIRD_APPROVER" })
+      canViewApprovals({ department: "Admin", role: "APPROVER" })
     ).toBe(true);
   });
 

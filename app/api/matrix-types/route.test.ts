@@ -49,7 +49,7 @@ describe("POST /api/matrix-types", () => {
         jobTitle: "Tester",
         email: "matrix-types-route-test-admin@example.com",
         passwordHash: "unused",
-        role: "FIRST_APPROVER",
+        role: "APPROVER",
         departmentId: department.id,
         businessUnitId: businessUnit.id,
         locationId: location.id,
@@ -62,7 +62,7 @@ describe("POST /api/matrix-types", () => {
       email: adminUser.email,
       firstName: adminUser.firstName,
       lastName: adminUser.lastName,
-      role: "FIRST_APPROVER",
+      role: "APPROVER",
       department: "Admin",
       mustChangePassword: false,
     });

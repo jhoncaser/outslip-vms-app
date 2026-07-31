@@ -23,7 +23,7 @@ const sampleUsers: UserRow[] = [
     firstName: "Maria",
     lastName: "Santos",
     jobTitle: "HR Manager",
-    role: "FIRST_APPROVER",
+    role: "APPROVER",
     department: "Admin",
     businessUnit: "Corporate",
     location: "Navotas",
@@ -91,7 +91,7 @@ describe("UsersView", () => {
     expect(screen.getByText("Juan")).toBeInTheDocument();
     expect(screen.getByText("Dela Cruz")).toBeInTheDocument();
     expect(screen.getByText("Creator")).toBeInTheDocument();
-    expect(screen.getByText("1st Level Approver")).toBeInTheDocument();
+    expect(screen.getByText("Approver")).toBeInTheDocument();
     expect(screen.getByText("2 users")).toBeInTheDocument();
   });
 

@@ -34,7 +34,7 @@ describe("/api/reference-data", () => {
       email: "admin@company.com",
       firstName: "Admin",
       lastName: "User",
-      role: "FIRST_APPROVER",
+      role: "APPROVER",
       department: "Admin",
       mustChangePassword: false,
     });

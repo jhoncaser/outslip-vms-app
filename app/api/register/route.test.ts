@@ -68,7 +68,7 @@ describe("POST /api/register", () => {
       email: "provisioner@company.com",
       firstName: "Provisioner",
       lastName: "User",
-      role: "FIRST_APPROVER",
+      role: "APPROVER",
       department: "Admin",
       mustChangePassword: false,
     });

@@ -159,7 +159,7 @@ describe("RegistrationWizard — edit mode", () => {
   const onDoneMock = vi.fn();
   const existingUser = {
     id: "user_1",
-    role: "SECOND_APPROVER",
+    role: "APPROVER",
     firstName: "Maria",
     middleName: "",
     lastName: "Santos",
@@ -205,7 +205,7 @@ describe("RegistrationWizard — edit mode", () => {
     expect(screen.getByText(/loading user/i)).toBeInTheDocument();
 
     await screen.findByLabelText(/role/i);
-    expect(screen.getByLabelText(/role/i)).toHaveValue("SECOND_APPROVER");
+    expect(screen.getByLabelText(/role/i)).toHaveValue("APPROVER");
     fireEvent.click(screen.getByRole("button", { name: /next/i }));
 
     await screen.findByDisplayValue("Maria");
@@ -234,7 +234,7 @@ describe("RegistrationWizard — edit mode", () => {
     );
     const patchBody = JSON.parse(patchCall![1].body as string);
     expect(patchBody).toEqual({
-      role: "SECOND_APPROVER",
+      role: "APPROVER",
       firstName: "Maria",
       middleName: "",
       lastName: "Santos",

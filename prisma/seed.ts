@@ -75,7 +75,7 @@ async function seedAdmin(): Promise<string> {
       jobTitle: "System Administrator",
       email,
       passwordHash,
-      role: "FIRST_APPROVER",
+      role: "APPROVER",
       departmentId: adminDepartment.id,
       businessUnitId: defaultBusinessUnit.id,
       locationId: defaultLocation.id,

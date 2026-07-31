@@ -11,7 +11,7 @@ const samplePayload = {
   email: "juan@company.com",
   firstName: "Juan",
   lastName: "Dela Cruz",
-  role: "FIRST_APPROVER" as const,
+  role: "APPROVER" as const,
   department: "Admin",
   mustChangePassword: false,
 };

@@ -106,7 +106,7 @@ describe("GET/PATCH /api/users/[id]", () => {
       email: "provisioner@company.com",
       firstName: "Provisioner",
       lastName: "User",
-      role: "FIRST_APPROVER",
+      role: "APPROVER",
       department: "Admin",
       mustChangePassword: false,
     });

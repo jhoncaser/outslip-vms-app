@@ -1,0 +1,19 @@
+-- AlterEnum: consolidate FIRST_APPROVER/SECOND_APPROVER/THIRD_APPROVER into a single APPROVER role
+BEGIN;
+
+CREATE TYPE "Role_new" AS ENUM ('CREATOR', 'APPROVER', 'GUARD_PERSONNEL');
+
+ALTER TABLE "User" ALTER COLUMN "role" TYPE "Role_new" USING (
+  CASE "role"::text
+    WHEN 'FIRST_APPROVER' THEN 'APPROVER'
+    WHEN 'SECOND_APPROVER' THEN 'APPROVER'
+    WHEN 'THIRD_APPROVER' THEN 'APPROVER'
+    ELSE "role"::text
+  END::"Role_new"
+);
+
+ALTER TYPE "Role" RENAME TO "Role_old";
+ALTER TYPE "Role_new" RENAME TO "Role";
+DROP TYPE "Role_old";
+
+COMMIT;

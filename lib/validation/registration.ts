@@ -2,13 +2,7 @@ import { z } from "zod";
 
 export const registrationSchema = z
   .object({
-    role: z.enum([
-      "CREATOR",
-      "FIRST_APPROVER",
-      "SECOND_APPROVER",
-      "THIRD_APPROVER",
-      "GUARD_PERSONNEL",
-    ]),
+    role: z.enum(["CREATOR", "APPROVER", "GUARD_PERSONNEL"]),
     firstName: z.string().min(1),
     middleName: z.string().optional(),
     lastName: z.string().min(1),
@@ -26,13 +20,7 @@ export const registrationSchema = z
   });
 
 export const editUserSchema = z.object({
-  role: z.enum([
-    "CREATOR",
-    "FIRST_APPROVER",
-    "SECOND_APPROVER",
-    "THIRD_APPROVER",
-    "GUARD_PERSONNEL",
-  ]),
+  role: z.enum(["CREATOR", "APPROVER", "GUARD_PERSONNEL"]),
   firstName: z.string().min(1),
   middleName: z.string().optional(),
   lastName: z.string().min(1),

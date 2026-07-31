@@ -7,7 +7,7 @@ const activeSession: SessionPayload = {
   email: "juan@company.com",
   firstName: "Juan",
   lastName: "Dela Cruz",
-  role: "FIRST_APPROVER",
+  role: "APPROVER",
   department: "Admin",
   mustChangePassword: false,
 };

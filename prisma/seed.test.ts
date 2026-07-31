@@ -4,7 +4,7 @@ import { prisma } from "../lib/prisma";
 import { main } from "./seed";
 
 describe("seed script", () => {
-  it("creates the bootstrap admin with Admin department and FIRST_APPROVER role", async () => {
+  it("creates the bootstrap admin with Admin department and APPROVER role", async () => {
     await main();
 
     const email = process.env.SEED_ADMIN_EMAIL!;
@@ -15,7 +15,7 @@ describe("seed script", () => {
 
     expect(admin).not.toBeNull();
     expect(admin!.department.name).toBe("Admin");
-    expect(admin!.role).toBe("FIRST_APPROVER");
+    expect(admin!.role).toBe("APPROVER");
     expect(admin!.mustChangePassword).toBe(true);
 
     const passwordMatches = await bcrypt.compare(
