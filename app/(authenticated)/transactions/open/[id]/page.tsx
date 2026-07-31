@@ -99,6 +99,7 @@ export default async function TransactionDetailPage({
     contactNumber: item.contactNumber ?? "",
     emailAddress: item.emailAddress ?? "",
     transportType: item.transportType ?? "",
+    plateNo: item.plateNo ?? "",
     uploadFileName: item.uploadFileName ?? "",
     hasFile: Boolean(item.uploadFileUrl),
     employeeType: item.employeeType ?? "",

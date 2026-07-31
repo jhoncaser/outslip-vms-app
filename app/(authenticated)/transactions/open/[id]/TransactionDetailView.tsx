@@ -32,6 +32,7 @@ export type LineItemRow = {
   contactNumber: string;
   emailAddress: string;
   transportType: string;
+  plateNo: string;
   uploadFileName: string;
   hasFile: boolean;
   employeeType: string;
@@ -62,6 +63,7 @@ const VISITOR_PASS_COLUMNS = [
   "Company",
   "Contact #",
   "Transport Type",
+  "Plate No.",
   "File",
   "Actions",
 ];
@@ -118,6 +120,7 @@ export function TransactionDetailView({
   const [contactNumber, setContactNumber] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [transportType, setTransportType] = useState("");
+  const [plateNo, setPlateNo] = useState("");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
 
   // Employee-variant fields
@@ -138,6 +141,7 @@ export function TransactionDetailView({
     setContactNumber("");
     setEmailAddress("");
     setTransportType("");
+    setPlateNo("");
     setUploadFile(null);
     setEmployeeType("Mega Employee");
     setEmployeeId("");
@@ -154,6 +158,7 @@ export function TransactionDetailView({
     setContactNumber(item.contactNumber);
     setEmailAddress(item.emailAddress);
     setTransportType(item.transportType);
+    setPlateNo(item.plateNo);
     setUploadFile(null);
     setEmployeeType(
       (item.employeeType as (typeof EMPLOYEE_TYPE_OPTIONS)[number]) || "Mega Employee"
@@ -177,6 +182,7 @@ export function TransactionDetailView({
         jobTitle,
         company,
         transportType,
+        plateNo,
       });
       if (missingField) {
         return setError(`${VISITOR_PASS_LINE_ITEM_LABELS[missingField]} is required`);
@@ -202,6 +208,7 @@ export function TransactionDetailView({
       if (contactNumber) body.set("contactNumber", contactNumber);
       if (emailAddress) body.set("emailAddress", emailAddress);
       body.set("transportType", transportType);
+      if (transportType !== "Walk-In" && plateNo) body.set("plateNo", plateNo);
       if (uploadFile) body.set("uploadFile", uploadFile);
     } else {
       body.set("employeeType", employeeType);
@@ -362,6 +369,7 @@ export function TransactionDetailView({
                       <td className="whitespace-nowrap px-4 py-3">{item.company}</td>
                       <td className="whitespace-nowrap px-4 py-3">{item.contactNumber || "—"}</td>
                       <td className="whitespace-nowrap px-4 py-3">{item.transportType}</td>
+                      <td className="whitespace-nowrap px-4 py-3">{item.plateNo || "—"}</td>
                       <td className="whitespace-nowrap px-4 py-3">
                         {item.hasFile ? (
                           <a
@@ -528,7 +536,11 @@ export function TransactionDetailView({
                       <select
                         id="transport-type"
                         value={transportType}
-                        onChange={(e) => setTransportType(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setTransportType(value);
+                          if (value === "Walk-In") setPlateNo("");
+                        }}
                         className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
                       >
                         <option value="" disabled>
@@ -541,6 +553,20 @@ export function TransactionDetailView({
                         ))}
                       </select>
                     </div>
+                    {transportType !== "Walk-In" && (
+                      <div>
+                        <label htmlFor="plate-no" className="mb-1 block text-xs font-semibold text-slate-600">
+                          Plate No.
+                        </label>
+                        <input
+                          id="plate-no"
+                          type="text"
+                          value={plateNo}
+                          onChange={(e) => setPlateNo(e.target.value)}
+                          className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                        />
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>

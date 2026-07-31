@@ -159,6 +159,7 @@ model TransactionLineItem {
   uploadFileUrl  String?
   uploadFileName String?
   transportType  String?
+  plateNo        String?
 
   // Every other matrix type ("employee" variant)
   employeeType String?

@@ -48,6 +48,7 @@ export async function POST(
       contactNumber: formData.get("contactNumber")?.toString() || undefined,
       emailAddress: formData.get("emailAddress")?.toString() || undefined,
       transportType: formData.get("transportType")?.toString() || undefined,
+      plateNo: formData.get("plateNo")?.toString() || undefined,
     };
 
     const parsed = visitorPassLineItemSchema.safeParse(raw);
@@ -87,6 +88,7 @@ export async function POST(
         contactNumber: parsed.data.contactNumber,
         emailAddress: parsed.data.emailAddress,
         transportType: parsed.data.transportType,
+        plateNo: parsed.data.plateNo,
         uploadFileUrl,
         uploadFileName,
       },

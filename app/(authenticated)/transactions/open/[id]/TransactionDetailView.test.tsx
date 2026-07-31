@@ -34,6 +34,7 @@ const visitorPassLineItems = [
     contactNumber: "0917-000-0000",
     emailAddress: "analyn@example.com",
     transportType: "Car",
+    plateNo: "ABC-1234",
     uploadFileName: "id.pdf",
     hasFile: true,
     employeeType: "",
@@ -56,6 +57,7 @@ const employeeLineItems = [
     contactNumber: "",
     emailAddress: "",
     transportType: "",
+    plateNo: "",
     uploadFileName: "",
     hasFile: false,
     employeeType: "Third-Party",
@@ -78,6 +80,7 @@ const megaEmployeeLineItems = [
     contactNumber: "",
     emailAddress: "",
     transportType: "",
+    plateNo: "",
     uploadFileName: "",
     hasFile: false,
     employeeType: "Mega Employee",
@@ -138,6 +141,8 @@ describe("TransactionDetailView", () => {
     expect(screen.getByText("Acme Supplies")).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Visitor Name" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Transport Type" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Plate No." })).toBeInTheDocument();
+    expect(screen.getByText("ABC-1234")).toBeInTheDocument();
   });
 
   it("renders the employee-variant line items table with its columns", () => {
@@ -352,6 +357,9 @@ describe("TransactionDetailView", () => {
     fireEvent.change(screen.getByLabelText(/transport type/i), {
       target: { value: "Car" },
     });
+    fireEvent.change(screen.getByLabelText(/plate no/i), {
+      target: { value: "ABC-1234" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
 
     await waitFor(() => expect(fetch).toHaveBeenCalled());
@@ -360,6 +368,78 @@ describe("TransactionDetailView", () => {
     expect(options.method).toBe("POST");
     expect(options.body).toBeInstanceOf(FormData);
     expect((options.body as FormData).get("visitorName")).toBe("Analyn Gentizon");
+    expect((options.body as FormData).get("plateNo")).toBe("ABC-1234");
+  });
+
+  it("requires Plate No. for a non-Walk-In transport type, and shows a specific error", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /\+ add line item/i }));
+    fireEvent.change(screen.getByLabelText(/visitor name/i), {
+      target: { value: "Analyn Gentizon" },
+    });
+    fireEvent.change(screen.getByLabelText(/job title/i), {
+      target: { value: "Procurement Officer" },
+    });
+    fireEvent.change(screen.getByLabelText(/^company$/i), {
+      target: { value: "Acme Supplies" },
+    });
+    fireEvent.change(screen.getByLabelText(/transport type/i), {
+      target: { value: "Car" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Plate No. is required");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("hides Plate No. and does not require it when Transport Type is Walk-In", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /\+ add line item/i }));
+    fireEvent.change(screen.getByLabelText(/transport type/i), {
+      target: { value: "Walk-In" },
+    });
+    expect(screen.queryByLabelText(/plate no/i)).not.toBeInTheDocument();
+  });
+
+  it("clears an already-typed Plate No. when switching Transport Type to Walk-In", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /\+ add line item/i }));
+    fireEvent.change(screen.getByLabelText(/transport type/i), {
+      target: { value: "Car" },
+    });
+    fireEvent.change(screen.getByLabelText(/plate no/i), {
+      target: { value: "ABC-1234" },
+    });
+    fireEvent.change(screen.getByLabelText(/transport type/i), {
+      target: { value: "Walk-In" },
+    });
+    expect(screen.queryByLabelText(/plate no/i)).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/transport type/i), {
+      target: { value: "Car" },
+    });
+    expect((screen.getByLabelText(/plate no/i) as HTMLInputElement).value).toBe("");
   });
 
   it("opens the Edit modal pre-filled with the line item's current values", () => {

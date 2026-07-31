@@ -10,6 +10,7 @@ export const visitorPassLineItemSchema = z.object({
   contactNumber: z.string().optional(),
   emailAddress: z.string().email().optional().or(z.literal("")),
   transportType: z.enum(TRANSPORT_TYPE_OPTIONS).optional(),
+  plateNo: z.string().optional(),
 });
 
 export const employeeLineItemSchema = z.object({
@@ -23,13 +24,15 @@ export type VisitorPassLineItemFieldKey =
   | "visitorName"
   | "jobTitle"
   | "company"
-  | "transportType";
+  | "transportType"
+  | "plateNo";
 
 export const VISITOR_PASS_LINE_ITEM_LABELS: Record<VisitorPassLineItemFieldKey, string> = {
   visitorName: "Visitor Name",
   jobTitle: "Job Title",
   company: "Company",
   transportType: "Transport Type",
+  plateNo: "Plate No.",
 };
 
 const VISITOR_PASS_REQUIRED_ORDER: VisitorPassLineItemFieldKey[] = [
@@ -37,12 +40,22 @@ const VISITOR_PASS_REQUIRED_ORDER: VisitorPassLineItemFieldKey[] = [
   "jobTitle",
   "company",
   "transportType",
+  "plateNo",
 ];
+
+export function getActiveVisitorPassLineItemFields(
+  values: Partial<Record<VisitorPassLineItemFieldKey, string | undefined>>
+): VisitorPassLineItemFieldKey[] {
+  if (values.transportType === "Walk-In") {
+    return VISITOR_PASS_REQUIRED_ORDER.filter((key) => key !== "plateNo");
+  }
+  return VISITOR_PASS_REQUIRED_ORDER;
+}
 
 export function findMissingVisitorPassLineItemField(
   values: Partial<Record<VisitorPassLineItemFieldKey, string | undefined>>
 ): VisitorPassLineItemFieldKey | null {
-  for (const key of VISITOR_PASS_REQUIRED_ORDER) {
+  for (const key of getActiveVisitorPassLineItemFields(values)) {
     const value = values[key];
     if (!value || value.trim() === "") return key;
   }

@@ -17,6 +17,7 @@ describe("visitorPassLineItemSchema", () => {
       contactNumber: "0917-000-0000",
       emailAddress: "analyn@example.com",
       transportType: "Car",
+      plateNo: "ABC-1234",
     });
     expect(result.success).toBe(true);
   });
@@ -59,6 +60,7 @@ describe("findMissingVisitorPassLineItemField", () => {
         jobTitle: "Procurement Officer",
         company: "Acme Supplies",
         transportType: "Car",
+        plateNo: "ABC-1234",
       })
     ).toBeNull();
   });
@@ -70,8 +72,31 @@ describe("findMissingVisitorPassLineItemField", () => {
         jobTitle: "",
         company: "Acme Supplies",
         transportType: "Car",
+        plateNo: "ABC-1234",
       })
     ).toBe("jobTitle");
+  });
+
+  it("requires Plate No. when transportType is not Walk-In", () => {
+    expect(
+      findMissingVisitorPassLineItemField({
+        visitorName: "Analyn Gentizon",
+        jobTitle: "Procurement Officer",
+        company: "Acme Supplies",
+        transportType: "Car",
+      })
+    ).toBe("plateNo");
+  });
+
+  it("does not require Plate No. when transportType is Walk-In", () => {
+    expect(
+      findMissingVisitorPassLineItemField({
+        visitorName: "Analyn Gentizon",
+        jobTitle: "Procurement Officer",
+        company: "Acme Supplies",
+        transportType: "Walk-In",
+      })
+    ).toBeNull();
   });
 });
 
@@ -167,7 +192,13 @@ describe("findMissingEmployeeLineItemField", () => {
 
 describe("field labels", () => {
   it("has a label for every Visitor Pass required field key", () => {
-    for (const key of ["visitorName", "jobTitle", "company", "transportType"] as const) {
+    for (const key of [
+      "visitorName",
+      "jobTitle",
+      "company",
+      "transportType",
+      "plateNo",
+    ] as const) {
       expect(typeof VISITOR_PASS_LINE_ITEM_LABELS[key]).toBe("string");
     }
   });

@@ -162,6 +162,7 @@ describe("POST /api/transactions/[id]/line-items", () => {
     body.set("jobTitle", "Procurement Officer");
     body.set("company", "Acme Supplies");
     body.set("transportType", "Car");
+    body.set("plateNo", "ABC-1234");
     body.set("contactNumber", "0917-000-0000");
     body.set("emailAddress", "analyn@example.com");
 
@@ -177,9 +178,43 @@ describe("POST /api/transactions/[id]/line-items", () => {
     expect(created.jobTitle).toBe("Procurement Officer");
     expect(created.company).toBe("Acme Supplies");
     expect(created.transportType).toBe("Car");
+    expect(created.plateNo).toBe("ABC-1234");
     expect(created.contactNumber).toBe("0917-000-0000");
     expect(created.emailAddress).toBe("analyn@example.com");
     expect(created.uploadFileUrl).toBeNull();
+  });
+
+  it("returns a specific message when Plate No. is missing for a non-Walk-In transport type", async () => {
+    const body = new FormData();
+    body.set("visitorName", "Analyn Gentizon");
+    body.set("jobTitle", "Procurement Officer");
+    body.set("company", "Acme Supplies");
+    body.set("transportType", "Car");
+
+    const response = await POST(
+      requestWithCookie(userToken, visitorPassTransactionId, body),
+      paramsFor(visitorPassTransactionId)
+    );
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toBe("Plate No. is required");
+  });
+
+  it("does not require Plate No. when transportType is Walk-In", async () => {
+    const body = new FormData();
+    body.set("visitorName", "Walk-In Visitor");
+    body.set("jobTitle", "Guest");
+    body.set("company", "N/A");
+    body.set("transportType", "Walk-In");
+
+    const response = await POST(
+      requestWithCookie(userToken, visitorPassTransactionId, body),
+      paramsFor(visitorPassTransactionId)
+    );
+    expect(response.status).toBe(201);
+    const created = await response.json();
+    createdLineItemIds.push(created.id);
+    expect(created.plateNo).toBeNull();
   });
 
   it("creates a Visitor Pass line item with an uploaded file", async () => {
@@ -212,6 +247,7 @@ describe("POST /api/transactions/[id]/line-items", () => {
     body.set("jobTitle", "Procurement Officer");
     body.set("company", "Acme Supplies");
     body.set("transportType", "Car");
+    body.set("plateNo", "ABC-1234");
     body.set(
       "uploadFile",
       new File([Buffer.from("bad")], "virus.exe", { type: "application/x-executable" })
@@ -232,6 +268,7 @@ describe("POST /api/transactions/[id]/line-items", () => {
     body.set("jobTitle", "Test Officer");
     body.set("company", "Test Corp");
     body.set("transportType", "Car");
+    body.set("plateNo", "ABC-1234");
     body.set(
       "uploadFile",
       new File([new Uint8Array(MAX_FILE_SIZE_BYTES + 1)], "too-big.pdf", {

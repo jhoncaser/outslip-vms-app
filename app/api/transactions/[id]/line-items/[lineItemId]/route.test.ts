@@ -217,6 +217,7 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
     body.set("jobTitle", "J");
     body.set("company", "C");
     body.set("transportType", "Car");
+    body.set("plateNo", "ABC-1234");
     body.set(
       "uploadFile",
       new File([Buffer.from("new")], "new.pdf", { type: "application/pdf" })
@@ -251,6 +252,7 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
     body.set("jobTitle", "J");
     body.set("company", "C");
     body.set("transportType", "Car");
+    body.set("plateNo", "ABC-1234");
     body.set(
       "uploadFile",
       new File([new Uint8Array(MAX_FILE_SIZE_BYTES + 1)], "too-big.pdf", {
