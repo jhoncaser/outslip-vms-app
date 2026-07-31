@@ -65,6 +65,14 @@ const departments = [
   { id: "d1", name: "ICT" },
   { id: "d2", name: "HR" },
 ];
+const businessUnits = [
+  { id: "bu1", name: "Cawit" },
+  { id: "bu2", name: "MSC" },
+];
+const locations = [
+  { id: "loc1", name: "Zamboanga" },
+  { id: "loc2", name: "Davao" },
+];
 
 function renderView(currentUserBusinessUnit = "") {
   return render(
@@ -73,6 +81,8 @@ function renderView(currentUserBusinessUnit = "") {
       matrixTypes={matrixTypes}
       currentUserBusinessUnit={currentUserBusinessUnit}
       departments={departments}
+      businessUnits={businessUnits}
+      locations={locations}
     />
   );
 }
@@ -265,6 +275,7 @@ describe("TransactionsView", () => {
     expect(screen.getByLabelText(/planned time/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/person to meet/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^department$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^business unit$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^reason$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^location$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^transport type$/i)).toBeInTheDocument();
@@ -275,6 +286,45 @@ describe("TransactionsView", () => {
     expect(
       screen.queryByRole("group", { name: /enroute to other business unit/i })
     ).not.toBeInTheDocument();
+  });
+
+  it("shows a specific error when Business Unit is missing for Visitor Pass", () => {
+    renderView();
+    openModal();
+    selectType("mt3");
+    fireEvent.change(screen.getByLabelText(/^visitor type$/i), {
+      target: { value: "Supplier" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned date/i), {
+      target: { value: "2026-07-28" },
+    });
+    fireEvent.change(screen.getByLabelText(/planned time/i), {
+      target: { value: "10:30" },
+    });
+    fireEvent.change(screen.getByLabelText(/person to meet/i), {
+      target: { value: "Analyn Gentizon" },
+    });
+    fireEvent.change(screen.getByLabelText(/^department$/i), {
+      target: { value: "d1" },
+    });
+    fireEvent.change(screen.getByLabelText(/^location$/i), {
+      target: { value: "loc1" },
+    });
+    fireEvent.change(screen.getByLabelText(/^reason$/i), {
+      target: { value: "Delivery" },
+    });
+    fireEvent.change(screen.getByLabelText(/^transport type$/i), {
+      target: { value: "Car" },
+    });
+    fireEvent.change(screen.getByLabelText(/plate no\./i), {
+      target: { value: "ABC-1234" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Business Unit is required for this transaction type"
+    );
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("hides Plate No. when Transport Type is Walk-In for Visitor Pass", () => {
@@ -340,11 +390,14 @@ describe("TransactionsView", () => {
     fireEvent.change(screen.getByLabelText(/^department$/i), {
       target: { value: "d1" },
     });
-    fireEvent.change(screen.getByLabelText(/^reason$/i), {
-      target: { value: "Delivery" },
+    fireEvent.change(screen.getByLabelText(/^business unit$/i), {
+      target: { value: "bu1" },
     });
     fireEvent.change(screen.getByLabelText(/^location$/i), {
-      target: { value: "Lobby, Room 204" },
+      target: { value: "loc1" },
+    });
+    fireEvent.change(screen.getByLabelText(/^reason$/i), {
+      target: { value: "Delivery" },
     });
     fireEvent.change(screen.getByLabelText(/^transport type$/i), {
       target: { value: "Walk-In" },
@@ -363,8 +416,9 @@ describe("TransactionsView", () => {
             plannedTime: "10:30",
             personToMeet: "Analyn Gentizon",
             departmentId: "d1",
+            businessUnitId: "bu1",
+            locationId: "loc1",
             reason: "Delivery",
-            visitLocation: "Lobby, Room 204",
             transportType: "Walk-In",
           }),
         })
@@ -542,11 +596,14 @@ describe("TransactionsView", () => {
     fireEvent.change(screen.getByLabelText(/^department$/i), {
       target: { value: "d1" },
     });
-    fireEvent.change(screen.getByLabelText(/^reason$/i), {
-      target: { value: "Product demo for a prospective supplier" },
+    fireEvent.change(screen.getByLabelText(/^business unit$/i), {
+      target: { value: "bu1" },
     });
     fireEvent.change(screen.getByLabelText(/^location$/i), {
-      target: { value: "Lobby, Room 204" },
+      target: { value: "loc1" },
+    });
+    fireEvent.change(screen.getByLabelText(/^reason$/i), {
+      target: { value: "Product demo for a prospective supplier" },
     });
     fireEvent.change(screen.getByLabelText(/^transport type$/i), {
       target: { value: "Car" },
@@ -568,8 +625,9 @@ describe("TransactionsView", () => {
             plannedTime: "10:30",
             personToMeet: "Analyn Gentizon",
             departmentId: "d1",
+            businessUnitId: "bu1",
+            locationId: "loc1",
             reason: "Product demo for a prospective supplier",
-            visitLocation: "Lobby, Room 204",
             transportType: "Car",
             plateNo: "ABC-1234",
           }),

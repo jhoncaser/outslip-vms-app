@@ -9,26 +9,30 @@ export default async function OpenTransactionsPage() {
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const session = token ? await verifySessionToken(token) : null;
 
-  const [transactions, matrixTypes, currentUser, departments] = await Promise.all([
-    prisma.transaction.findMany({
-      where: { status: { name: "Open" } },
-      orderBy: { createdAt: "desc" },
-      include: {
-        matrixType: { select: { name: true } },
-        status: { select: { name: true } },
-        creator: { select: { firstName: true, lastName: true } },
-        department: { select: { name: true } },
-      },
-    }),
-    prisma.matrixType.findMany({ orderBy: { name: "asc" } }),
-    session
-      ? prisma.user.findUnique({
-          where: { id: session.sub },
-          select: { businessUnit: { select: { name: true } } },
-        })
-      : null,
-    prisma.department.findMany({ orderBy: { name: "asc" } }),
-  ]);
+  const [transactions, matrixTypes, currentUser, departments, businessUnits, locations] =
+    await Promise.all([
+      prisma.transaction.findMany({
+        where: { status: { name: "Open" } },
+        orderBy: { createdAt: "desc" },
+        include: {
+          matrixType: { select: { name: true } },
+          status: { select: { name: true } },
+          creator: { select: { firstName: true, lastName: true } },
+          department: { select: { name: true } },
+          location: { select: { name: true } },
+        },
+      }),
+      prisma.matrixType.findMany({ orderBy: { name: "asc" } }),
+      session
+        ? prisma.user.findUnique({
+            where: { id: session.sub },
+            select: { businessUnit: { select: { name: true } } },
+          })
+        : null,
+      prisma.department.findMany({ orderBy: { name: "asc" } }),
+      prisma.businessUnit.findMany({ orderBy: { name: "asc" } }),
+      prisma.location.findMany({ orderBy: { name: "asc" } }),
+    ]);
 
   const currentUserBusinessUnit = currentUser?.businessUnit.name ?? "";
 
@@ -70,7 +74,7 @@ export default async function OpenTransactionsPage() {
       visitorType: row.visitorType ?? "—",
       personToMeet: row.personToMeet ?? "—",
       department: row.department?.name ?? "—",
-      location: row.visitLocation ?? "—",
+      location: row.location?.name ?? row.visitLocation ?? "—",
       transportType: row.transportType ?? "—",
       plateNo: row.plateNo ?? "—",
       createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
@@ -95,6 +99,8 @@ export default async function OpenTransactionsPage() {
           matrixTypes={matrixTypes}
           currentUserBusinessUnit={currentUserBusinessUnit}
           departments={departments}
+          businessUnits={businessUnits}
+          locations={locations}
         />
       </div>
     </div>

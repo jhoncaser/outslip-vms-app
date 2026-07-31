@@ -35,6 +35,8 @@ export type TransactionRow = {
 };
 export type MatrixTypeOption = { id: string; name: string };
 export type DepartmentOption = { id: string; name: string };
+export type BusinessUnitOption = { id: string; name: string };
+export type LocationOption = { id: string; name: string };
 
 function CloseIcon() {
   return (
@@ -191,11 +193,15 @@ export function TransactionsView({
   matrixTypes,
   currentUserBusinessUnit,
   departments,
+  businessUnits,
+  locations,
 }: {
   transactions: TransactionRow[];
   matrixTypes: MatrixTypeOption[];
   currentUserBusinessUnit: string;
   departments: DepartmentOption[];
+  businessUnits: BusinessUnitOption[];
+  locations: LocationOption[];
 }) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
@@ -209,7 +215,8 @@ export function TransactionsView({
   const [visitorType, setVisitorType] = useState("");
   const [personToMeet, setPersonToMeet] = useState("");
   const [departmentId, setDepartmentId] = useState("");
-  const [visitLocation, setVisitLocation] = useState("");
+  const [businessUnitId, setBusinessUnitId] = useState("");
+  const [locationId, setLocationId] = useState("");
   const [transportType, setTransportType] = useState("");
   const [plateNo, setPlateNo] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -228,7 +235,8 @@ export function TransactionsView({
     visitorType,
     personToMeet,
     departmentId,
-    visitLocation,
+    businessUnitId,
+    locationId,
     transportType,
     plateNo,
   };
@@ -251,7 +259,8 @@ export function TransactionsView({
     setVisitorType("");
     setPersonToMeet("");
     setDepartmentId("");
-    setVisitLocation("");
+    setBusinessUnitId("");
+    setLocationId("");
     setTransportType("");
     setPlateNo("");
     setError("");
@@ -434,19 +443,50 @@ export function TransactionsView({
             </select>
           </div>
         );
-      case "visitLocation":
+      case "businessUnitId":
         return (
           <div>
-            <label htmlFor="visit-location" className={labelClassName}>
+            <label htmlFor="visitor-business-unit" className={labelClassName}>
+              Business Unit
+            </label>
+            <select
+              id="visitor-business-unit"
+              value={businessUnitId}
+              onChange={(event) => setBusinessUnitId(event.target.value)}
+              className={inputClassName}
+            >
+              <option value="" disabled>
+                Select a business unit
+              </option>
+              {businessUnits.map((businessUnit) => (
+                <option key={businessUnit.id} value={businessUnit.id}>
+                  {businessUnit.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      case "locationId":
+        return (
+          <div>
+            <label htmlFor="visitor-location" className={labelClassName}>
               Location
             </label>
-            <input
-              id="visit-location"
-              type="text"
-              value={visitLocation}
-              onChange={(event) => setVisitLocation(event.target.value)}
+            <select
+              id="visitor-location"
+              value={locationId}
+              onChange={(event) => setLocationId(event.target.value)}
               className={inputClassName}
-            />
+            >
+              <option value="" disabled>
+                Select a location
+              </option>
+              {locations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.name}
+                </option>
+              ))}
+            </select>
           </div>
         );
       case "transportType":
