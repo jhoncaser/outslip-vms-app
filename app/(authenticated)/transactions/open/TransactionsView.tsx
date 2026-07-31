@@ -67,7 +67,6 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
         <table className="w-full border-collapse text-left text-sm text-slate-600">
           <thead>
             <tr className="bg-[#2C7001]">
-              <th className="w-9 px-2 py-3" aria-hidden="true" />
               {columns.map((column) => (
                 <th
                   key={column}
