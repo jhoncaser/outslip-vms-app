@@ -3,8 +3,9 @@ import { render, screen, fireEvent, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 import { TransactionsView } from "./TransactionsView";
 
+const pushMock = vi.fn();
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh: vi.fn() }),
+  useRouter: () => ({ refresh: vi.fn(), push: pushMock }),
 }));
 
 const transactions = [
@@ -95,6 +96,7 @@ function selectType(id: string) {
 
 describe("TransactionsView", () => {
   beforeEach(() => {
+    pushMock.mockClear();
     vi.stubGlobal(
       "fetch",
       vi.fn(() =>
@@ -122,50 +124,18 @@ describe("TransactionsView", () => {
     expect(screen.getByText("Jhon Caser")).toBeInTheDocument();
   });
 
-  it("does not show detail fields until a row is expanded", () => {
-    renderView();
-    expect(screen.queryByText("Client meeting")).not.toBeInTheDocument();
-    expect(screen.queryByText("Cawit")).not.toBeInTheDocument();
-  });
-
-  it("expands a row to reveal its populated detail fields, skipping dash-only ones, and collapses again on second click", () => {
+  it("navigates to the transaction's detail page when a row is clicked", () => {
     renderView();
     fireEvent.click(rowFor("OT-001"));
-
-    expect(screen.getByText("Jul 25, 2026")).toBeInTheDocument(); // Planned Date
-    expect(screen.getByText("9:00 AM")).toBeInTheDocument();
-    expect(screen.getByText("Cawit")).toBeInTheDocument();
-    expect(screen.getByText("Alpha, Delta")).toBeInTheDocument();
-    expect(screen.getByText("Client meeting")).toBeInTheDocument();
-    // Dash-only fields for this row must not appear in the expanded panel
-    expect(screen.queryByText("Visitor Type")).not.toBeInTheDocument();
-    expect(screen.queryByText("Person to Meet")).not.toBeInTheDocument();
-
-    fireEvent.click(rowFor("OT-001"));
-    expect(screen.queryByText("Client meeting")).not.toBeInTheDocument();
+    expect(pushMock).toHaveBeenCalledWith("/transactions/open/t1");
   });
 
-  it("expanding a Visitor Pass row shows its populated visitor fields and skips its dash-only generic fields", () => {
-    render(
-      <TransactionsView
-        transactions={visitorPassTransactions}
-        matrixTypes={matrixTypes}
-        currentUserBusinessUnit=""
-        departments={departments}
-      />
+  it("does not navigate when the QR thumbnail is clicked", () => {
+    renderView();
+    fireEvent.click(
+      screen.getByRole("button", { name: "QR code for transaction OT-001" })
     );
-    fireEvent.click(rowFor("OT-002"));
-
-    expect(screen.getByText("Supplier")).toBeInTheDocument();
-    expect(screen.getByText("Analyn Gentizon")).toBeInTheDocument();
-    expect(screen.getByText("ICT")).toBeInTheDocument();
-    expect(screen.getByText("Lobby, Room 204")).toBeInTheDocument();
-    expect(screen.getByText("Car")).toBeInTheDocument();
-    expect(screen.getByText("ABC-1234")).toBeInTheDocument();
-    expect(screen.queryByText("Origin Business Unit")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Enroute to Other Business Unit")
-    ).not.toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
   });
 
   it("renders a QR code thumbnail for each transaction", () => {

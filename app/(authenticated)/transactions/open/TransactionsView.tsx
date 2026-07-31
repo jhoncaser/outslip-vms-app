@@ -54,31 +54,12 @@ function CloseIcon() {
   );
 }
 
-type DetailField = { label: string; value: string };
-
-function transactionDetailFields(row: TransactionRow): DetailField[] {
-  const candidates: DetailField[] = [
-    { label: "Planned Date", value: row.plannedDate },
-    { label: "Planned Time", value: row.plannedTime },
-    { label: "Return Time", value: row.returnTime },
-    { label: "Origin Business Unit", value: row.originBusinessUnit },
-    { label: "Enroute to Other Business Unit", value: row.enrouteBusinessUnits },
-    { label: "Reason", value: row.reason },
-    { label: "Visitor Type", value: row.visitorType },
-    { label: "Person to Meet", value: row.personToMeet },
-    { label: "Department", value: row.department },
-    { label: "Location", value: row.location },
-    { label: "Transport Type", value: row.transportType },
-    { label: "Plate No.", value: row.plateNo },
-  ];
-  return candidates.filter((field) => field.value !== "—");
-}
 
 function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
+  const router = useRouter();
   const columns = ["QR", "Code", "Transaction Type", "Created By", "Status", "Date Filed"];
   const [enlargedCode, setEnlargedCode] = useState<string | null>(null);
   const enlargedRow = rows.find((row) => row.transactionCode === enlargedCode) ?? null;
-  const [expandedCode, setExpandedCode] = useState<string | null>(null);
 
   return (
     <>
@@ -100,37 +81,26 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length + 1} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={columns.length} className="px-4 py-8 text-center text-slate-500">
                   No open transactions yet.
                 </td>
               </tr>
             ) : (
               rows.map((row, index) => {
-                const isExpanded = expandedCode === row.transactionCode;
-                const detailFields = transactionDetailFields(row);
                 return (
                   <Fragment key={row.id}>
                     <tr
-                      onClick={() => setExpandedCode(isExpanded ? null : row.transactionCode)}
+                      onClick={() => router.push(`/transactions/open/${row.id}`)}
                       onKeyDown={(event) => {
                         if (event.target !== event.currentTarget) return;
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
-                          setExpandedCode(isExpanded ? null : row.transactionCode);
+                          router.push(`/transactions/open/${row.id}`);
                         }
                       }}
                       tabIndex={0}
-                      aria-expanded={isExpanded}
                       className={`cursor-pointer border-b border-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2C7001]/40 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
                     >
-                      <td className="px-2 py-3 text-center text-slate-400">
-                        <span
-                          aria-hidden
-                          className={`inline-block transition-transform duration-150 ${isExpanded ? "rotate-90" : ""}`}
-                        >
-                          ▸
-                        </span>
-                      </td>
                       <td className="whitespace-nowrap px-4 py-3">
                         <button
                           type="button"
@@ -157,28 +127,6 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-slate-500">{row.createdAt}</td>
                     </tr>
-                    {isExpanded && (
-                      <tr className="bg-[#fbfdf9]">
-                        <td colSpan={columns.length + 1} className="px-4 py-0">
-                          <div className="grid grid-cols-2 gap-x-6 gap-y-3 py-4 pl-9 sm:grid-cols-3">
-                            {detailFields.length === 0 ? (
-                              <p className="col-span-full text-xs text-slate-400">
-                                No additional details for this transaction.
-                              </p>
-                            ) : (
-                              detailFields.map((field) => (
-                                <div key={field.label}>
-                                  <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                                    {field.label}
-                                  </div>
-                                  <div className="text-sm text-slate-700">{field.value}</div>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
                   </Fragment>
                 );
               })
