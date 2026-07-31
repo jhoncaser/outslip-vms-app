@@ -5,7 +5,7 @@ import { NextRequest } from "next/server";
 import { PATCH, DELETE } from "./route";
 import { prisma } from "@/lib/prisma";
 import { createSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
-import { deleteLineItemFile, lineItemFilePath } from "@/lib/lineItemFileStorage";
+import { deleteLineItemFile, lineItemFilePath, MAX_FILE_SIZE_BYTES } from "@/lib/lineItemFileStorage";
 
 let userToken: string;
 let userId: string;
@@ -232,6 +232,39 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
 
     expect(updated.uploadFileName).toBe("new.pdf");
     expect(existsSync(lineItemFilePath(oldSaved.url))).toBe(false);
+  });
+
+  it("rejects an oversized file (> MAX_FILE_SIZE_BYTES) on PATCH", async () => {
+    const lineItem = await prisma.transactionLineItem.create({
+      data: {
+        transactionId: visitorPassTransactionId,
+        visitorName: "V",
+        jobTitle: "J",
+        company: "C",
+        transportType: "Car",
+      },
+    });
+    createdLineItemIds.push(lineItem.id);
+
+    const body = new FormData();
+    body.set("visitorName", "V");
+    body.set("jobTitle", "J");
+    body.set("company", "C");
+    body.set("transportType", "Car");
+    body.set(
+      "uploadFile",
+      new File([new Uint8Array(MAX_FILE_SIZE_BYTES + 1)], "too-big.pdf", {
+        type: "application/pdf",
+      })
+    );
+
+    const response = await PATCH(
+      requestWithCookie("PATCH", userToken, body),
+      paramsFor(visitorPassTransactionId, lineItem.id)
+    );
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toMatch(/too large/i);
   });
 
   it("deletes a line item and its file", async () => {

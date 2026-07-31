@@ -28,13 +28,17 @@ export async function PATCH(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { lineItemId } = await params;
+  const { id: transactionId, lineItemId } = await params;
   const existing = await prisma.transactionLineItem.findUnique({
     where: { id: lineItemId },
     include: { transaction: { include: { matrixType: { select: { name: true } } } } },
   });
 
   if (!existing) {
+    return NextResponse.json({ error: "Line item not found" }, { status: 404 });
+  }
+
+  if (existing.transactionId !== transactionId) {
     return NextResponse.json({ error: "Line item not found" }, { status: 404 });
   }
 
@@ -66,6 +70,7 @@ export async function PATCH(
 
     let uploadFileUrl = existing.uploadFileUrl;
     let uploadFileName = existing.uploadFileName;
+    let newFileUrl: string | undefined;
     const file = formData.get("uploadFile");
     if (file instanceof File && file.size > 0) {
       if (!isAllowedFileType(file.type)) {
@@ -75,10 +80,9 @@ export async function PATCH(
         return NextResponse.json({ error: "File is too large" }, { status: 400 });
       }
       const saved = await saveLineItemFile(file);
-      const oldUrl = existing.uploadFileUrl;
+      newFileUrl = saved.url;
       uploadFileUrl = saved.url;
       uploadFileName = saved.fileName;
-      if (oldUrl) await deleteLineItemFile(oldUrl);
     }
 
     const updated = await prisma.transactionLineItem.update({
@@ -94,6 +98,11 @@ export async function PATCH(
         uploadFileName,
       },
     });
+
+    if (newFileUrl && existing.uploadFileUrl) {
+      await deleteLineItemFile(existing.uploadFileUrl);
+    }
+
     return NextResponse.json(updated, { status: 200 });
   }
 
@@ -148,13 +157,17 @@ export async function DELETE(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { lineItemId } = await params;
+  const { id: transactionId, lineItemId } = await params;
   const existing = await prisma.transactionLineItem.findUnique({
     where: { id: lineItemId },
-    select: { uploadFileUrl: true },
+    select: { uploadFileUrl: true, transactionId: true },
   });
 
   if (!existing) {
+    return NextResponse.json({ error: "Line item not found" }, { status: 404 });
+  }
+
+  if (existing.transactionId !== transactionId) {
     return NextResponse.json({ error: "Line item not found" }, { status: 404 });
   }
 

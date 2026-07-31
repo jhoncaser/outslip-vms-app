@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import { POST } from "./route";
 import { prisma } from "@/lib/prisma";
 import { createSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
-import { deleteLineItemFile } from "@/lib/lineItemFileStorage";
+import { deleteLineItemFile, MAX_FILE_SIZE_BYTES } from "@/lib/lineItemFileStorage";
 
 let userToken: string;
 let userId: string;
@@ -224,6 +224,28 @@ describe("POST /api/transactions/[id]/line-items", () => {
     expect(response.status).toBe(400);
     const data = await response.json();
     expect(data.error).toMatch(/unsupported file type/i);
+  });
+
+  it("rejects an oversized file (> MAX_FILE_SIZE_BYTES)", async () => {
+    const body = new FormData();
+    body.set("visitorName", "John Oversized");
+    body.set("jobTitle", "Test Officer");
+    body.set("company", "Test Corp");
+    body.set("transportType", "Car");
+    body.set(
+      "uploadFile",
+      new File([new Uint8Array(MAX_FILE_SIZE_BYTES + 1)], "too-big.pdf", {
+        type: "application/pdf",
+      })
+    );
+
+    const response = await POST(
+      requestWithCookie(userToken, visitorPassTransactionId, body),
+      paramsFor(visitorPassTransactionId)
+    );
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toMatch(/too large/i);
   });
 
   it("returns a specific message when Name is missing for a Third-Party employee line item", async () => {
