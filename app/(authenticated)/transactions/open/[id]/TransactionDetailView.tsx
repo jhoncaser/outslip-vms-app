@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -64,13 +65,27 @@ export function TransactionDetailView({
   const router = useRouter();
   const isVisitorPass = transaction.matrixTypeName === "Visitor Pass";
   const columns = isVisitorPass ? VISITOR_PASS_COLUMNS : EMPLOYEE_COLUMNS;
+  const [deleteError, setDeleteError] = useState("");
 
   async function handleDelete(lineItemId: string) {
     if (!confirm("Delete this line item?")) return;
-    await fetch(`/api/transactions/${transaction.id}/line-items/${lineItemId}`, {
-      method: "DELETE",
-    });
-    router.refresh();
+    setDeleteError("");
+
+    try {
+      const response = await fetch(`/api/transactions/${transaction.id}/line-items/${lineItemId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setDeleteError(data.error ?? "Failed to delete line item");
+        return;
+      }
+
+      router.refresh();
+    } catch (err) {
+      setDeleteError("An error occurred while deleting the line item");
+    }
   }
 
   return (
@@ -128,6 +143,12 @@ export function TransactionDetailView({
           <span className="font-normal text-slate-400">({lineItems.length})</span>
         </h2>
       </div>
+
+      {deleteError && (
+        <p role="alert" className="mb-3 text-xs text-red-600">
+          {deleteError}
+        </p>
+      )}
 
       <div className="overflow-x-auto rounded-xl bg-white shadow">
         <table className="w-full border-collapse text-left text-sm text-slate-600">

@@ -131,6 +131,17 @@ describe("TransactionDetailView", () => {
     expect(screen.getByRole("columnheader", { name: "Remarks" })).toBeInTheDocument();
   });
 
+  it("renders Mega Employee live-lookup fields with actual data, not placeholders", () => {
+    render(
+      <TransactionDetailView transaction={otherTransaction} lineItems={megaEmployeeLineItems} />
+    );
+    expect(screen.getByText("Jhon Niño Caser")).toBeInTheDocument();
+    expect(screen.getByText("Business Analyst and Developer")).toBeInTheDocument();
+    expect(screen.getByText("Digital Transformation and Business Systems")).toBeInTheDocument();
+    expect(screen.getByText("MFC")).toBeInTheDocument();
+    expect(screen.getByText("Sample remarks")).toBeInTheDocument();
+  });
+
   it("shows an empty state when there are no line items yet", () => {
     render(<TransactionDetailView transaction={visitorPassTransaction} lineItems={[]} />);
     expect(screen.getByText(/no line items yet/i)).toBeInTheDocument();
