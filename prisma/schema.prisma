@@ -28,6 +28,7 @@ model BusinessUnit {
   name                String               @unique
   users               User[]
   matrixTypeApprovers MatrixTypeApprover[]
+  transactions        Transaction[]
 }
 
 model Location {
@@ -35,6 +36,7 @@ model Location {
   name                String               @unique
   users               User[]
   matrixTypeApprovers MatrixTypeApprover[]
+  transactions        Transaction[]
 }
 
 model User {
@@ -135,6 +137,12 @@ model Transaction {
 
   department   Department? @relation(fields: [departmentId], references: [id])
   departmentId String?
+
+  businessUnit   BusinessUnit? @relation(fields: [businessUnitId], references: [id])
+  businessUnitId String?
+
+  location   Location? @relation(fields: [locationId], references: [id])
+  locationId String?
 
   visitLocation String?
   transportType String?
