@@ -103,6 +103,12 @@ const employees = [
   },
 ];
 
+const approvers = [
+  { id: "a1", level: 1, approverName: "Maria Santos", initials: "MS" },
+  { id: "a2", level: 1, approverName: "Juan Dela Cruz", initials: "JD" },
+  { id: "a3", level: 2, approverName: "Ana Reyes", initials: "AR" },
+];
+
 describe("TransactionDetailView", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true })));
@@ -606,5 +612,71 @@ describe("TransactionDetailView", () => {
         expect.objectContaining({ method: "PATCH" })
       )
     );
+  });
+
+  it("renders the List Approvers panel grouped by level with correct names for Visitor Pass", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        approvers={approvers}
+      />
+    );
+    expect(screen.getByText(/👤 List Approvers/)).toBeInTheDocument();
+    expect(screen.getByText(/1st Level/)).toBeInTheDocument();
+    expect(screen.getByText(/2nd Level/)).toBeInTheDocument();
+    expect(screen.queryByText(/3rd Level/)).not.toBeInTheDocument();
+    expect(screen.getByText("Maria Santos")).toBeInTheDocument();
+    expect(screen.getByText("Juan Dela Cruz")).toBeInTheDocument();
+    expect(screen.getByText("Ana Reyes")).toBeInTheDocument();
+    expect(screen.getByText("MS")).toBeInTheDocument();
+  });
+
+  it("renders the empty state when no approvers are configured for a Visitor Pass transaction", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        approvers={[]}
+      />
+    );
+    expect(
+      screen.getByText(
+        "No approvers configured for this Department + Business Unit + Location."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("renders the empty state, not an error, when no approvers prop is passed at all (legacy transaction)", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    expect(
+      screen.getByText(
+        "No approvers configured for this Department + Business Unit + Location."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("does not render the List Approvers panel for a non-Visitor-Pass transaction", () => {
+    render(
+      <TransactionDetailView
+        transaction={otherTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        approvers={approvers}
+      />
+    );
+    expect(screen.queryByText(/👤 List Approvers/)).not.toBeInTheDocument();
   });
 });

@@ -78,6 +78,19 @@ const EMPLOYEE_COLUMNS = [
   "Actions",
 ];
 
+export type ApproverRow = {
+  id: string;
+  level: number;
+  approverName: string;
+  initials: string;
+};
+
+const LEVEL_LABELS: Record<number, string> = {
+  1: "1st Level",
+  2: "2nd Level",
+  3: "3rd Level",
+};
+
 function BackIcon() {
   return (
     <svg
@@ -101,15 +114,28 @@ export function TransactionDetailView({
   lineItems,
   employees,
   remarksDefault,
+  approvers = [],
 }: {
   transaction: TransactionDetailData;
   lineItems: LineItemRow[];
   employees: EmployeeOption[];
   remarksDefault: string;
+  approvers?: ApproverRow[];
 }) {
   const router = useRouter();
   const isVisitorPass = transaction.matrixTypeName === "Visitor Pass";
   const columns = isVisitorPass ? VISITOR_PASS_COLUMNS : EMPLOYEE_COLUMNS;
+
+  const approversByLevel = new Map<number, ApproverRow[]>();
+  for (const approver of approvers) {
+    const group = approversByLevel.get(approver.level) ?? [];
+    group.push(approver);
+    approversByLevel.set(approver.level, group);
+  }
+  const levelsWithApprovers = [1, 2, 3].filter(
+    (level) => (approversByLevel.get(level)?.length ?? 0) > 0
+  );
+
   const [deleteTarget, setDeleteTarget] = useState<LineItemRow | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
   const [deleteModalError, setDeleteModalError] = useState("");
@@ -437,6 +463,47 @@ export function TransactionDetailView({
           </tbody>
         </table>
       </div>
+
+      {isVisitorPass && (
+        <div className="mt-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-slate-700">
+              👤 List Approvers{" "}
+              <span className="font-normal text-slate-400">({approvers.length})</span>
+            </h2>
+          </div>
+          <div className="rounded-xl bg-white p-6 shadow">
+            {approvers.length === 0 ? (
+              <p className="text-center text-sm text-slate-500">
+                No approvers configured for this Department + Business Unit + Location.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-6">
+                {levelsWithApprovers.map((level) => (
+                  <div key={level}>
+                    <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                      {LEVEL_LABELS[level]}{" "}
+                      <span className="font-normal normal-case text-slate-400">
+                        ({approversByLevel.get(level)!.length})
+                      </span>
+                    </h3>
+                    <div className="flex flex-col gap-3">
+                      {approversByLevel.get(level)!.map((approver) => (
+                        <div key={approver.id} className="flex items-center gap-3">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e6f0df] text-xs font-bold text-[#2C7001]">
+                            {approver.initials}
+                          </span>
+                          <span className="text-sm text-slate-700">{approver.approverName}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {modal.mode !== "closed" && (
         <div

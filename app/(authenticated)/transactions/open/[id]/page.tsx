@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/prisma";
-import { TransactionDetailView, type LineItemRow } from "./TransactionDetailView";
+import { TransactionDetailView, type LineItemRow, type ApproverRow } from "./TransactionDetailView";
 
 export default async function TransactionDetailPage({
   params,
@@ -49,6 +49,30 @@ export default async function TransactionDetailPage({
   if (!transaction) notFound();
 
   const isVisitorPass = transaction.matrixType.name === "Visitor Pass";
+
+  const matrixTypeApprovers =
+    isVisitorPass &&
+    transaction.departmentId &&
+    transaction.businessUnitId &&
+    transaction.locationId
+      ? await prisma.matrixTypeApprover.findMany({
+          where: {
+            matrixTypeId: transaction.matrixTypeId,
+            departmentId: transaction.departmentId,
+            businessUnitId: transaction.businessUnitId,
+            locationId: transaction.locationId,
+          },
+          include: { approver: { select: { firstName: true, lastName: true } } },
+          orderBy: { level: "asc" },
+        })
+      : [];
+
+  const approvers: ApproverRow[] = matrixTypeApprovers.map((row) => ({
+    id: row.id,
+    level: row.level,
+    approverName: `${row.approver.firstName} ${row.approver.lastName}`,
+    initials: `${row.approver.firstName.charAt(0)}${row.approver.lastName.charAt(0)}`.toUpperCase(),
+  }));
 
   const detailFieldCandidates: { label: string; value: string }[] = [
     {
@@ -133,6 +157,7 @@ export default async function TransactionDetailPage({
           lineItems={lineItems}
           employees={employees}
           remarksDefault={transaction.reason ?? ""}
+          approvers={approvers}
         />
       </div>
     </div>
