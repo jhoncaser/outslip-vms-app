@@ -646,7 +646,7 @@ describe("TransactionDetailView", () => {
     );
     expect(
       screen.getByText(
-        "No approvers configured for this Department + Business Unit + Location."
+        "No approvers configured for your Department + Business Unit + Location."
       )
     ).toBeInTheDocument();
   });
@@ -662,12 +662,12 @@ describe("TransactionDetailView", () => {
     );
     expect(
       screen.getByText(
-        "No approvers configured for this Department + Business Unit + Location."
+        "No approvers configured for your Department + Business Unit + Location."
       )
     ).toBeInTheDocument();
   });
 
-  it("does not render the List Approvers panel for a non-Visitor-Pass transaction", () => {
+  it("renders the List Approvers panel for a non-Visitor-Pass transaction too", () => {
     render(
       <TransactionDetailView
         transaction={otherTransaction}
@@ -677,6 +677,6 @@ describe("TransactionDetailView", () => {
         approvers={approvers}
       />
     );
-    expect(screen.queryByText(/👤 List Approvers/)).not.toBeInTheDocument();
+    expect(screen.getByText(/👤 List Approvers/)).toBeInTheDocument();
   });
 });

@@ -8,17 +8,12 @@ export type ScopeMatchedApprover = {
 };
 
 export async function findScopeMatchedApprovers(params: {
-  isVisitorPass: boolean;
   matrixTypeId: string;
-  departmentId: string | null;
-  businessUnitId: string | null;
-  locationId: string | null;
+  departmentId: string;
+  businessUnitId: string;
+  locationId: string;
 }): Promise<ScopeMatchedApprover[]> {
-  const { isVisitorPass, matrixTypeId, departmentId, businessUnitId, locationId } = params;
-
-  if (!isVisitorPass || !departmentId || !businessUnitId || !locationId) {
-    return [];
-  }
+  const { matrixTypeId, departmentId, businessUnitId, locationId } = params;
 
   const rows = await prisma.matrixTypeApprover.findMany({
     where: {

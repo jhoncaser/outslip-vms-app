@@ -17,7 +17,15 @@ export default async function TransactionDetailPage({
       include: {
         matrixType: { select: { name: true } },
         status: { select: { name: true } },
-        creator: { select: { firstName: true, lastName: true } },
+        creator: {
+        select: {
+          firstName: true,
+          lastName: true,
+          departmentId: true,
+          businessUnitId: true,
+          locationId: true,
+        },
+      },
         lineItems: {
           orderBy: { createdAt: "asc" },
           include: {
@@ -52,11 +60,10 @@ export default async function TransactionDetailPage({
   const isVisitorPass = transaction.matrixType.name === "Visitor Pass";
 
   const matchedApprovers = await findScopeMatchedApprovers({
-    isVisitorPass,
     matrixTypeId: transaction.matrixTypeId,
-    departmentId: transaction.departmentId,
-    businessUnitId: transaction.businessUnitId,
-    locationId: transaction.locationId,
+    departmentId: transaction.creator.departmentId,
+    businessUnitId: transaction.creator.businessUnitId,
+    locationId: transaction.creator.locationId,
   });
 
   const approvers: ApproverRow[] = matchedApprovers.map((row) => ({

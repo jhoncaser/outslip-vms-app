@@ -464,46 +464,44 @@ export function TransactionDetailView({
         </table>
       </div>
 
-      {isVisitorPass && (
-        <div className="mt-6">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-700">
-              👤 List Approvers{" "}
-              <span className="font-normal text-slate-400">({approvers.length})</span>
-            </h2>
-          </div>
-          <div className="rounded-xl bg-white p-6 shadow">
-            {approvers.length === 0 ? (
-              <p className="text-center text-sm text-slate-500">
-                No approvers configured for this Department + Business Unit + Location.
-              </p>
-            ) : (
-              <div className="flex flex-col gap-6">
-                {levelsWithApprovers.map((level) => (
-                  <div key={level}>
-                    <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
-                      {LEVEL_LABELS[level]}{" "}
-                      <span className="font-normal normal-case text-slate-400">
-                        ({approversByLevel.get(level)!.length})
-                      </span>
-                    </h3>
-                    <div className="flex flex-col gap-3">
-                      {approversByLevel.get(level)!.map((approver) => (
-                        <div key={approver.id} className="flex items-center gap-3">
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e6f0df] text-xs font-bold text-[#2C7001]">
-                            {approver.initials}
-                          </span>
-                          <span className="text-sm text-slate-700">{approver.approverName}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+      <div className="mt-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-slate-700">
+            👤 List Approvers{" "}
+            <span className="font-normal text-slate-400">({approvers.length})</span>
+          </h2>
         </div>
-      )}
+        <div className="rounded-xl bg-white p-6 shadow">
+          {approvers.length === 0 ? (
+            <p className="text-center text-sm text-slate-500">
+              No approvers configured for your Department + Business Unit + Location.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-6">
+              {levelsWithApprovers.map((level) => (
+                <div key={level}>
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                    {LEVEL_LABELS[level]}{" "}
+                    <span className="font-normal normal-case text-slate-400">
+                      ({approversByLevel.get(level)!.length})
+                    </span>
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    {approversByLevel.get(level)!.map((approver) => (
+                      <div key={approver.id} className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e6f0df] text-xs font-bold text-[#2C7001]">
+                          {approver.initials}
+                        </span>
+                        <span className="text-sm text-slate-700">{approver.approverName}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {modal.mode !== "closed" && (
         <div

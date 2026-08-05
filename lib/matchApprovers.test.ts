@@ -77,7 +77,6 @@ describe("findScopeMatchedApprovers", () => {
 
   it("returns the matching approver when matrixTypeId, department, business unit, and location all match", async () => {
     const result = await findScopeMatchedApprovers({
-      isVisitorPass: true,
       matrixTypeId,
       departmentId,
       businessUnitId,
@@ -98,7 +97,6 @@ describe("findScopeMatchedApprovers", () => {
     });
 
     const result = await findScopeMatchedApprovers({
-      isVisitorPass: true,
       matrixTypeId,
       departmentId,
       businessUnitId: otherBusinessUnit.id,
@@ -108,55 +106,22 @@ describe("findScopeMatchedApprovers", () => {
     expect(result).toEqual([]);
   });
 
-  it("returns an empty array without querying when isVisitorPass is false", async () => {
-    const result = await findScopeMatchedApprovers({
-      isVisitorPass: false,
-      matrixTypeId,
-      departmentId,
-      businessUnitId,
-      locationId,
-    });
-
-    expect(result).toEqual([]);
-  });
-
-  it("returns an empty array when any of departmentId/businessUnitId/locationId is null", async () => {
-    expect(
-      await findScopeMatchedApprovers({
-        isVisitorPass: true,
-        matrixTypeId,
-        departmentId: null,
-        businessUnitId,
-        locationId,
-      })
-    ).toEqual([]);
-
-    expect(
-      await findScopeMatchedApprovers({
-        isVisitorPass: true,
-        matrixTypeId,
-        departmentId,
-        businessUnitId: null,
-        locationId,
-      })
-    ).toEqual([]);
-
-    expect(
-      await findScopeMatchedApprovers({
-        isVisitorPass: true,
-        matrixTypeId,
-        departmentId,
-        businessUnitId,
-        locationId: null,
-      })
-    ).toEqual([]);
-  });
-
   afterAll(async () => {
     await prisma.matrixTypeApprover.deleteMany({
       where: { id: { in: createdMatrixTypeApproverIds } },
     });
     await prisma.matrixType.deleteMany({ where: { id: matrixTypeId } });
+    // User must go before Department/BusinessUnit/Location: those FKs are RESTRICT.
+    await prisma.user.deleteMany({ where: { id: approverId } });
+    await prisma.businessUnit.deleteMany({
+      where: {
+        name: {
+          in: ["Match Approvers Fixture BU", "Match Approvers Fixture BU 2 (no approver)"],
+        },
+      },
+    });
+    await prisma.department.deleteMany({ where: { id: departmentId } });
+    await prisma.location.deleteMany({ where: { id: locationId } });
     await prisma.$disconnect();
   });
 });
