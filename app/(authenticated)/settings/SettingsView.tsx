@@ -138,6 +138,7 @@ export function SettingsView({
   locations,
   approverAssignments,
   users,
+  canEdit,
 }: {
   matrixTypes: MatrixTypeRow[];
   departments: ReferenceRow[];
@@ -145,6 +146,7 @@ export function SettingsView({
   locations: ReferenceRow[];
   approverAssignments: ApproverAssignmentRow[];
   users: UserOption[];
+  canEdit: boolean;
 }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>("matrixType");
@@ -203,6 +205,7 @@ export function SettingsView({
           departments={departments}
           businessUnits={businessUnits}
           locations={locations}
+          canEdit={canEdit}
           onBack={() => setSelectedMatrixTypeId(null)}
         />
       ) : (
@@ -230,15 +233,17 @@ export function SettingsView({
             ))}
           </div>
 
-          <div className="mb-4">
-            <button
-              type="button"
-              onClick={openModal}
-              className="rounded-full bg-[#2C7001] px-5 py-2 text-xs font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-            >
-              + Add {activeLabel}
-            </button>
-          </div>
+          {canEdit && (
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={openModal}
+                className="rounded-full bg-[#2C7001] px-5 py-2 text-xs font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              >
+                + Add {activeLabel}
+              </button>
+            </div>
+          )}
 
           {activeTab === "matrixType" ? (
             <MatrixTypeTable

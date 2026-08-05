@@ -31,7 +31,7 @@ const approverAssignments = [
 ];
 const users = [{ id: "u1", name: "Jhon Caser" }];
 
-function renderView() {
+function renderView(canEdit = true) {
   return render(
     <SettingsView
       matrixTypes={matrixTypes}
@@ -40,6 +40,7 @@ function renderView() {
       locations={locations}
       approverAssignments={approverAssignments}
       users={users}
+      canEdit={canEdit}
     />
   );
 }
@@ -160,5 +161,28 @@ describe("SettingsView", () => {
     renderView();
     fireEvent.click(screen.getByRole("button", { name: "Halfday" }));
     expect(screen.getByText("Jhon Caser")).toBeInTheDocument();
+  });
+
+  it("hides the + Add button for a non-admin (canEdit false), but still shows the tables", () => {
+    renderView(false);
+    expect(screen.getByText("Halfday")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /\+ add matrix type/i })
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Department" }));
+    expect(screen.getByText("ICT")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /\+ add department/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides the + Add Approver button in the detail view for a non-admin (canEdit false)", () => {
+    renderView(false);
+    fireEvent.click(screen.getByRole("button", { name: "Halfday" }));
+    expect(screen.getByText("Jhon Caser")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /\+ add approver/i })
+    ).not.toBeInTheDocument();
   });
 });

@@ -67,6 +67,7 @@ export function MatrixTypeApproverDetail({
   departments,
   businessUnits,
   locations,
+  canEdit,
   onBack,
 }: {
   matrixType: { id: string; matrixCode: string; name: string };
@@ -75,6 +76,7 @@ export function MatrixTypeApproverDetail({
   departments: OptionRow[];
   businessUnits: OptionRow[];
   locations: OptionRow[];
+  canEdit: boolean;
   onBack: () => void;
 }) {
   const router = useRouter();
@@ -183,13 +185,15 @@ export function MatrixTypeApproverDetail({
               {matrixType.matrixCode} · Approver setup
             </p>
           </div>
-          <button
-            type="button"
-            onClick={openModal}
-            className="rounded-full bg-white/15 px-5 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-          >
-            + Add Approver
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={openModal}
+              className="rounded-full bg-white/15 px-5 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+            >
+              + Add Approver
+            </button>
+          )}
         </div>
       </div>
 

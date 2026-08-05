@@ -10,9 +10,11 @@ export default async function SettingsPage() {
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const session = token ? await verifySessionToken(token) : null;
 
-  if (!session || !canManageReferenceData(session)) {
-    redirect("/dashboard");
+  if (!session) {
+    redirect("/login");
   }
+
+  const canEdit = canManageReferenceData(session);
 
   const [matrixTypes, departments, businessUnits, locations, matrixTypeApprovers, users] =
     await Promise.all([
@@ -24,7 +26,7 @@ export default async function SettingsPage() {
       prisma.businessUnit.findMany({ orderBy: { name: "asc" } }),
       prisma.location.findMany({ orderBy: { name: "asc" } }),
       prisma.matrixTypeApprover.findMany({
-        orderBy: { createdAt: "asc" },
+        orderBy: [{ department: { name: "asc" } }, { level: "asc" }],
         include: {
           approver: { select: { firstName: true, lastName: true } },
           department: { select: { name: true } },
@@ -79,6 +81,7 @@ export default async function SettingsPage() {
           locations={locations}
           approverAssignments={approverAssignments}
           users={userOptions}
+          canEdit={canEdit}
         />
       </div>
     </div>

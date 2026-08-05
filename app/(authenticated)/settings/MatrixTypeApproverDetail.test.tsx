@@ -39,7 +39,7 @@ const departments = [{ id: "d1", name: "ICT" }];
 const businessUnits = [{ id: "b1", name: "Cawit" }, { id: "b2", name: "Ayala" }];
 const locations = [{ id: "l1", name: "Zamboanga" }, { id: "l2", name: "Manila" }];
 
-function renderDetail(onBack = vi.fn()) {
+function renderDetail(onBack = vi.fn(), canEdit = true) {
   return render(
     <MatrixTypeApproverDetail
       matrixType={matrixType}
@@ -48,6 +48,7 @@ function renderDetail(onBack = vi.fn()) {
       departments={departments}
       businessUnits={businessUnits}
       locations={locations}
+      canEdit={canEdit}
       onBack={onBack}
     />
   );
@@ -86,6 +87,7 @@ describe("MatrixTypeApproverDetail", () => {
         departments={departments}
         businessUnits={businessUnits}
         locations={locations}
+        canEdit
         onBack={vi.fn()}
       />
     );
@@ -166,5 +168,13 @@ describe("MatrixTypeApproverDetail", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     );
+  });
+
+  it("hides the + Add Approver button for a non-admin (canEdit false), but still shows the table", () => {
+    renderDetail(vi.fn(), false);
+    expect(screen.getByText("Jhon Caser")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /\+ add approver/i })
+    ).not.toBeInTheDocument();
   });
 });
