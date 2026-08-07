@@ -14,9 +14,17 @@ describe("Navbar", () => {
     pathnameRef.current = "/dashboard";
   });
 
-  function renderNavbar(onMenuClick = vi.fn()) {
+  function renderNavbar({
+    onMenuClick = vi.fn(),
+    canProvisionUsers = false,
+  }: { onMenuClick?: () => void; canProvisionUsers?: boolean } = {}) {
     render(
-      <Navbar initials="JC" fullName="Jhon Caser" onMenuClick={onMenuClick} />
+      <Navbar
+        initials="JC"
+        fullName="Jhon Caser"
+        canProvisionUsers={canProvisionUsers}
+        onMenuClick={onMenuClick}
+      />
     );
     return {
       desktop: screen.getByTestId("navbar-desktop"),
@@ -29,16 +37,16 @@ describe("Navbar", () => {
     expect(within(desktop).getByAltText("MFC Global")).toBeInTheDocument();
   });
 
-  it("shows the current page title", () => {
-    pathnameRef.current = "/register";
+  it("shows the current page title for a route with no nav tab of its own", () => {
+    pathnameRef.current = "/transactions/open";
     const { desktop } = renderNavbar();
-    expect(within(desktop).getByText("Register User")).toBeInTheDocument();
+    expect(within(desktop).getByText("Open Transaction")).toBeInTheDocument();
   });
 
   it("shows no page title on an unknown path", () => {
     pathnameRef.current = "/nowhere";
     const { desktop } = renderNavbar();
-    expect(within(desktop).queryByText("Dashboard")).not.toBeInTheDocument();
+    expect(within(desktop).queryByText("Open Transaction")).not.toBeInTheDocument();
   });
 
   it("shows the user's initials with the full name as tooltip", () => {
@@ -65,7 +73,7 @@ describe("Navbar", () => {
 
   it("shows a hamburger menu button on the mobile row that calls onMenuClick", () => {
     const onMenuClick = vi.fn();
-    const { mobile } = renderNavbar(onMenuClick);
+    const { mobile } = renderNavbar({ onMenuClick });
     fireEvent.click(
       within(mobile).getByRole("button", { name: /open navigation menu/i })
     );
@@ -73,9 +81,9 @@ describe("Navbar", () => {
   });
 
   it("shows the page title on the mobile row", () => {
-    pathnameRef.current = "/register";
+    pathnameRef.current = "/transactions/open";
     const { mobile } = renderNavbar();
-    expect(within(mobile).getByText("Register User")).toBeInTheDocument();
+    expect(within(mobile).getByText("Open Transaction")).toBeInTheDocument();
   });
 
   it("falls back to the MFC logo on the mobile row when there's no page title", () => {
@@ -110,5 +118,82 @@ describe("Navbar", () => {
     expect(
       within(mobile).getByRole("button", { name: "Scan QR code" })
     ).toBeInTheDocument();
+  });
+
+  it("always shows Home, Profile, and Settings nav tabs", () => {
+    const { desktop } = renderNavbar();
+    expect(within(desktop).getByRole("link", { name: /home/i })).toBeInTheDocument();
+    expect(
+      within(desktop).getByRole("link", { name: /^profile$/i })
+    ).toBeInTheDocument();
+    expect(
+      within(desktop).getByRole("link", { name: /^settings$/i })
+    ).toBeInTheDocument();
+  });
+
+  it("hides the Register User tab when canProvisionUsers is false", () => {
+    const { desktop } = renderNavbar({ canProvisionUsers: false });
+    expect(
+      within(desktop).queryByRole("link", { name: /register user/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the Register User tab when canProvisionUsers is true", () => {
+    const { desktop } = renderNavbar({ canProvisionUsers: true });
+    expect(
+      within(desktop).getByRole("link", { name: /register user/i })
+    ).toBeInTheDocument();
+  });
+
+  it("marks the current page's nav tab with aria-current", () => {
+    pathnameRef.current = "/profile";
+    const { desktop } = renderNavbar();
+    expect(
+      within(desktop).getByRole("link", { name: /^profile$/i })
+    ).toHaveAttribute("aria-current", "page");
+    expect(
+      within(desktop).getByRole("link", { name: /home/i })
+    ).not.toHaveAttribute("aria-current");
+  });
+
+  it("keeps the account menu closed until the avatar is clicked", () => {
+    renderNavbar();
+    expect(
+      screen.queryByRole("button", { name: /^logout$/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens the account menu with Logout when the avatar is clicked", () => {
+    const { desktop } = renderNavbar();
+    fireEvent.click(
+      within(desktop).getByRole("button", { name: /account menu/i })
+    );
+    expect(screen.getByRole("button", { name: /^logout$/i })).toBeInTheDocument();
+  });
+
+  it("closes the account menu when clicking outside it", () => {
+    const { desktop } = renderNavbar();
+    fireEvent.click(
+      within(desktop).getByRole("button", { name: /account menu/i })
+    );
+    expect(screen.getByRole("button", { name: /^logout$/i })).toBeInTheDocument();
+
+    fireEvent.mouseDown(document.body);
+    expect(
+      screen.queryByRole("button", { name: /^logout$/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("closes the account menu on Escape", () => {
+    const { desktop } = renderNavbar();
+    fireEvent.click(
+      within(desktop).getByRole("button", { name: /account menu/i })
+    );
+    expect(screen.getByRole("button", { name: /^logout$/i })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(
+      screen.queryByRole("button", { name: /^logout$/i })
+    ).not.toBeInTheDocument();
   });
 });

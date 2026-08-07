@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Navbar } from "./Navbar";
-import { Sidebar } from "./Sidebar";
 import { MobileDrawer } from "./MobileDrawer";
 
 export function AppShell({
@@ -23,17 +22,15 @@ export function AppShell({
       <Navbar
         initials={initials}
         fullName={fullName}
+        canProvisionUsers={canProvisionUsers}
         onMenuClick={() => setDrawerOpen(true)}
       />
-      <div className="flex flex-1">
-        <Sidebar canProvisionUsers={canProvisionUsers} />
-        <MobileDrawer
-          canProvisionUsers={canProvisionUsers}
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-        />
-        <main className="flex flex-1 flex-col">{children}</main>
-      </div>
+      <MobileDrawer
+        canProvisionUsers={canProvisionUsers}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      />
+      <main className="flex flex-1 flex-col">{children}</main>
     </div>
   );
 }
