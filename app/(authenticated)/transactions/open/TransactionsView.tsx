@@ -182,7 +182,7 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
 }
 
 const inputClassName = fieldBox;
-const labelClassName = fieldLabel;
+const labelClassName = `mb-1 block ${fieldLabel}`;
 
 export function TransactionsView({
   transactions,
