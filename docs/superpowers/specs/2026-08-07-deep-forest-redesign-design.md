@@ -49,7 +49,7 @@ The exact task breakdown and ordering within that list is left to the implementa
 
 ## Functionality guarantee
 
-Styling/className-level changes only — no auth, session, validation, routing, or business logic touched. Existing accessible names and test selectors (`getByRole`, `getByLabelText`, `getByText`, etc.) are preserved so the current automated test suite stays green throughout (baseline: 331/333, the 2 known failures are pre-existing environmental drift unrelated to styling — see handoff §5). Each page/component is verified against both its test file and the live dev server before moving to the next, matching this branch's established convention.
+Styling/className-level changes only — no auth, session, validation, routing, or business logic touched. Existing accessible names and test selectors (`getByRole`, `getByLabelText`, `getByText`, etc.) are preserved so the current automated test suite stays green throughout (baseline: 331/333, the 2 known failures are pre-existing environmental drift unrelated to styling — see handoff §5). The existing responsive behavior from the earlier responsive-redesign plan (mobile hamburger/drawer below 768px, expandable table rows on Register Users and Open Transactions) is preserved exactly as-is — this redesign re-skins those patterns, it does not change breakpoints or collapse behavior. Each page/component is verified against both its test file and the live dev server before moving to the next, matching this branch's established convention.
 
 ## Out of scope / not decided here
 
