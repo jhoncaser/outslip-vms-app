@@ -12,7 +12,7 @@
 
 - Styling/className-level changes only. No auth, session, validation, routing, Prisma query, or business logic may change in any task.
 - Every existing accessible name, `role`, `aria-*` attribute, and test selector (`getByRole`, `getByLabelText`, `getByText`, etc.) must stay byte-identical — the existing test files for every touched component must pass unmodified.
-- All new colors/surfaces must come from `lib/deepForest.ts` (Task 1's output) — no ad-hoc new hex values introduced in later tasks.
+- Reusable patterns (buttons, cards, tables, pills, form fields) must use the shared tokens from `lib/deepForest.ts` (Task 1's output) — do not hand-roll a second version of a pattern that already has a token. One-off decorative colors (a single hover accent, a gradient stop, the QR chip's light background, the delete-modal's red theme) may be inline hex values as long as they stay within the Deep Forest palette family established in Task 1 (the greens/blacks, plus the existing semantic status hues blue/green/red/amber/slate) — do not introduce a color outside that family.
 - Every new animation (reveal-once, button shimmer, cursor trail) must be inert under `prefers-reduced-motion: reduce`.
 - QR code generation and rendering (`QRCode.toDataURL` in `app/(authenticated)/transactions/open/page.tsx`) must not change — only the `<img>` wrapper's surrounding chip styling changes.
 - The MFC watermark overlay div (`bg-[url('/mfc-logo.png')] ... opacity-[0.18]`) is removed outright from every page that has it, with no replacement.
