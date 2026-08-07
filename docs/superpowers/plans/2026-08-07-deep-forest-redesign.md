@@ -652,7 +652,7 @@ git commit -m "Add Deep Forest design tokens, reveal-once hook, cursor trail, an
 - Modify: `app/change-password/ChangePasswordForm.tsx:46-95`
 
 **Interfaces:**
-- Consumes: `pageBackground`, `cardSurface`, `modalHeader` (reused for the card's top banner), `headingText`, `mutedText`, `fieldLabel`, `fieldUnderline`, `buttonPrimary` from `lib/deepForest.ts` (Task 1).
+- Consumes: `pageBackground`, `cardSurface`, `headingText`, `mutedText`, `fieldLabel`, `fieldUnderline`, `buttonPrimary` from `lib/deepForest.ts` (Task 1). The card's header banner intentionally does NOT use `modalHeader` — that token is `py-5`, matching this app's real dialogs; Login (`py-10`) and Change Password (`py-8`) keep the distinct padding the page already had before this redesign, since a full-page card header and a dialog are different things wearing the same gradient.
 - Produces: nothing new — leaf task.
 
 - [ ] **Step 1: Reskin the Login page shell and remove the watermark**
