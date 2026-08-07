@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cardSurface } from "@/lib/deepForest";
 
 function LockIcon() {
   return (
@@ -45,7 +46,7 @@ export function ProfileView({
   memberSince,
 }: ProfileViewProps) {
   return (
-    <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-xl border border-[#4ca71a]/35 shadow-[0_0_40px_rgba(44,112,1,0.25)]">
+    <div className={`mx-auto w-full max-w-2xl overflow-hidden ${cardSurface}`}>
       <div className="relative overflow-hidden bg-gradient-to-br from-[#3a9d0a] to-[#1d4d00] px-8 py-7">
         <div
           aria-hidden
@@ -79,7 +80,7 @@ export function ProfileView({
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-x-8 gap-y-4 rounded-b-xl border-t border-[#4ca71a]/25 bg-[#141e12]/85 backdrop-blur-md px-8 py-7 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-8 gap-y-4 rounded-b-xl border-t border-[#4ca71a]/25 px-8 py-7 sm:grid-cols-2">
         <div>
           <p className={fieldLabelClassName}>Email</p>
           <p className={fieldValueClassName}>{email}</p>
