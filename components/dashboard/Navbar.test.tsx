@@ -24,9 +24,9 @@ describe("Navbar", () => {
     };
   }
 
-  it("shows the brand name", () => {
+  it("shows the MFC logo", () => {
     const { desktop } = renderNavbar();
-    expect(within(desktop).getByText("OUTSLIP VMS")).toBeInTheDocument();
+    expect(within(desktop).getByAltText("MFC Global")).toBeInTheDocument();
   });
 
   it("shows the current page title", () => {
@@ -78,10 +78,10 @@ describe("Navbar", () => {
     expect(within(mobile).getByText("Register User")).toBeInTheDocument();
   });
 
-  it("falls back to the brand name on the mobile row when there's no page title", () => {
+  it("falls back to the MFC logo on the mobile row when there's no page title", () => {
     pathnameRef.current = "/nowhere";
     const { mobile } = renderNavbar();
-    expect(within(mobile).getByText("OUTSLIP VMS")).toBeInTheDocument();
+    expect(within(mobile).getByAltText("MFC Global")).toBeInTheDocument();
   });
 
   it("expands a search input on the mobile row when the search icon is tapped, and collapses it back on cancel", () => {

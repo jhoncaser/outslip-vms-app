@@ -104,13 +104,13 @@ export function Navbar({
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   return (
-    <header className="bg-gradient-to-r from-[#1d4d00] to-[#245c01] px-4 py-3 text-white shadow-[0_2px_20px_rgba(0,0,0,0.4)] sm:px-6">
+    <header className="navbar-fade-in relative z-20 m-4 rounded-2xl border border-[#4ca71a]/30 bg-[#141e12]/80 px-4 py-3 text-white shadow-[0_0_30px_rgba(44,112,1,0.2)] backdrop-blur-md sm:px-6">
       <div
         data-testid="navbar-desktop"
         className="hidden grid-cols-[auto_1fr_auto] items-center gap-6 md:grid"
       >
         <div className="flex items-center gap-3.5">
-          <span className="font-outfit text-sm font-bold tracking-wide">OUTSLIP VMS</span>
+          <img src="/mfc-logo.png" alt="MFC Global" className="h-7 w-auto" />
           {title && (
             <>
               <span aria-hidden className="h-[22px] w-px bg-white/30" />
@@ -196,9 +196,15 @@ export function Navbar({
             >
               <MenuIcon />
             </button>
-            <span className="flex-1 truncate text-sm font-semibold">
-              {title ?? "OUTSLIP VMS"}
-            </span>
+            {title ? (
+              <span className="flex-1 truncate text-sm font-semibold">
+                {title}
+              </span>
+            ) : (
+              <div className="flex-1">
+                <img src="/mfc-logo.png" alt="MFC Global" className="h-5 w-auto" />
+              </div>
+            )}
             <button
               type="button"
               aria-label="Search transaction code"
