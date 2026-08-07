@@ -11,6 +11,8 @@ import {
   EMPLOYEE_LINE_ITEM_LABELS,
 } from "@/lib/validation/transactionLineItem";
 import { TRANSPORT_TYPE_OPTIONS } from "@/lib/transportTypeOptions";
+import { headingText, mutedText, tableWrap, tableHeaderRow, modalHeader, modalCard, buttonPrimary, buttonSecondary, fieldLabel, fieldBox, pillClass } from "@/lib/deepForest";
+import { RevealRow } from "@/components/RevealRow";
 
 export type TransactionDetailData = {
   id: string;
@@ -313,70 +315,70 @@ export function TransactionDetailView({
     <div className="w-full">
       <Link
         href="/transactions/open"
-        className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[#cfe3c4] bg-white px-3 py-1.5 text-xs font-semibold text-[#2C7001] transition-colors duration-150 hover:border-[#2C7001] hover:bg-[#f2f8ee] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none"
+        className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[#4ca71a]/40 bg-transparent px-3 py-1.5 text-xs font-semibold text-[#7be36f] transition-colors duration-150 hover:border-[#57e34c] hover:bg-[#57e34c]/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#57e34c]/35 motion-reduce:transition-none"
       >
         <BackIcon />
         Back
       </Link>
 
-      <div className="mb-6 flex flex-col gap-4 rounded-xl bg-white p-6 shadow sm:flex-row sm:items-start">
+      <div className="mb-6 flex flex-col gap-4 rounded-xl border border-[#4ca71a]/35 bg-[#141e12]/70 backdrop-blur-md p-6 shadow-[0_0_40px_rgba(44,112,1,0.25)] sm:flex-row sm:items-start">
         <img
           src={transaction.qrDataUrl}
           alt={`QR code for transaction ${transaction.transactionCode}`}
-          className="h-28 w-28 shrink-0 rounded border border-slate-200"
+          className="h-28 w-28 shrink-0 rounded-lg border-2 border-[#4ca71a]/40 bg-[#f4f8f1] p-1.5 shadow-[0_0_16px_rgba(87,227,76,0.25)]"
         />
         <div className="grid flex-1 grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Code</p>
-            <p className="text-sm text-slate-800">{transaction.transactionCode}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">Code</p>
+            <p className="text-sm text-[#eafbe4]">{transaction.transactionCode}</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">
               Transaction Type
             </p>
-            <p className="text-sm text-slate-800">{transaction.matrixTypeName}</p>
+            <p className="text-sm text-[#eafbe4]">{transaction.matrixTypeName}</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">
               Status
             </p>
-            <p className="text-sm text-slate-800">{transaction.statusName}</p>
+            <p className="text-sm text-[#eafbe4]">{transaction.statusName}</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">
               Created By
             </p>
-            <p className="text-sm text-slate-800">{transaction.createdBy}</p>
+            <p className="text-sm text-[#eafbe4]">{transaction.createdBy}</p>
           </div>
           {transaction.detailFields.map((field) => (
             <div key={field.label}>
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">
                 {field.label}
               </p>
-              <p className="text-sm text-slate-800">{field.value}</p>
+              <p className="text-sm text-[#eafbe4]">{field.value}</p>
             </div>
           ))}
         </div>
       </div>
 
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-bold text-slate-700">
+        <h2 className="font-outfit text-sm font-bold text-white">
           {isVisitorPass ? "Visitor Lists" : "Employee/Visitor Lists"}{" "}
-          <span className="font-normal text-slate-400">({lineItems.length})</span>
+          <span className="font-normal text-[#6f8a68]">({lineItems.length})</span>
         </h2>
         <button
           type="button"
           onClick={openCreateModal}
-          className="rounded-full bg-[#2C7001] px-5 py-2 text-xs font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35"
+          className={`${buttonPrimary} px-5 py-2 text-xs`}
         >
           + Add Line Item
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl bg-white shadow">
+      <div className={tableWrap}>
         <table className="w-full border-collapse text-left text-sm text-slate-600">
           <thead>
-            <tr className="bg-[#2C7001]">
+            <tr className={tableHeaderRow}>
               {columns.map((column) => (
                 <th
                   key={column}
@@ -390,31 +392,28 @@ export function TransactionDetailView({
           <tbody>
             {lineItems.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={columns.length} className={`px-4 py-8 text-center ${mutedText}`}>
                   No line items yet.
                 </td>
               </tr>
             ) : (
               lineItems.map((item, index) => (
-                <tr
-                  key={item.id}
-                  className={`border-b border-slate-100 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
-                >
+                <RevealRow key={item.id} index={index}>
                   {isVisitorPass ? (
                     <>
-                      <td className="whitespace-nowrap px-4 py-3">{item.visitorName}</td>
-                      <td className="whitespace-nowrap px-4 py-3">{item.jobTitle}</td>
-                      <td className="whitespace-nowrap px-4 py-3">{item.company}</td>
-                      <td className="whitespace-nowrap px-4 py-3">{item.contactNumber || "—"}</td>
-                      <td className="whitespace-nowrap px-4 py-3">{item.transportType}</td>
-                      <td className="whitespace-nowrap px-4 py-3">{item.plateNo || "—"}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.visitorName}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.jobTitle}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.company}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.contactNumber || "—"}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.transportType}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.plateNo || "—"}</td>
                       <td className="whitespace-nowrap px-4 py-3">
                         {item.hasFile ? (
                           <a
                             href={`/api/line-items/${item.id}/file`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-[#2C7001] hover:underline"
+                            className="text-[#7be36f] hover:underline"
                           >
                             📎 {item.uploadFileName}
                           </a>
@@ -426,15 +425,13 @@ export function TransactionDetailView({
                   ) : (
                     <>
                       <td className="whitespace-nowrap px-4 py-3">
-                        <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
-                          {item.employeeType}
-                        </span>
+                        <span className={pillClass("slate")}>{item.employeeType}</span>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3">{item.employeeName}</td>
-                      <td className="whitespace-nowrap px-4 py-3">{item.jobPosition}</td>
-                      <td className="whitespace-nowrap px-4 py-3">{item.department}</td>
-                      <td className="whitespace-nowrap px-4 py-3">{item.businessUnit}</td>
-                      <td className="whitespace-nowrap px-4 py-3">{item.remarks}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.employeeName}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.jobPosition}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.department}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.businessUnit}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.remarks}</td>
                     </>
                   )}
                   <td className="whitespace-nowrap px-4 py-3">
@@ -443,7 +440,7 @@ export function TransactionDetailView({
                       title="Edit"
                       aria-label={`Edit ${isVisitorPass ? item.visitorName : item.employeeName}`}
                       onClick={() => openEditModal(item)}
-                      className="mr-2 inline-block text-slate-400 transition-transform duration-150 hover:-translate-y-0.5 hover:scale-125 hover:text-[#2C7001] motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100"
+                      className="mr-2 inline-block text-[#6f8a68] transition-transform duration-150 hover:-translate-y-0.5 hover:scale-125 hover:text-[#7be36f] motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100"
                     >
                       ✏️
                     </button>
@@ -452,12 +449,12 @@ export function TransactionDetailView({
                       title="Delete"
                       aria-label={`Delete ${isVisitorPass ? item.visitorName : item.employeeName}`}
                       onClick={() => openDeleteModal(item)}
-                      className="inline-block text-slate-400 transition-transform duration-150 hover:-translate-y-0.5 hover:scale-125 hover:text-red-600 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100"
+                      className="inline-block text-[#6f8a68] transition-transform duration-150 hover:-translate-y-0.5 hover:scale-125 hover:text-red-400 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100"
                     >
                       🗑️
                     </button>
                   </td>
-                </tr>
+                </RevealRow>
               ))
             )}
           </tbody>
@@ -466,33 +463,33 @@ export function TransactionDetailView({
 
       <div className="mt-6">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-slate-700">
+          <h2 className="font-outfit text-sm font-bold text-white">
             👤 List Approvers{" "}
-            <span className="font-normal text-slate-400">({approvers.length})</span>
+            <span className="font-normal text-[#6f8a68]">({approvers.length})</span>
           </h2>
         </div>
-        <div className="rounded-xl bg-white p-6 shadow">
+        <div className="rounded-xl border border-[#4ca71a]/35 bg-[#141e12]/70 backdrop-blur-md p-6 shadow-[0_0_40px_rgba(44,112,1,0.25)]">
           {approvers.length === 0 ? (
-            <p className="text-center text-sm text-slate-500">
+            <p className={`text-center text-sm ${mutedText}`}>
               No approvers configured for your Department + Business Unit + Location.
             </p>
           ) : (
             <div className="flex flex-col gap-6">
               {levelsWithApprovers.map((level) => (
                 <div key={level}>
-                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-[#9db894]">
                     {LEVEL_LABELS[level]}{" "}
-                    <span className="font-normal normal-case text-slate-400">
+                    <span className="font-normal normal-case text-[#6f8a68]">
                       ({approversByLevel.get(level)!.length})
                     </span>
                   </h3>
                   <div className="flex flex-col gap-3">
                     {approversByLevel.get(level)!.map((approver) => (
                       <div key={approver.id} className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e6f0df] text-xs font-bold text-[#2C7001]">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#3a9d0a] to-[#245c01] text-xs font-bold text-white">
                           {approver.initials}
                         </span>
-                        <span className="text-sm text-slate-700">{approver.approverName}</span>
+                        <span className="text-sm text-[#cfe9c7]">{approver.approverName}</span>
                       </div>
                     ))}
                   </div>
@@ -508,11 +505,11 @@ export function TransactionDetailView({
           role="dialog"
           aria-modal="true"
           aria-labelledby="line-item-modal-title"
-          className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/35"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/70"
         >
           <div className="flex min-h-full items-center justify-center p-6">
-            <div className="w-full max-w-[420px] overflow-hidden rounded-xl bg-white shadow-xl">
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
+            <div className={`max-w-[420px] ${modalCard}`}>
+              <div className={modalHeader}>
                 <h2
                   id="line-item-modal-title"
                   className="text-lg font-extrabold tracking-widest text-white"
@@ -535,7 +532,7 @@ export function TransactionDetailView({
                 {isVisitorPass ? (
                   <>
                     <div>
-                      <label htmlFor="visitor-name" className="mb-1 block text-xs font-semibold text-slate-600">
+                      <label htmlFor="visitor-name" className={`mb-1 block ${fieldLabel}`}>
                         Visitor Name
                       </label>
                       <input
@@ -543,11 +540,11 @@ export function TransactionDetailView({
                         type="text"
                         value={visitorName}
                         onChange={(e) => setVisitorName(e.target.value)}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                        className={fieldBox}
                       />
                     </div>
                     <div>
-                      <label htmlFor="job-title" className="mb-1 block text-xs font-semibold text-slate-600">
+                      <label htmlFor="job-title" className={`mb-1 block ${fieldLabel}`}>
                         Job Title
                       </label>
                       <input
@@ -555,11 +552,11 @@ export function TransactionDetailView({
                         type="text"
                         value={jobTitle}
                         onChange={(e) => setJobTitle(e.target.value)}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                        className={fieldBox}
                       />
                     </div>
                     <div>
-                      <label htmlFor="company" className="mb-1 block text-xs font-semibold text-slate-600">
+                      <label htmlFor="company" className={`mb-1 block ${fieldLabel}`}>
                         Company
                       </label>
                       <input
@@ -567,11 +564,11 @@ export function TransactionDetailView({
                         type="text"
                         value={company}
                         onChange={(e) => setCompany(e.target.value)}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                        className={fieldBox}
                       />
                     </div>
                     <div>
-                      <label htmlFor="contact-number" className="mb-1 block text-xs font-semibold text-slate-600">
+                      <label htmlFor="contact-number" className={`mb-1 block ${fieldLabel}`}>
                         Contact #
                       </label>
                       <input
@@ -579,11 +576,11 @@ export function TransactionDetailView({
                         type="text"
                         value={contactNumber}
                         onChange={(e) => setContactNumber(e.target.value)}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                        className={fieldBox}
                       />
                     </div>
                     <div>
-                      <label htmlFor="email-address" className="mb-1 block text-xs font-semibold text-slate-600">
+                      <label htmlFor="email-address" className={`mb-1 block ${fieldLabel}`}>
                         Email Address
                       </label>
                       <input
@@ -591,11 +588,11 @@ export function TransactionDetailView({
                         type="email"
                         value={emailAddress}
                         onChange={(e) => setEmailAddress(e.target.value)}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                        className={fieldBox}
                       />
                     </div>
                     <div>
-                      <label htmlFor="upload-file" className="mb-1 block text-xs font-semibold text-slate-600">
+                      <label htmlFor="upload-file" className={`mb-1 block ${fieldLabel}`}>
                         Upload File
                       </label>
                       <input
@@ -603,11 +600,11 @@ export function TransactionDetailView({
                         type="file"
                         accept="image/*,.pdf,.doc,.docx"
                         onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                        className={fieldBox}
                       />
                     </div>
                     <div>
-                      <label htmlFor="transport-type" className="mb-1 block text-xs font-semibold text-slate-600">
+                      <label htmlFor="transport-type" className={`mb-1 block ${fieldLabel}`}>
                         Transport Type
                       </label>
                       <select
@@ -618,7 +615,7 @@ export function TransactionDetailView({
                           setTransportType(value);
                           if (value === "Walk-In") setPlateNo("");
                         }}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                        className={fieldBox}
                       >
                         <option value="" disabled>
                           Select a transport type
@@ -632,7 +629,7 @@ export function TransactionDetailView({
                     </div>
                     {transportType !== "Walk-In" && (
                       <div>
-                        <label htmlFor="plate-no" className="mb-1 block text-xs font-semibold text-slate-600">
+                        <label htmlFor="plate-no" className={`mb-1 block ${fieldLabel}`}>
                           Plate No.
                         </label>
                         <input
@@ -640,7 +637,7 @@ export function TransactionDetailView({
                           type="text"
                           value={plateNo}
                           onChange={(e) => setPlateNo(e.target.value)}
-                          className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                          className={fieldBox}
                         />
                       </div>
                     )}
@@ -648,7 +645,7 @@ export function TransactionDetailView({
                 ) : (
                   <>
                     <div>
-                      <label className="mb-1 block text-xs font-semibold text-slate-600">
+                      <label className={`mb-1 block ${fieldLabel}`}>
                         Employee Type
                       </label>
                       <div className="grid grid-cols-3 gap-2">
@@ -659,8 +656,8 @@ export function TransactionDetailView({
                             onClick={() => setEmployeeType(option)}
                             className={`rounded border px-3 py-2 text-xs font-semibold ${
                               employeeType === option
-                                ? "border-[#2C7001] bg-[#2C7001] text-white"
-                                : "border-slate-300 text-slate-600"
+                                ? "border-[#57e34c] bg-gradient-to-br from-[#3a9d0a] to-[#245c01] text-white"
+                                : "border-[#4ca71a]/30 text-[#9db894]"
                             }`}
                           >
                             {option}
@@ -672,14 +669,14 @@ export function TransactionDetailView({
                     {employeeType === "Mega Employee" ? (
                       <>
                         <div>
-                          <label htmlFor="name" className="mb-1 block text-xs font-semibold text-slate-600">
+                          <label htmlFor="name" className={`mb-1 block ${fieldLabel}`}>
                             Name
                           </label>
                           <select
                             id="name"
                             value={employeeId}
                             onChange={(e) => setEmployeeId(e.target.value)}
-                            className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                            className={fieldBox}
                           >
                             <option value="" disabled>
                               Select an employee
@@ -692,27 +689,27 @@ export function TransactionDetailView({
                           </select>
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs font-semibold text-slate-600">
+                          <label className={`mb-1 block ${fieldLabel}`}>
                             Job Position
                           </label>
-                          <div className="w-full rounded border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-500">
+                          <div className="w-full rounded border border-[#4ca71a]/25 bg-[#0f1611]/60 px-3 py-2 text-sm text-[#9db894]">
                             {selectedEmployee?.jobPosition ?? ""}
                           </div>
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs font-semibold text-slate-600">
+                          <label className={`mb-1 block ${fieldLabel}`}>
                             Department
                           </label>
-                          <div className="w-full rounded border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-500">
+                          <div className="w-full rounded border border-[#4ca71a]/25 bg-[#0f1611]/60 px-3 py-2 text-sm text-[#9db894]">
                             {selectedEmployee?.department ?? ""}
                           </div>
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs font-semibold text-slate-600">
+                          <label className={`mb-1 block ${fieldLabel}`}>
                             Business Unit
                           </label>
                           {selectedEmployee && (
-                            <span className="inline-block rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
+                            <span className="inline-block rounded-full bg-[#94a3b8]/18 border border-[#94a3b8]/35 px-3 py-1 text-xs text-[#cbd5e1]">
                               {selectedEmployee.businessUnit}
                             </span>
                           )}
@@ -720,7 +717,7 @@ export function TransactionDetailView({
                       </>
                     ) : (
                       <div>
-                        <label htmlFor="name" className="mb-1 block text-xs font-semibold text-slate-600">
+                        <label htmlFor="name" className={`mb-1 block ${fieldLabel}`}>
                           Name
                         </label>
                         <input
@@ -728,13 +725,13 @@ export function TransactionDetailView({
                           type="text"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
-                          className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                          className={fieldBox}
                         />
                       </div>
                     )}
 
                     <div>
-                      <label htmlFor="remarks" className="mb-1 block text-xs font-semibold text-slate-600">
+                      <label htmlFor="remarks" className={`mb-1 block ${fieldLabel}`}>
                         Remarks
                       </label>
                       <input
@@ -742,7 +739,7 @@ export function TransactionDetailView({
                         type="text"
                         value={remarks}
                         onChange={(e) => setRemarks(e.target.value)}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                        className={fieldBox}
                       />
                     </div>
                   </>
@@ -756,7 +753,7 @@ export function TransactionDetailView({
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full rounded-full bg-[#2C7001] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                  className={`w-full ${buttonPrimary}`}
                 >
                   {submitting ? "Saving…" : "Save"}
                 </button>
@@ -771,31 +768,31 @@ export function TransactionDetailView({
           role="dialog"
           aria-modal="true"
           aria-labelledby="delete-line-item-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6"
         >
-          <div className="w-full max-w-[340px] overflow-hidden rounded-xl bg-white p-6 text-center shadow-xl">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-xl">
+          <div className="w-full max-w-[340px] overflow-hidden rounded-xl border border-red-500/30 bg-[#1a0f0f] p-6 text-center shadow-[0_0_40px_rgba(248,113,113,0.25)]">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/20 text-xl">
               ⚠️
             </div>
             <h2
               id="delete-line-item-modal-title"
-              className="mb-2 text-sm font-extrabold text-slate-800"
+              className="mb-2 text-sm font-extrabold text-white"
             >
               Delete this line item?
             </h2>
-            <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left">
-              <p className="text-xs font-bold text-slate-800">
+            <div className="mb-3 rounded-lg border border-[#4ca71a]/25 bg-[#0f1611]/40 px-3 py-2 text-left">
+              <p className="text-xs font-bold text-[#eafbe4]">
                 {isVisitorPass
                   ? deleteTarget.visitorName
                   : `${deleteTarget.employeeType} — ${deleteTarget.employeeName}`}
               </p>
               {isVisitorPass && (
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#6f8a68]">
                   {deleteTarget.jobTitle} · {deleteTarget.company}
                 </p>
               )}
             </div>
-            <p className="mb-4 text-xs text-slate-500">This action cannot be undone.</p>
+            <p className="mb-4 text-xs text-[#9db894]">This action cannot be undone.</p>
             {deleteModalError && (
               <p role="alert" className="mb-3 text-xs text-red-600">
                 {deleteModalError}
@@ -806,7 +803,7 @@ export function TransactionDetailView({
                 type="button"
                 onClick={closeDeleteModal}
                 disabled={deleteSubmitting}
-                className="flex-1 rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-600 transition-all duration-150 ease-out hover:-translate-y-0.5 hover:bg-slate-200 active:translate-y-0 active:bg-slate-300 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-slate-300 disabled:opacity-60 disabled:hover:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+                className={`flex-1 ${buttonSecondary} px-4 py-2 text-xs`}
               >
                 Cancel
               </button>
@@ -814,7 +811,7 @@ export function TransactionDetailView({
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={deleteSubmitting}
-                className="flex-1 rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-all duration-150 ease-out hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-[0_8px_18px_rgba(220,38,38,0.35)] active:translate-y-0 active:bg-red-800 active:shadow-[0_3px_8px_rgba(220,38,38,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-300 disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+                className="flex-1 rounded-full bg-red-600/80 px-4 py-2 text-xs font-semibold text-white transition-all duration-150 ease-out hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-[0_8px_18px_rgba(220,38,38,0.35)] active:translate-y-0 active:bg-red-700 active:shadow-[0_3px_8px_rgba(220,38,38,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-400/50 disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none motion-reduce:transition-none motion-reduce:hover:translate-y-0"
               >
                 {deleteSubmitting ? "Deleting…" : "Delete"}
               </button>

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/prisma";
+import { pageBackground } from "@/lib/deepForest";
 import { findScopeMatchedApprovers } from "@/lib/matchApprovers";
 import { TransactionDetailView, type LineItemRow, type ApproverRow } from "./TransactionDetailView";
 
@@ -145,11 +146,7 @@ export default async function TransactionDetailPage({
   }));
 
   return (
-    <div className="relative flex flex-1 items-start justify-center overflow-hidden bg-[#eef1ee] p-8">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[url('/mfc-logo.png')] bg-cover bg-center bg-no-repeat opacity-[0.18]"
-      />
+    <div className={`relative flex flex-1 items-start justify-center overflow-hidden p-8 ${pageBackground}`}>
       <div className="relative z-10 w-full">
         <TransactionDetailView
           transaction={transactionDetail}

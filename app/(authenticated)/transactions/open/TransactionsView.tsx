@@ -11,6 +11,8 @@ import {
   getActiveFields,
   type TransactionFieldKey,
 } from "@/lib/transactionFieldSets";
+import { headingText, mutedText, tableWrap, tableHeaderRow, modalHeader, modalCard, buttonPrimary, fieldLabel, fieldBox, pillClass } from "@/lib/deepForest";
+import { RevealRow } from "@/components/RevealRow";
 
 export type TransactionRow = {
   id: string;
@@ -64,10 +66,10 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
 
   return (
     <>
-      <div className="overflow-x-auto rounded-xl bg-white shadow">
+      <div className={tableWrap}>
         <table className="w-full border-collapse text-left text-sm text-slate-600">
           <thead>
-            <tr className="bg-[#2C7001]">
+            <tr className={tableHeaderRow}>
               {columns.map((column) => (
                 <th
                   key={column}
@@ -81,55 +83,51 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={columns.length} className={`px-4 py-8 text-center ${mutedText}`}>
                   No open transactions yet.
                 </td>
               </tr>
             ) : (
-              rows.map((row, index) => {
-                return (
-                  <Fragment key={row.id}>
-                    <tr
-                      onClick={() => router.push(`/transactions/open/${row.id}`)}
-                      onKeyDown={(event) => {
-                        if (event.target !== event.currentTarget) return;
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          router.push(`/transactions/open/${row.id}`);
-                        }
+              rows.map((row, index) => (
+                <RevealRow
+                  key={row.id}
+                  index={index}
+                  onClick={() => router.push(`/transactions/open/${row.id}`)}
+                  onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      router.push(`/transactions/open/${row.id}`);
+                    }
+                  }}
+                  tabIndex={0}
+                  className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#57e34c]/40"
+                >
+                  <td className="whitespace-nowrap px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setEnlargedCode(row.transactionCode);
                       }}
-                      tabIndex={0}
-                      className={`cursor-pointer border-b border-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2C7001]/40 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
+                      className="h-12 w-12 overflow-hidden rounded-lg border-2 border-[#4ca71a]/40 bg-[#f4f8f1] p-1 shadow-[0_0_12px_rgba(87,227,76,0.25)] transition-colors hover:border-[#57e34c] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#57e34c]/40"
                     >
-                      <td className="whitespace-nowrap px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setEnlargedCode(row.transactionCode);
-                          }}
-                          className="h-12 w-12 overflow-hidden rounded border border-slate-200 transition-colors hover:border-[#2C7001] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35"
-                        >
-                          <img
-                            src={row.qrDataUrl}
-                            alt={`QR code for transaction ${row.transactionCode}`}
-                            className="h-full w-full"
-                          />
-                        </button>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3">{row.transactionCode}</td>
-                      <td className="whitespace-nowrap px-4 py-3">{row.matrixTypeName}</td>
-                      <td className="whitespace-nowrap px-4 py-3">{row.createdBy}</td>
-                      <td className="whitespace-nowrap px-4 py-3">
-                        <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
-                          {row.statusName}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-slate-500">{row.createdAt}</td>
-                    </tr>
-                  </Fragment>
-                );
-              })
+                      <img
+                        src={row.qrDataUrl}
+                        alt={`QR code for transaction ${row.transactionCode}`}
+                        className="h-full w-full"
+                      />
+                    </button>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{row.transactionCode}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{row.matrixTypeName}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{row.createdBy}</td>
+                  <td className="whitespace-nowrap px-4 py-3">
+                    <span className={pillClass("slate")}>{row.statusName}</span>
+                  </td>
+                  <td className={`whitespace-nowrap px-4 py-3 ${mutedText}`}>{row.createdAt}</td>
+                </RevealRow>
+              ))
             )}
           </tbody>
         </table>
@@ -140,11 +138,11 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="qr-modal-title"
-          className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/35"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/70"
         >
           <div className="flex min-h-full items-center justify-center p-6">
-            <div className="w-full max-w-[320px] overflow-hidden rounded-xl bg-white shadow-xl">
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
+            <div className={`max-w-[320px] ${modalCard}`}>
+              <div className={modalHeader}>
                 <div
                   aria-hidden
                   className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
@@ -155,7 +153,7 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
                 />
                 <h2
                   id="qr-modal-title"
-                  className="text-lg font-extrabold tracking-widest text-white"
+                  className={`text-lg tracking-widest ${headingText}`}
                 >
                   {enlargedRow.transactionCode}
                 </h2>
@@ -168,7 +166,7 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
                   <CloseIcon />
                 </button>
               </div>
-              <div className="flex justify-center px-8 py-7">
+              <div className="flex justify-center bg-[#f4f8f1] px-8 py-7">
                 <img
                   src={enlargedRow.qrDataUrl}
                   alt={`QR code for transaction ${enlargedRow.transactionCode}`}
@@ -183,9 +181,8 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
   );
 }
 
-const inputClassName =
-  "w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-[#2C7001] focus:outline-none focus:ring-1 focus:ring-[#2C7001]";
-const labelClassName = "mb-1 block text-xs font-semibold text-slate-600";
+const inputClassName = fieldBox;
+const labelClassName = fieldLabel;
 
 export function TransactionsView({
   transactions,
@@ -346,17 +343,17 @@ export function TransactionsView({
         return (
           <fieldset>
             <legend className={labelClassName}>Enroute to Other Business Unit</legend>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded border border-slate-300 p-3">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2 rounded border border-[#4ca71a]/30 p-3">
               {BUSINESS_UNIT_OPTIONS.map((option) => (
                 <label
                   key={option}
-                  className="flex items-center gap-2 text-sm text-slate-700"
+                  className="flex items-center gap-2 text-sm text-[#cfe9c7]"
                 >
                   <input
                     type="checkbox"
                     checked={enrouteBusinessUnits.includes(option)}
                     onChange={() => toggleEnrouteBusinessUnit(option)}
-                    className="h-4 w-4 rounded border-slate-300 text-[#2C7001] focus:ring-1 focus:ring-[#2C7001]"
+                    className="h-4 w-4 rounded border-[#4ca71a]/40 bg-[#0f1611] text-[#57e34c] focus:ring-1 focus:ring-[#57e34c]"
                   />
                   {option}
                 </label>
@@ -566,13 +563,13 @@ export function TransactionsView({
     <div className="w-full">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-slate-800">Open Transaction</h1>
-          <p className="text-xs text-slate-500">Filed requests awaiting further action</p>
+          <h1 className={`text-lg ${headingText}`}>Open Transaction</h1>
+          <p className={`text-xs ${mutedText}`}>Filed requests awaiting further action</p>
         </div>
         <button
           type="button"
           onClick={openModal}
-          className="rounded-full bg-[#2C7001] px-5 py-2 text-xs font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+          className={`${buttonPrimary} px-5 py-2 text-xs`}
         >
           + Add Transaction
         </button>
@@ -585,11 +582,11 @@ export function TransactionsView({
           role="dialog"
           aria-modal="true"
           aria-labelledby="transaction-modal-title"
-          className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/35"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/70"
         >
           <div className="flex min-h-full items-center justify-center p-6">
-            <div className="w-full max-w-[420px] overflow-hidden rounded-xl bg-white shadow-xl">
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
+            <div className={`max-w-[420px] ${modalCard}`}>
+              <div className={modalHeader}>
                 <div
                   aria-hidden
                   className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
@@ -648,7 +645,7 @@ export function TransactionsView({
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full rounded-full bg-[#2C7001] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] disabled:pointer-events-none disabled:opacity-60"
+                  className={`w-full ${buttonPrimary}`}
                 >
                   {submitting ? "Saving…" : "Save"}
                 </button>
