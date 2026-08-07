@@ -3,8 +3,10 @@
 import { Fragment, useState } from "react";
 import { RegistrationWizard } from "./RegistrationWizard";
 import { ROLE_LABELS, type RoleValue } from "@/lib/roles";
+import { headingText, mutedText, tableWrap, tableHeaderRow, modalHeader, modalCard, buttonPrimary, pillClass } from "@/lib/deepForest";
+import { RevealRow } from "@/components/RevealRow";
 
-export type UserRow = {
+export type UserRowData = {
   id: string;
   firstName: string;
   lastName: string;
@@ -35,9 +37,9 @@ function EditIcon() {
 }
 
 const ROLE_PILL_CLASSES: Record<RoleValue, string> = {
-  CREATOR: "bg-sky-100 text-sky-800",
-  APPROVER: "bg-amber-100 text-amber-800",
-  GUARD_PERSONNEL: "bg-purple-100 text-purple-800",
+  CREATOR: pillClass("blue"),
+  APPROVER: pillClass("amber"),
+  GUARD_PERSONNEL: pillClass("slate"),
 };
 
 const COLUMNS = ["First Name", "Last Name", "Role", "Actions"];
@@ -65,7 +67,107 @@ function CloseIcon() {
   );
 }
 
-export function UsersView({ users }: { users: UserRow[] }) {
+function UserRow({
+  user,
+  index,
+  isExpanded,
+  onToggle,
+  onEdit,
+}: {
+  user: UserRowData;
+  index: number;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onEdit: () => void;
+}) {
+  return (
+    <Fragment>
+      <RevealRow
+        index={index}
+        onClick={onToggle}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onToggle();
+          }
+        }}
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#57e34c]/50"
+      >
+        <td className="px-2 py-3 text-center text-[#6f8a68]">
+          <span
+            aria-hidden
+            className={`inline-block transition-transform duration-150 ${isExpanded ? "rotate-90" : ""}`}
+          >
+            ▸
+          </span>
+        </td>
+        <td className="px-4 py-3 text-[#eafbe4]">{user.firstName}</td>
+        <td className="px-4 py-3 text-[#eafbe4]">{user.lastName}</td>
+        <td className="px-4 py-3">
+          <span className={ROLE_PILL_CLASSES[user.role]}>
+            {ROLE_LABELS[user.role]}
+          </span>
+        </td>
+        <td className="px-4 py-3">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onEdit();
+            }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#4ca71a]/40 bg-transparent px-2.5 py-1 text-xs font-semibold text-[#7be36f] transition-colors duration-150 hover:border-[#57e34c] hover:bg-[#57e34c]/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#57e34c]/35 motion-reduce:transition-none"
+          >
+            <EditIcon />
+            Edit
+          </button>
+        </td>
+      </RevealRow>
+      {isExpanded && (
+        <tr className="bg-[#0f1611]/60">
+          <td colSpan={COLUMNS.length + 1} className="px-4 py-0">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 py-4 pl-9 sm:grid-cols-3">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">
+                  Job Title
+                </div>
+                <div className="text-sm text-[#eafbe4]">{user.jobTitle}</div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">
+                  Department
+                </div>
+                <div className="text-sm text-[#eafbe4]">{user.department}</div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">
+                  Business Unit
+                </div>
+                <div className="text-sm text-[#eafbe4]">{user.businessUnit}</div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">
+                  Location
+                </div>
+                <div className="text-sm text-[#eafbe4]">{user.location}</div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">
+                  Created
+                </div>
+                <div className="text-sm text-[#eafbe4]">{user.createdAt}</div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </Fragment>
+  );
+}
+
+export function UsersView({ users }: { users: UserRowData[] }) {
   const [modal, setModal] = useState<ModalState>({ mode: "closed" });
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
 
@@ -73,26 +175,24 @@ export function UsersView({ users }: { users: UserRow[] }) {
     <div className="w-full">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-slate-800">
-            Registered Users
-          </h1>
-          <p className="text-xs text-slate-500">
+          <h1 className={`text-lg ${headingText}`}>Registered Users</h1>
+          <p className={`text-xs ${mutedText}`}>
             {users.length} {users.length === 1 ? "user" : "users"}
           </p>
         </div>
         <button
           type="button"
           onClick={() => setModal({ mode: "create" })}
-          className="rounded-full bg-[#2C7001] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+          className={buttonPrimary}
         >
           + Register User
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl bg-white shadow">
+      <div className={tableWrap}>
         <table className="w-full border-collapse text-left text-sm text-slate-600">
           <thead>
-            <tr className="bg-[#2C7001]">
+            <tr className={tableHeaderRow}>
               <th className="w-9 px-2 py-3" aria-hidden="true" />
               {COLUMNS.map((column) => (
                 <th
@@ -109,105 +209,26 @@ export function UsersView({ users }: { users: UserRow[] }) {
               <tr>
                 <td
                   colSpan={COLUMNS.length + 1}
-                  className="px-4 py-8 text-center text-slate-500"
+                  className={`px-4 py-8 text-center ${mutedText}`}
                 >
                   No users registered yet.
                 </td>
               </tr>
             ) : (
-              users.map((user, index) => {
-                const isExpanded = expandedUserId === user.id;
-                return (
-                  <Fragment key={user.id}>
-                    <tr
-                      onClick={() =>
-                        setExpandedUserId(isExpanded ? null : user.id)
-                      }
-                      onKeyDown={(event) => {
-                        if (event.target !== event.currentTarget) return;
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setExpandedUserId(isExpanded ? null : user.id);
-                        }
-                      }}
-                      tabIndex={0}
-                      aria-expanded={isExpanded}
-                      className={`cursor-pointer border-b border-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2C7001]/40 ${
-                        index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"
-                      }`}
-                    >
-                      <td className="px-2 py-3 text-center text-slate-400">
-                        <span
-                          aria-hidden
-                          className={`inline-block transition-transform duration-150 ${isExpanded ? "rotate-90" : ""}`}
-                        >
-                          ▸
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">{user.firstName}</td>
-                      <td className="px-4 py-3">{user.lastName}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${ROLE_PILL_CLASSES[user.role]}`}
-                        >
-                          {ROLE_LABELS[user.role]}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setModal({ mode: "edit", userId: user.id });
-                          }}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-[#cfe3c4] bg-white px-2.5 py-1 text-xs font-semibold text-[#2C7001] transition-colors duration-150 hover:border-[#2C7001] hover:bg-[#f2f8ee] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none"
-                        >
-                          <EditIcon />
-                          Edit
-                        </button>
-                      </td>
-                    </tr>
-                    {isExpanded && (
-                      <tr className="bg-[#fbfdf9]">
-                        <td colSpan={COLUMNS.length + 1} className="px-4 py-0">
-                          <div className="grid grid-cols-2 gap-x-6 gap-y-3 py-4 pl-9 sm:grid-cols-3">
-                            <div>
-                              <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                                Job Title
-                              </div>
-                              <div className="text-sm text-slate-700">{user.jobTitle}</div>
-                            </div>
-                            <div>
-                              <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                                Department
-                              </div>
-                              <div className="text-sm text-slate-700">{user.department}</div>
-                            </div>
-                            <div>
-                              <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                                Business Unit
-                              </div>
-                              <div className="text-sm text-slate-700">{user.businessUnit}</div>
-                            </div>
-                            <div>
-                              <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                                Location
-                              </div>
-                              <div className="text-sm text-slate-700">{user.location}</div>
-                            </div>
-                            <div>
-                              <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                                Created
-                              </div>
-                              <div className="text-sm text-slate-700">{user.createdAt}</div>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })
+              users.map((user, index) => (
+                <UserRow
+                  key={user.id}
+                  user={user}
+                  index={index}
+                  isExpanded={expandedUserId === user.id}
+                  onToggle={() =>
+                    setExpandedUserId(
+                      expandedUserId === user.id ? null : user.id
+                    )
+                  }
+                  onEdit={() => setModal({ mode: "edit", userId: user.id })}
+                />
+              ))
             )}
           </tbody>
         </table>
@@ -218,11 +239,11 @@ export function UsersView({ users }: { users: UserRow[] }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="register-user-title"
-          className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/35"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/70"
         >
           <div className="flex min-h-full items-center justify-center p-6">
-            <div className="w-full max-w-[520px] overflow-hidden rounded-xl bg-white shadow-xl">
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
+            <div className={`max-w-[520px] ${modalCard}`}>
+              <div className={modalHeader}>
                 <div
                   aria-hidden
                   className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
@@ -233,7 +254,7 @@ export function UsersView({ users }: { users: UserRow[] }) {
                 />
                 <h2
                   id="register-user-title"
-                  className="text-lg font-extrabold tracking-widest text-white"
+                  className={`text-lg tracking-widest ${headingText}`}
                 >
                   {modal.mode === "edit" ? "EDIT USER" : "REGISTER USER"}
                 </h2>

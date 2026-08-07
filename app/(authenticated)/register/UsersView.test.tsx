@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { UsersView, type UserRow } from "./UsersView";
+import { UsersView, type UserRowData } from "./UsersView";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
 }));
 
-const sampleUsers: UserRow[] = [
+const sampleUsers: UserRowData[] = [
   {
     id: "u1",
     firstName: "Juan",

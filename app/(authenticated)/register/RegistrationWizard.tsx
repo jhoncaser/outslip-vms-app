@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PasswordInput } from "@/components/PasswordInput";
 import { registrationSchema, editUserSchema } from "@/lib/validation/registration";
 import { ROLES, ROLE_LABELS, type RoleValue } from "@/lib/roles";
+import { fieldLabel, fieldUnderline, buttonPrimary, buttonSecondary } from "@/lib/deepForest";
 
 type ReferenceItem = { id: string; name: string };
 type ReferenceData = {
@@ -53,14 +54,16 @@ function StepIndicator({ step }: { step: number }) {
         <div key={n} className="flex flex-1 items-center gap-1.5 last:flex-none">
           <div
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
-              n <= step ? "bg-[#2C7001] text-white" : "bg-slate-200 text-slate-500"
+              n <= step
+                ? "bg-gradient-to-br from-[#3a9d0a] to-[#245c01] text-white"
+                : "bg-[#1c2519] text-[#6f8a68]"
             }`}
           >
             {n < step ? "✓" : n}
           </div>
           {n < 3 && (
             <div
-              className={`h-0.5 flex-1 ${n < step ? "bg-[#2C7001]" : "bg-slate-200"}`}
+              className={`h-0.5 flex-1 ${n < step ? "bg-[#3a9d0a]" : "bg-[#1c2519]"}`}
             />
           )}
         </div>
@@ -173,7 +176,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
 
   if (isEditing && loadError) {
     return (
-      <p role="alert" className="text-sm text-red-600">
+      <p role="alert" className="text-sm text-red-400">
         {loadError}
       </p>
     );
@@ -181,7 +184,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
 
   if (isEditing && loadingUser) {
     return (
-      <div className="py-10 text-center text-sm text-slate-500">
+      <div className="py-10 text-center text-sm text-[#9db894]">
         Loading user…
       </div>
     );
@@ -191,7 +194,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
     if (isEditing) {
       return (
         <div>
-          <div className="mb-3 text-sm font-bold text-[#2C7001]">
+          <div className="mb-3 text-sm font-bold text-[#7be36f]">
             Changes saved
           </div>
           <p className="mb-6 text-xs leading-relaxed text-slate-600">
@@ -202,7 +205,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           <button
             type="button"
             onClick={() => onDone?.()}
-            className="rounded-full bg-[#2C7001] px-5 py-2.5 text-sm font-semibold text-white"
+            className={`${buttonPrimary} px-5`}
           >
             DONE
           </button>
@@ -212,7 +215,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
 
     return (
       <div>
-        <div className="mb-3 text-sm font-bold text-[#2C7001]">
+        <div className="mb-3 text-sm font-bold text-[#7be36f]">
           Registration complete
         </div>
         <p className="mb-6 text-xs leading-relaxed text-slate-600">
@@ -227,7 +230,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
             setStep(1);
             setSuccess(false);
           }}
-          className="rounded-full bg-[#2C7001] px-5 py-2.5 text-sm font-semibold text-white"
+          className={`${buttonPrimary} px-5`}
         >
           REGISTER ANOTHER USER
         </button>
@@ -239,10 +242,10 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
     return (
       <div>
         <StepIndicator step={1} />
-        <div className="mb-3.5 text-sm font-bold text-[#2C7001]">
+        <div className="mb-3.5 text-sm font-bold text-[#7be36f]">
           Select your role
         </div>
-        <label htmlFor="role" className="text-xs text-slate-500">
+        <label htmlFor="role" className={fieldLabel}>
           Role
         </label>
         <select
@@ -250,7 +253,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           aria-label="Role"
           value={form.role}
           onChange={(e) => update("role", e.target.value as FormState["role"])}
-          className="mb-2 block h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
+          className={`mb-2 block h-8 ${fieldUnderline}`}
         >
           <option value="">Select a role...</option>
           {ROLES.map((role) => (
@@ -259,14 +262,14 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
             </option>
           ))}
         </select>
-        <div className="mb-4 text-[10px] leading-relaxed text-slate-400">
+        <div className="mb-4 text-[10px] leading-relaxed text-[#6f8a68]">
           {ROLES.map((role) => ROLE_LABELS[role]).join("  ·  ")}
         </div>
         <button
           type="button"
           disabled={!form.role}
           onClick={() => setStep(2)}
-          className="ml-auto block rounded-full bg-[#2C7001] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          className={`ml-auto block ${buttonPrimary}`}
         >
           NEXT →
         </button>
@@ -278,50 +281,50 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
     return (
       <div>
         <StepIndicator step={2} />
-        <div className="mb-3.5 text-sm font-bold text-[#2C7001]">
+        <div className="mb-3.5 text-sm font-bold text-[#7be36f]">
           Personal &amp; account details
         </div>
-        <label htmlFor="firstName" className="text-xs text-slate-500">
+        <label htmlFor="firstName" className={fieldLabel}>
           First Name
         </label>
         <input
           id="firstName"
           value={form.firstName}
           onChange={(e) => update("firstName", e.target.value)}
-          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
+          className={`mb-4 h-8 ${fieldUnderline}`}
         />
 
-        <label htmlFor="middleName" className="text-xs text-slate-500">
+        <label htmlFor="middleName" className={fieldLabel}>
           Middle Name
         </label>
         <input
           id="middleName"
           value={form.middleName}
           onChange={(e) => update("middleName", e.target.value)}
-          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
+          className={`mb-4 h-8 ${fieldUnderline}`}
         />
 
-        <label htmlFor="lastName" className="text-xs text-slate-500">
+        <label htmlFor="lastName" className={fieldLabel}>
           Last Name
         </label>
         <input
           id="lastName"
           value={form.lastName}
           onChange={(e) => update("lastName", e.target.value)}
-          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
+          className={`mb-4 h-8 ${fieldUnderline}`}
         />
 
-        <label htmlFor="jobTitle" className="text-xs text-slate-500">
+        <label htmlFor="jobTitle" className={fieldLabel}>
           Job Title
         </label>
         <input
           id="jobTitle"
           value={form.jobTitle}
           onChange={(e) => update("jobTitle", e.target.value)}
-          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
+          className={`mb-4 h-8 ${fieldUnderline}`}
         />
 
-        <label htmlFor="department" className="text-xs text-slate-500">
+        <label htmlFor="department" className={fieldLabel}>
           Department
         </label>
         <select
@@ -329,7 +332,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           aria-label="Department"
           value={form.departmentId}
           onChange={(e) => update("departmentId", e.target.value)}
-          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
+          className={`mb-4 h-8 ${fieldUnderline}`}
         >
           <option value="">Select...</option>
           {referenceData?.departments.map((d) => (
@@ -339,7 +342,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           ))}
         </select>
 
-        <label htmlFor="businessUnit" className="text-xs text-slate-500">
+        <label htmlFor="businessUnit" className={fieldLabel}>
           Business Unit
         </label>
         <select
@@ -347,7 +350,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           aria-label="Business Unit"
           value={form.businessUnitId}
           onChange={(e) => update("businessUnitId", e.target.value)}
-          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
+          className={`mb-4 h-8 ${fieldUnderline}`}
         >
           <option value="">Select...</option>
           {referenceData?.businessUnits.map((b) => (
@@ -357,7 +360,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           ))}
         </select>
 
-        <label htmlFor="location" className="text-xs text-slate-500">
+        <label htmlFor="location" className={fieldLabel}>
           Location
         </label>
         <select
@@ -365,7 +368,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           aria-label="Location"
           value={form.locationId}
           onChange={(e) => update("locationId", e.target.value)}
-          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
+          className={`mb-4 h-8 ${fieldUnderline}`}
         >
           <option value="">Select...</option>
           {referenceData?.locations.map((l) => (
@@ -375,7 +378,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           ))}
         </select>
 
-        <label htmlFor="email" className="text-xs text-slate-500">
+        <label htmlFor="email" className={fieldLabel}>
           Email
         </label>
         <input
@@ -383,12 +386,12 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           type="email"
           value={form.email}
           onChange={(e) => update("email", e.target.value)}
-          className="mb-4 h-8 w-full border-b border-slate-300 bg-transparent text-sm focus:border-[#2C7001] focus:outline-none"
+          className={`mb-4 h-8 ${fieldUnderline}`}
         />
 
         {!isEditing && (
           <>
-            <label htmlFor="password" className="text-xs text-slate-500">
+            <label htmlFor="password" className={fieldLabel}>
               Password
             </label>
             <PasswordInput
@@ -399,7 +402,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
               inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
             />
 
-            <label htmlFor="confirmPassword" className="text-xs text-slate-500">
+            <label htmlFor="confirmPassword" className={fieldLabel}>
               Confirm Password
             </label>
             <PasswordInput
@@ -416,7 +419,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           <button
             type="button"
             onClick={() => setStep(1)}
-            className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-500"
+            className={buttonSecondary}
           >
             ← BACK
           </button>
@@ -427,7 +430,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
                 .success
             }
             onClick={() => setStep(3)}
-            className="rounded-full bg-[#2C7001] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+            className={buttonPrimary}
           >
             NEXT →
           </button>
@@ -439,10 +442,10 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
   return (
     <div>
       <StepIndicator step={3} />
-      <div className="mb-3 text-sm font-bold text-[#2C7001]">
+      <div className="mb-3 text-sm font-bold text-[#7be36f]">
         Review &amp; confirm
       </div>
-      <div className="mb-4 rounded border border-slate-100 bg-slate-50 p-4 text-xs leading-loose text-slate-600">
+      <div className="mb-4 rounded border border-[#4ca71a]/25 bg-[#0f1611]/60 p-4 text-xs leading-loose text-[#cfe9c7]">
         <div className="flex justify-between">
           <span>Role</span>
           <span>{form.role ? ROLE_LABELS[form.role] : ""}</span>
@@ -480,7 +483,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
       </div>
 
       {error && (
-        <p role="alert" className="mb-3 text-xs text-red-600">
+        <p role="alert" className="mb-3 text-xs text-red-400">
           {error}
         </p>
       )}
@@ -489,7 +492,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
         <button
           type="button"
           onClick={() => setStep(2)}
-          className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-500"
+          className={buttonSecondary}
         >
           ← BACK
         </button>
@@ -497,7 +500,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           type="button"
           disabled={submitting}
           onClick={submit}
-          className="rounded-full bg-[#2C7001] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          className={buttonPrimary}
         >
           SUBMIT REGISTRATION
         </button>

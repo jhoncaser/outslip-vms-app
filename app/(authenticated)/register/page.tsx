@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { canProvisionUsers } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/prisma";
-import { UsersView, type UserRow } from "./UsersView";
+import { pageBackground } from "@/lib/deepForest";
+import { UsersView, type UserRowData } from "./UsersView";
 
 export default async function RegisterPage() {
   const cookieStore = await cookies();
@@ -31,7 +32,7 @@ export default async function RegisterPage() {
 
   // Dates are formatted here, server-side, so the client never re-formats
   // them in a different timezone (hydration-safe display strings).
-  const rows: UserRow[] = users.map((user) => ({
+  const rows: UserRowData[] = users.map((user) => ({
     id: user.id,
     firstName: user.firstName,
     lastName: user.lastName,
@@ -48,11 +49,7 @@ export default async function RegisterPage() {
   }));
 
   return (
-    <div className="relative flex flex-1 items-start justify-center overflow-hidden bg-[#eef1ee] p-8">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[url('/mfc-logo.png')] bg-cover bg-center bg-no-repeat opacity-[0.18]"
-      />
+    <div className={`relative flex flex-1 items-start justify-center overflow-hidden p-8 ${pageBackground}`}>
       <div className="relative z-10 w-full">
         <UsersView users={rows} />
       </div>
