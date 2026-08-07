@@ -2,6 +2,8 @@
 
 import { useState, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { tableWrap, tableHeaderRow, mutedText, modalHeader, modalCard, headingText } from "@/lib/deepForest";
+import { RevealRow } from "@/components/RevealRow";
 
 export type ApproverAssignmentRow = {
   id: string;
@@ -51,14 +53,15 @@ function BackIcon() {
   );
 }
 
-const labelClassName = "mb-1 block text-xs font-semibold text-slate-600";
+const labelClassName = "mb-1 block text-xs font-semibold text-[#9db894]";
 const inputClassName =
-  "w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-[#2C7001] focus:outline-none focus:ring-1 focus:ring-[#2C7001]";
+  "w-full rounded border border-[#4ca71a]/40 bg-[#0f1611] px-3 py-2 text-sm text-[#eafbe4] focus:border-[#57e34c] focus:outline-none focus:ring-1 focus:ring-[#57e34c]";
 const filterButtonClassName =
-  "rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35";
-const filterButtonActiveClassName = "bg-[#2C7001] text-white";
+  "rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#57e34c]/35";
+const filterButtonActiveClassName =
+  "bg-gradient-to-br from-[#3a9d0a] to-[#245c01] text-white";
 const filterButtonInactiveClassName =
-  "border border-slate-300 bg-white text-slate-600 hover:border-[#2C7001] hover:bg-[#f2f8ee]";
+  "border border-[#4ca71a]/40 bg-transparent text-[#cfe9c7] hover:border-[#57e34c] hover:bg-[#57e34c]/10";
 
 export function MatrixTypeApproverDetail({
   matrixType,
@@ -149,9 +152,9 @@ export function MatrixTypeApproverDetail({
         <div
           role="status"
           aria-live="polite"
-          className="toast-fade-in fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border-l-4 border-[#2C7001] bg-white px-4 py-3 text-sm font-semibold text-[#1d4d00] shadow-lg"
+          className="toast-fade-in fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border-l-4 border-[#57e34c] bg-[#0f1c0c] px-4 py-3 text-sm font-semibold text-[#86efac] shadow-[0_0_30px_rgba(87,227,76,0.3)]"
         >
-          <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#2C7001] text-xs text-white">
+          <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#57e34c] text-xs text-[#0f1611]">
             ✓
           </span>
           Approver Added!
@@ -161,13 +164,13 @@ export function MatrixTypeApproverDetail({
       <button
         type="button"
         onClick={onBack}
-        className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[#cfe3c4] bg-white px-3 py-1.5 text-xs font-semibold text-[#2C7001] transition-colors duration-150 hover:border-[#2C7001] hover:bg-[#f2f8ee] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none"
+        className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[#4ca71a]/40 bg-transparent px-3 py-1.5 text-xs font-semibold text-[#7be36f] transition-colors duration-150 hover:border-[#57e34c] hover:bg-[#57e34c]/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#57e34c]/35 motion-reduce:transition-none"
       >
         <BackIcon />
         Back
       </button>
 
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-8 py-6">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#3a9d0a] to-[#1d4d00] px-8 py-6">
         <div
           aria-hidden
           className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
@@ -178,7 +181,7 @@ export function MatrixTypeApproverDetail({
         />
         <div className="relative flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-extrabold tracking-widest text-white">
+            <h2 className={`text-lg tracking-widest ${headingText}`}>
               {matrixType.name.toUpperCase()}
             </h2>
             <p className="mt-1 text-xs text-white/80">
@@ -229,10 +232,10 @@ export function MatrixTypeApproverDetail({
         ))}
       </div>
 
-      <div className="overflow-x-auto rounded-xl bg-white shadow">
-        <table className="w-full border-collapse text-left text-sm text-slate-600">
+      <div className={tableWrap}>
+        <table className="w-full border-collapse text-left text-sm text-[#cfe9c7]">
           <thead>
-            <tr className="bg-[#2C7001]">
+            <tr className={tableHeaderRow}>
               {["Approver", "Level", "Department", "Business Unit", "Location"].map(
                 (column) => (
                   <th key={column} className="px-4 py-3 text-xs font-bold text-white">
@@ -245,22 +248,19 @@ export function MatrixTypeApproverDetail({
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={5} className={`px-4 py-8 text-center ${mutedText}`}>
                   No approvers assigned yet.
                 </td>
               </tr>
             ) : (
               filtered.map((row, index) => (
-                <tr
-                  key={row.id}
-                  className={`border-b border-slate-100 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
-                >
-                  <td className="px-4 py-3">{row.approverName}</td>
-                  <td className="px-4 py-3">{row.level}</td>
-                  <td className="px-4 py-3">{row.department}</td>
-                  <td className="px-4 py-3">{row.businessUnit}</td>
-                  <td className="px-4 py-3">{row.location}</td>
-                </tr>
+                <RevealRow key={row.id} index={index}>
+                  <td className="px-4 py-3 text-[#eafbe4]">{row.approverName}</td>
+                  <td className="px-4 py-3 text-[#eafbe4]">{row.level}</td>
+                  <td className="px-4 py-3 text-[#eafbe4]">{row.department}</td>
+                  <td className="px-4 py-3 text-[#eafbe4]">{row.businessUnit}</td>
+                  <td className="px-4 py-3 text-[#eafbe4]">{row.location}</td>
+                </RevealRow>
               ))
             )}
           </tbody>
@@ -272,11 +272,11 @@ export function MatrixTypeApproverDetail({
           role="dialog"
           aria-modal="true"
           aria-labelledby="approver-modal-title"
-          className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/35"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/70"
         >
           <div className="flex min-h-full items-center justify-center p-6">
-            <div className="w-full max-w-[420px] overflow-hidden rounded-xl bg-white shadow-xl">
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
+            <div className={`max-w-[420px] ${modalCard}`}>
+              <div className={modalHeader}>
                 <div
                   aria-hidden
                   className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
@@ -287,7 +287,7 @@ export function MatrixTypeApproverDetail({
                 />
                 <h2
                   id="approver-modal-title"
-                  className="text-lg font-extrabold tracking-widest text-white"
+                  className={`text-lg tracking-widest ${headingText}`}
                 >
                   ADD APPROVER
                 </h2>
@@ -406,14 +406,14 @@ export function MatrixTypeApproverDetail({
                   </select>
                 </div>
                 {error && (
-                  <p role="alert" className="text-xs text-red-600">
+                  <p role="alert" className="text-xs text-red-400">
                     {error}
                   </p>
                 )}
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full rounded-full bg-[#2C7001] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] disabled:pointer-events-none disabled:opacity-60"
+                  className="w-full rounded-full bg-gradient-to-br from-[#3a9d0a] to-[#245c01] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] disabled:pointer-events-none disabled:opacity-60"
                 >
                   {submitting ? "Saving…" : "Save"}
                 </button>

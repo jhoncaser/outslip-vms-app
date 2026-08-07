@@ -7,6 +7,8 @@ import {
   type ApproverAssignmentRow,
   type UserOption,
 } from "./MatrixTypeApproverDetail";
+import { tableWrap, tableHeaderRow, mutedText, headingText, fieldLabel, fieldBox, buttonPrimary, modalHeader, modalCard } from "@/lib/deepForest";
+import { RevealRow } from "@/components/RevealRow";
 
 export type ReferenceRow = { id: string; name: string };
 export type MatrixTypeRow = {
@@ -53,10 +55,10 @@ function MatrixTypeTable({
 }) {
   const columns = ["Matrix Code", "Matrix Type", "Creator", "Date Created"];
   return (
-    <div className="overflow-x-auto rounded-xl bg-white shadow">
-      <table className="w-full border-collapse text-left text-sm text-slate-600">
+    <div className={tableWrap}>
+      <table className="w-full border-collapse text-left text-sm text-[#cfe9c7]">
         <thead>
-          <tr className="bg-[#2C7001]">
+          <tr className={tableHeaderRow}>
             {columns.map((column) => (
               <th key={column} className="px-4 py-3 text-xs font-bold text-white">
                 {column}
@@ -67,30 +69,31 @@ function MatrixTypeTable({
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-8 text-center text-slate-500">
+              <td colSpan={columns.length} className={`px-4 py-8 text-center ${mutedText}`}>
                 No matrix types yet.
               </td>
             </tr>
           ) : (
             rows.map((row, index) => (
-              <tr
+              <RevealRow
                 key={row.id}
+                index={index}
                 onClick={() => onSelect(row)}
-                className={`cursor-pointer border-b border-slate-100 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
+                className="cursor-pointer"
               >
-                <td className="px-4 py-3">{row.matrixCode}</td>
+                <td className="px-4 py-3 text-[#eafbe4]">{row.matrixCode}</td>
                 <td className="px-4 py-3">
                   <button
                     type="button"
                     onClick={() => onSelect(row)}
-                    className="font-semibold text-[#2C7001] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2C7001]/40 rounded"
+                    className="rounded font-semibold text-[#7be36f] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#57e34c]/40"
                   >
                     {row.name}
                   </button>
                 </td>
-                <td className="px-4 py-3">{row.creator}</td>
-                <td className="px-4 py-3 text-slate-500">{row.createdAt}</td>
-              </tr>
+                <td className="px-4 py-3 text-[#eafbe4]">{row.creator}</td>
+                <td className={`px-4 py-3 ${mutedText}`}>{row.createdAt}</td>
+              </RevealRow>
             ))
           )}
         </tbody>
@@ -101,28 +104,25 @@ function MatrixTypeTable({
 
 function SimpleTable({ rows, label }: { rows: ReferenceRow[]; label: string }) {
   return (
-    <div className="overflow-x-auto rounded-xl bg-white shadow">
-      <table className="w-full border-collapse text-left text-sm text-slate-600">
+    <div className={tableWrap}>
+      <table className="w-full border-collapse text-left text-sm text-[#cfe9c7]">
         <thead>
-          <tr className="bg-[#2C7001]">
+          <tr className={tableHeaderRow}>
             <th className="px-4 py-3 text-xs font-bold text-white">{label}</th>
           </tr>
         </thead>
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td className="px-4 py-8 text-center text-slate-500">
+              <td className={`px-4 py-8 text-center ${mutedText}`}>
                 No {label.toLowerCase()} values yet.
               </td>
             </tr>
           ) : (
             rows.map((row, index) => (
-              <tr
-                key={row.id}
-                className={`border-b border-slate-100 ${index % 2 === 1 ? "bg-[#fbfdf9]" : "bg-white"}`}
-              >
-                <td className="px-4 py-3">{row.name}</td>
-              </tr>
+              <RevealRow key={row.id} index={index}>
+                <td className="px-4 py-3 text-[#eafbe4]">{row.name}</td>
+              </RevealRow>
             ))
           )}
         </tbody>
@@ -211,8 +211,8 @@ export function SettingsView({
       ) : (
         <>
           <div className="mb-4">
-            <h1 className="text-lg font-bold text-slate-800">Settings</h1>
-            <p className="text-xs text-slate-500">Manage setup values used across the app</p>
+            <h1 className={`text-lg ${headingText}`}>Settings</h1>
+            <p className={`text-xs ${mutedText}`}>Manage setup values used across the app</p>
           </div>
 
           <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -224,8 +224,8 @@ export function SettingsView({
                 onClick={() => setActiveTab(tab.key)}
                 className={`rounded border border-l-4 px-3 py-3 text-center text-xs font-bold uppercase tracking-wide transition-all duration-150 ${
                   activeTab === tab.key
-                    ? "border-[#2C7001] border-l-[6px] bg-[#2C7001] text-white shadow-[0_4px_10px_rgba(44,112,1,0.25)]"
-                    : "border-slate-200 border-l-[#2C7001] bg-white text-slate-500 hover:bg-[#fbfdf9]"
+                    ? "border-[#57e34c] border-l-[6px] bg-gradient-to-br from-[#3a9d0a] to-[#245c01] text-white shadow-[0_0_20px_rgba(87,227,76,0.35)]"
+                    : "border-[#4ca71a]/25 border-l-[#3a9d0a] bg-[#141e12]/60 text-[#9db894] hover:bg-[#1a241a]"
                 }`}
               >
                 {tab.label}
@@ -238,7 +238,7 @@ export function SettingsView({
               <button
                 type="button"
                 onClick={openModal}
-                className="rounded-full bg-[#2C7001] px-5 py-2 text-xs font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+                className={`${buttonPrimary} px-5 py-2 text-xs`}
               >
                 + Add {activeLabel}
               </button>
@@ -268,11 +268,11 @@ export function SettingsView({
               role="dialog"
               aria-modal="true"
               aria-labelledby="settings-modal-title"
-              className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/35"
+              className="fixed inset-0 z-50 overflow-y-auto bg-black/70"
             >
               <div className="flex min-h-full items-center justify-center p-6">
-                <div className="w-full max-w-[420px] overflow-hidden rounded-xl bg-white shadow-xl">
-                  <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-6 py-5 text-center">
+                <div className={`max-w-[420px] ${modalCard}`}>
+                  <div className={modalHeader}>
                     <div
                       aria-hidden
                       className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
@@ -283,7 +283,7 @@ export function SettingsView({
                     />
                     <h2
                       id="settings-modal-title"
-                      className="text-lg font-extrabold tracking-widest text-white"
+                      className={`text-lg tracking-widest ${headingText}`}
                     >
                       ADD {activeLabel.toUpperCase()}
                     </h2>
@@ -300,7 +300,7 @@ export function SettingsView({
                     <div>
                       <label
                         htmlFor="setup-name"
-                        className="mb-1 block text-xs font-semibold text-slate-600"
+                        className={`mb-1 block ${fieldLabel}`}
                       >
                         Name
                       </label>
@@ -310,18 +310,18 @@ export function SettingsView({
                         required
                         value={name}
                         onChange={(event) => setName(event.target.value)}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-[#2C7001] focus:outline-none focus:ring-1 focus:ring-[#2C7001]"
+                        className={fieldBox}
                       />
                     </div>
                     {error && (
-                      <p role="alert" className="text-xs text-red-600">
+                      <p role="alert" className="text-xs text-red-400">
                         {error}
                       </p>
                     )}
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full rounded-full bg-[#2C7001] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] disabled:pointer-events-none disabled:opacity-60"
+                      className={`w-full ${buttonPrimary}`}
                     >
                       {submitting ? "Saving…" : "Save"}
                     </button>
