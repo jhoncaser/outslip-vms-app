@@ -19,7 +19,7 @@ export function AppShell({
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#eef1ee]">
+    <div className="flex min-h-screen flex-col bg-[#050505]">
       <Navbar
         initials={initials}
         fullName={fullName}

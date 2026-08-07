@@ -104,13 +104,13 @@ export function Navbar({
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   return (
-    <header className="bg-[#2C7001] px-4 py-3 text-white sm:px-6">
+    <header className="bg-gradient-to-r from-[#1d4d00] to-[#245c01] px-4 py-3 text-white shadow-[0_2px_20px_rgba(0,0,0,0.4)] sm:px-6">
       <div
         data-testid="navbar-desktop"
         className="hidden grid-cols-[auto_1fr_auto] items-center gap-6 md:grid"
       >
         <div className="flex items-center gap-3.5">
-          <span className="text-sm font-bold tracking-wide">OUTSLIP VMS</span>
+          <span className="font-outfit text-sm font-bold tracking-wide">OUTSLIP VMS</span>
           {title && (
             <>
               <span aria-hidden className="h-[22px] w-px bg-white/30" />
@@ -122,20 +122,20 @@ export function Navbar({
         </div>
         <div className="flex justify-center">
           <div className="relative w-full max-w-3xl">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#2C7001]/60">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#57e34c]/70">
               <SearchIcon />
             </span>
             <input
               type="search"
               aria-label="Search transaction code"
               placeholder="Search..."
-              className="w-full rounded-full border-0 bg-white py-1.5 pl-9 pr-11 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/70"
+              className="w-full rounded-full border-0 bg-[#0c1a08] py-1.5 pl-9 pr-11 text-sm text-[#eafbe4] placeholder:text-[#6f8a68] focus:outline-none focus:ring-2 focus:ring-[#57e34c]/60"
             />
             <button
               type="button"
               aria-label="Scan QR code"
               title="Scan QR code"
-              className="absolute right-1.5 top-1/2 flex h-[26px] w-[26px] -translate-y-1/2 items-center justify-center rounded-full text-[#2C7001] hover:bg-[#2C7001]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2C7001]/50"
+              className="absolute right-1.5 top-1/2 flex h-[26px] w-[26px] -translate-y-1/2 items-center justify-center rounded-full text-[#7be36f] hover:bg-[#57e34c]/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#57e34c]/50"
             >
               <QrIcon />
             </button>
@@ -174,7 +174,7 @@ export function Navbar({
                 aria-label="Search transaction code"
                 placeholder="Search..."
                 autoFocus
-                className="w-full rounded-full border-0 bg-white py-1.5 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/70"
+                className="w-full rounded-full border-0 bg-[#0c1a08] py-1.5 pl-9 pr-3 text-sm text-[#eafbe4] placeholder:text-[#6f8a68] focus:outline-none focus:ring-2 focus:ring-[#57e34c]/60"
               />
             </div>
             <button

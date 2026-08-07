@@ -49,7 +49,9 @@ function DrawerLink({
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
-        active ? "bg-[#2C7001] text-white" : "text-[#3f4a3d] hover:bg-[#eef1ec]"
+        active
+          ? "bg-gradient-to-br from-[#3a9d0a] to-[#245c01] text-white"
+          : "text-[#cfe9c7] hover:bg-[#57e34c]/10"
       }`}
     >
       {icon}
@@ -84,21 +86,21 @@ export function MobileDrawer({
       aria-modal="true"
       aria-label="Navigation menu"
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-slate-900/35 md:hidden"
+      className="fixed inset-0 z-50 bg-black/60 md:hidden"
     >
       <div
         onClick={(event) => event.stopPropagation()}
-        className="drawer-slide-in flex h-full w-[260px] flex-col bg-white shadow-xl"
+        className="drawer-slide-in flex h-full w-[260px] flex-col border-r border-[#4ca71a]/30 bg-[#0c120a] shadow-[0_0_40px_rgba(0,0,0,0.6)]"
       >
-        <div className="flex items-center justify-between border-b border-[#eef1ec] px-4 py-3.5">
-          <span className="text-sm font-bold tracking-wide text-[#2C7001]">
+        <div className="flex items-center justify-between border-b border-[#4ca71a]/25 px-4 py-3.5">
+          <span className="font-outfit text-sm font-bold tracking-wide text-[#7be36f]">
             OUTSLIP VMS
           </span>
           <button
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="text-slate-500 transition-colors hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2C7001]/40"
+            className="text-[#9db894] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#57e34c]/50"
           >
             <CloseIcon />
           </button>
@@ -136,11 +138,11 @@ export function MobileDrawer({
         <form
           action="/api/auth/logout"
           method="post"
-          className="border-t border-[#eef1ec] p-3"
+          className="border-t border-[#4ca71a]/25 p-3"
         >
           <button
             type="submit"
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-red-400 transition-colors hover:bg-red-500/10"
           >
             <LogOutIcon />
             Logout
