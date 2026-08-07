@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { ROLE_LABELS } from "@/lib/roles";
+import { pageBackground } from "@/lib/deepForest";
 import { ProfileView } from "./ProfileView";
 
 export default async function ProfilePage() {
@@ -39,11 +40,7 @@ export default async function ProfilePage() {
   });
 
   return (
-    <div className="relative flex flex-1 items-start justify-center overflow-hidden bg-[#eef1ee] p-8">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[url('/mfc-logo.png')] bg-cover bg-center bg-no-repeat opacity-[0.18]"
-      />
+    <div className={`relative flex flex-1 items-start justify-center overflow-hidden p-8 ${pageBackground}`}>
       <div className="relative z-10 w-full">
         <ProfileView
           fullName={fullName}

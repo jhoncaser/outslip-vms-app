@@ -30,8 +30,8 @@ export type ProfileViewProps = {
   memberSince: string;
 };
 
-const fieldLabelClassName = "mb-1 text-xs font-semibold text-slate-600";
-const fieldValueClassName = "text-sm text-slate-800";
+const fieldLabelClassName = "mb-1 text-xs font-semibold text-[#9db894]";
+const fieldValueClassName = "text-sm text-[#eafbe4]";
 
 export function ProfileView({
   fullName,
@@ -45,8 +45,8 @@ export function ProfileView({
   memberSince,
 }: ProfileViewProps) {
   return (
-    <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-xl shadow">
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#2C7001] to-[#1d4d00] px-8 py-7">
+    <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-xl border border-[#4ca71a]/35 shadow-[0_0_40px_rgba(44,112,1,0.25)]">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#3a9d0a] to-[#1d4d00] px-8 py-7">
         <div
           aria-hidden
           className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5"
@@ -68,7 +68,7 @@ export function ProfileView({
               {initials}
             </span>
             <div>
-              <h1 className="text-lg font-bold text-white">{fullName}</h1>
+              <h1 className="font-outfit text-lg font-bold text-white">{fullName}</h1>
               <div className="mt-1 flex items-center gap-2 text-sm text-white/80">
                 <span>{jobTitle}</span>
                 <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white">
@@ -79,7 +79,7 @@ export function ProfileView({
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-x-8 gap-y-4 rounded-b-xl bg-white px-8 py-7 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-8 gap-y-4 rounded-b-xl border-t border-[#4ca71a]/25 bg-[#141e12]/85 backdrop-blur-md px-8 py-7 sm:grid-cols-2">
         <div>
           <p className={fieldLabelClassName}>Email</p>
           <p className={fieldValueClassName}>{email}</p>
