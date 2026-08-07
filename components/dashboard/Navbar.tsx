@@ -166,7 +166,7 @@ export function Navbar({
               <CancelIcon />
             </button>
             <div className="relative flex-1">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#2C7001]/60">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#57e34c]/70">
                 <SearchIcon />
               </span>
               <input
