@@ -399,7 +399,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
               value={form.password}
               onChange={(e) => update("password", e.target.value)}
               wrapperClassName="mb-4"
-              inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
+              inputClassName={`h-8 ${fieldUnderline} pr-9`}
             />
 
             <label htmlFor="confirmPassword" className={fieldLabel}>
@@ -410,7 +410,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
               value={form.confirmPassword}
               onChange={(e) => update("confirmPassword", e.target.value)}
               wrapperClassName="mb-5"
-              inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
+              inputClassName={`h-8 ${fieldUnderline} pr-9`}
             />
           </>
         )}
