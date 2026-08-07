@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordInput } from "@/components/PasswordInput";
+import { fieldLabel, fieldUnderline, buttonPrimary } from "@/lib/deepForest";
 
 export function ChangePasswordForm() {
   const router = useRouter();
@@ -46,9 +47,9 @@ export function ChangePasswordForm() {
         <div
           role="status"
           aria-live="polite"
-          className="toast-fade-in fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border-l-4 border-[#2C7001] bg-white px-4 py-3 text-sm font-semibold text-[#1d4d00] shadow-lg"
+          className="toast-fade-in fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border-l-4 border-[#57e34c] bg-[#0f1c0c] px-4 py-3 text-sm font-semibold text-[#86efac] shadow-[0_0_30px_rgba(87,227,76,0.3)]"
         >
-          <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#2C7001] text-xs text-white">
+          <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#3a9d0a] text-xs text-white">
             ✓
           </span>
           Password Updated!
@@ -56,7 +57,7 @@ export function ChangePasswordForm() {
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col">
-        <label htmlFor="newPassword" className="text-xs text-slate-500">
+        <label htmlFor="newPassword" className={fieldLabel}>
           New Password
         </label>
         <PasswordInput
@@ -65,10 +66,10 @@ export function ChangePasswordForm() {
           onChange={(e) => setNewPassword(e.target.value)}
           required
           wrapperClassName="mb-4"
-          inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
+          inputClassName={`h-8 ${fieldUnderline} pr-9`}
         />
 
-        <label htmlFor="confirmPassword" className="text-xs text-slate-500">
+        <label htmlFor="confirmPassword" className={fieldLabel}>
           Confirm Password
         </label>
         <PasswordInput
@@ -77,11 +78,11 @@ export function ChangePasswordForm() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
           wrapperClassName="mb-5"
-          inputClassName="h-8 w-full border-b border-slate-300 bg-transparent pr-9 text-sm focus:border-[#2C7001] focus:outline-none"
+          inputClassName={`h-8 ${fieldUnderline} pr-9`}
         />
 
         {error && (
-          <p role="alert" className="mb-3 text-xs text-red-600">
+          <p role="alert" className="mb-3 text-xs text-red-400">
             {error}
           </p>
         )}
@@ -89,7 +90,7 @@ export function ChangePasswordForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="mx-auto rounded-full bg-[#2C7001] px-10 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0 disabled:pointer-events-none disabled:opacity-60"
+          className={`mx-auto ${buttonPrimary} px-10`}
         >
           UPDATE PASSWORD
         </button>

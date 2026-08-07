@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordInput } from "@/components/PasswordInput";
+import { fieldLabel, fieldUnderline, buttonPrimary } from "@/lib/deepForest";
 
 export function LoginForm() {
   const router = useRouter();
@@ -43,9 +44,9 @@ export function LoginForm() {
       {error && (
         <div
           role="alert"
-          className="toast-fade-in fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border-l-4 border-red-600 bg-white px-4 py-3 text-sm font-semibold text-red-700 shadow-lg"
+          className="toast-fade-in fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border-l-4 border-red-500 bg-[#1a0f0f] px-4 py-3 text-sm font-semibold text-red-300 shadow-[0_0_30px_rgba(248,113,113,0.25)]"
         >
-          <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-600 text-xs text-white">
+          <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-500 text-xs text-white">
             !
           </span>
           {error}
@@ -56,7 +57,7 @@ export function LoginForm() {
         <div className="mb-5 flex items-center gap-4">
           <label
             htmlFor="email"
-            className="w-20 shrink-0 text-[13px] text-slate-500"
+            className={`w-20 shrink-0 ${fieldLabel}`}
           >
             Email
           </label>
@@ -67,14 +68,14 @@ export function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="Enter email"
-            className="w-full border-b border-slate-300 bg-transparent pb-1.5 text-sm placeholder:text-slate-300 focus:border-[#2C7001] focus:outline-none"
+            className={fieldUnderline}
           />
         </div>
 
         <div className="mb-2 flex items-center gap-4">
           <label
             htmlFor="password"
-            className="w-20 shrink-0 text-[13px] text-slate-500"
+            className={`w-20 shrink-0 ${fieldLabel}`}
           >
             Password
           </label>
@@ -84,18 +85,18 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="Enter password"
-            inputClassName="w-full border-b border-slate-300 bg-transparent pb-1.5 pr-9 text-sm placeholder:text-slate-300 focus:border-[#2C7001] focus:outline-none"
+            inputClassName={`${fieldUnderline} pr-9`}
           />
         </div>
 
-        <a href="#" className="mb-6 self-end text-xs font-semibold text-[#2C7001]">
+        <a href="#" className="mb-6 self-end text-xs font-semibold text-[#7be36f]">
           Forgot Password?
         </a>
 
         <button
           type="submit"
           disabled={submitting}
-          className="mx-auto rounded-full bg-[#2C7001] px-12 py-2.5 text-sm font-semibold text-white transition-all duration-150 ease-out hover:bg-[#256000] hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(44,112,1,0.35)] active:translate-y-0 active:bg-[#1d4d00] active:shadow-[0_3px_8px_rgba(44,112,1,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#2C7001]/35 motion-reduce:transition-none motion-reduce:hover:translate-y-0 disabled:pointer-events-none disabled:opacity-60"
+          className={`mx-auto ${buttonPrimary} px-12`}
         >
           Login
         </button>
