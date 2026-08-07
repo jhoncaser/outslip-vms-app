@@ -129,7 +129,7 @@ export function Navbar({
               type="search"
               aria-label="Search transaction code"
               placeholder="Search..."
-              className="w-full rounded-full border-0 bg-[#0c1a08] py-1.5 pl-9 pr-11 text-sm text-[#eafbe4] placeholder:text-[#6f8a68] focus:outline-none focus:ring-2 focus:ring-[#57e34c]/60"
+              className="w-full rounded-full border border-[#4ca71a]/40 bg-[#0c1a08] py-1.5 pl-9 pr-11 text-sm text-[#eafbe4] placeholder:text-[#6f8a68] focus:outline-none focus:ring-2 focus:ring-[#57e34c]/60"
             />
             <button
               type="button"
@@ -174,7 +174,7 @@ export function Navbar({
                 aria-label="Search transaction code"
                 placeholder="Search..."
                 autoFocus
-                className="w-full rounded-full border-0 bg-[#0c1a08] py-1.5 pl-9 pr-3 text-sm text-[#eafbe4] placeholder:text-[#6f8a68] focus:outline-none focus:ring-2 focus:ring-[#57e34c]/60"
+                className="w-full rounded-full border border-[#4ca71a]/40 bg-[#0c1a08] py-1.5 pl-9 pr-3 text-sm text-[#eafbe4] placeholder:text-[#6f8a68] focus:outline-none focus:ring-2 focus:ring-[#57e34c]/60"
               />
             </div>
             <button
