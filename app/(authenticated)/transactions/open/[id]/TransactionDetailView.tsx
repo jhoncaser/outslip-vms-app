@@ -376,7 +376,7 @@ export function TransactionDetailView({
       </div>
 
       <div className={tableWrap}>
-        <table className="w-full border-collapse text-left text-sm text-slate-600">
+        <table className="w-full border-collapse text-left text-sm text-[#cfe9c7]">
           <thead>
             <tr className={tableHeaderRow}>
               {columns.map((column) => (

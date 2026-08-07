@@ -190,7 +190,7 @@ export function UsersView({ users }: { users: UserRowData[] }) {
       </div>
 
       <div className={tableWrap}>
-        <table className="w-full border-collapse text-left text-sm text-slate-600">
+        <table className="w-full border-collapse text-left text-sm text-[#cfe9c7]">
           <thead>
             <tr className={tableHeaderRow}>
               <th className="w-9 px-2 py-3" aria-hidden="true" />

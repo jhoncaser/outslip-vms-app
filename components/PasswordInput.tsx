@@ -21,14 +21,14 @@ export function PasswordInput({
         type={visible ? "text" : "password"}
         className={
           inputClassName ??
-          "h-9 w-full rounded border border-slate-300 bg-slate-50 px-3 pr-9 text-sm"
+          "h-9 w-full rounded border border-[#4ca71a]/40 bg-[#0f1611] px-3 pr-9 text-sm text-[#eafbe4]"
         }
       />
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? "Hide password" : "Show password"}
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-[#6f8a68] hover:text-[#9db894]"
       >
         {visible ? <EyeOffIcon /> : <EyeIcon />}
       </button>

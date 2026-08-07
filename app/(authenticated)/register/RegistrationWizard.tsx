@@ -197,7 +197,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           <div className="mb-3 text-sm font-bold text-[#7be36f]">
             Changes saved
           </div>
-          <p className="mb-6 text-xs leading-relaxed text-slate-600">
+          <p className="mb-6 text-xs leading-relaxed text-[#cfe9c7]">
             Details for{" "}
             {[form.firstName, form.lastName].filter(Boolean).join(" ")} have
             been updated.
@@ -218,7 +218,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
         <div className="mb-3 text-sm font-bold text-[#7be36f]">
           Registration complete
         </div>
-        <p className="mb-6 text-xs leading-relaxed text-slate-600">
+        <p className="mb-6 text-xs leading-relaxed text-[#cfe9c7]">
           {[form.firstName, form.lastName].filter(Boolean).join(" ")} has
           been registered with a temporary password and will be asked to
           set a new one on first login.
