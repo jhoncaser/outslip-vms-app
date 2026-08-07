@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useRevealOnce } from "@/lib/useRevealOnce";
+import { tileSurface } from "@/lib/deepForest";
 
 function InboxIcon() {
   return (
@@ -80,21 +84,21 @@ const BASE_MODULES = [
     href: "/transactions/open",
     Icon: InboxIcon,
     badgeClass:
-      "bg-sky-100 text-sky-600 group-hover:shadow-[0_2px_6px_rgba(2,132,199,0.20)]",
+      "bg-[#60a5fa]/20 text-[#93c5fd] group-hover:shadow-[0_0_16px_rgba(96,165,250,0.5)]",
   },
   {
     label: "Approved Transaction",
     href: "/transactions/approved",
     Icon: CheckCircleIcon,
     badgeClass:
-      "bg-green-100 text-green-600 group-hover:shadow-[0_2px_6px_rgba(22,163,74,0.20)]",
+      "bg-[#57e34c]/20 text-[#86efac] group-hover:shadow-[0_0_16px_rgba(87,227,76,0.5)]",
   },
   {
     label: "Canceled Transaction",
     href: "/transactions/canceled",
     Icon: XCircleIcon,
     badgeClass:
-      "bg-red-100 text-red-600 group-hover:shadow-[0_2px_6px_rgba(220,38,38,0.20)]",
+      "bg-[#f87171]/20 text-[#fca5a5] group-hover:shadow-[0_0_16px_rgba(248,113,113,0.5)]",
   },
 ];
 
@@ -103,7 +107,7 @@ const APPROVALS_MODULE = {
   href: "/transactions/my-approvals",
   Icon: ClipboardCheckIcon,
   badgeClass:
-    "bg-amber-100 text-amber-600 group-hover:shadow-[0_2px_6px_rgba(217,119,6,0.20)]",
+    "bg-[#fbbf24]/20 text-[#fcd34d] group-hover:shadow-[0_0_16px_rgba(251,191,36,0.5)]",
 };
 
 export function ModuleGrid({
@@ -118,27 +122,39 @@ export function ModuleGrid({
   return (
     <div className="grid flex-1 grid-cols-1 gap-4 p-6 content-start sm:grid-cols-2">
       {modules.map((module) => (
-        <Link
-          key={module.href}
-          href={module.href}
-          className="group flex items-start justify-between gap-3 rounded border border-l-4 border-slate-200 border-l-[#2C7001] bg-white p-4 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-l-[6px] hover:bg-[#fbfdf9] hover:shadow-[0_8px_18px_rgba(44,112,1,0.13),0_2px_6px_rgba(0,0,0,0.05)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-        >
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 transition-colors duration-200 group-hover:text-[#2C7001] motion-reduce:transition-none">
-              {module.label}
-            </div>
-            <div className="mt-1 text-2xl font-bold text-[#2C7001]">
-              —
-            </div>
-          </div>
-          <span
-            aria-hidden
-            className={`flex h-[42px] w-[42px] flex-none items-center justify-center rounded-xl transition-all duration-200 group-hover:scale-[1.08] motion-reduce:transition-none motion-reduce:group-hover:scale-100 ${module.badgeClass}`}
-          >
-            <module.Icon />
-          </span>
-        </Link>
+        <ModuleTile key={module.href} module={module} />
       ))}
     </div>
+  );
+}
+
+function ModuleTile({
+  module,
+}: {
+  module: (typeof BASE_MODULES)[number];
+}) {
+  const { ref, revealed } = useRevealOnce<HTMLAnchorElement>();
+
+  return (
+    <Link
+      ref={ref}
+      href={module.href}
+      className={`reveal-once ${revealed ? "is-revealed" : ""} group flex items-start justify-between gap-3 border-l-4 border-l-[#3a9d0a] p-4 ${tileSurface} transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-l-[6px] hover:shadow-[0_8px_24px_rgba(58,157,10,0.3)] motion-reduce:transition-none motion-reduce:hover:translate-y-0`}
+    >
+      <div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-[#9db894] transition-colors duration-200 group-hover:text-[#7be36f] motion-reduce:transition-none">
+          {module.label}
+        </div>
+        <div className="mt-1 font-outfit text-2xl font-bold text-[#7be36f]">
+          —
+        </div>
+      </div>
+      <span
+        aria-hidden
+        className={`flex h-[42px] w-[42px] flex-none items-center justify-center rounded-xl transition-all duration-200 group-hover:scale-[1.08] motion-reduce:transition-none motion-reduce:group-hover:scale-100 ${module.badgeClass}`}
+      >
+        <module.Icon />
+      </span>
+    </Link>
   );
 }
