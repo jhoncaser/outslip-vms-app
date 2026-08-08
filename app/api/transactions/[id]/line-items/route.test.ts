@@ -12,6 +12,7 @@ let visitorPassMatrixTypeId: string;
 let employeeMatrixTypeId: string;
 let visitorPassTransactionId: string;
 let employeeTransactionId: string;
+let postedTransactionId: string;
 const createdLineItemIds: string[] = [];
 const savedFileUrls: string[] = [];
 
@@ -126,6 +127,17 @@ describe("POST /api/transactions/[id]/line-items", () => {
       },
     });
     employeeTransactionId = employeeTransaction.id;
+
+    const postedTransaction = await prisma.transaction.create({
+      data: {
+        transactionCode: "OT-LIPOSTED",
+        matrixTypeId: employeeMatrixTypeId,
+        statusId: openStatus.id,
+        creatorId: userId,
+        postedAt: new Date(),
+      },
+    });
+    postedTransactionId = postedTransaction.id;
   });
 
   it("returns 401 with no session", async () => {
@@ -142,6 +154,21 @@ describe("POST /api/transactions/[id]/line-items", () => {
       paramsFor("nonexistent-id")
     );
     expect(response.status).toBe(404);
+  });
+
+  it("returns 409 when the transaction is already posted", async () => {
+    const body = new FormData();
+    body.set("employeeType", "Third-Party");
+    body.set("name", "Should Not Be Created");
+    body.set("remarks", "X");
+
+    const response = await POST(
+      requestWithCookie(userToken, postedTransactionId, body),
+      paramsFor(postedTransactionId)
+    );
+    expect(response.status).toBe(409);
+    const data = await response.json();
+    expect(data.error).toBe("Cannot modify line items on a posted transaction.");
   });
 
   it("returns a specific message when a required Visitor Pass field is missing", async () => {
@@ -360,7 +387,7 @@ describe("POST /api/transactions/[id]/line-items", () => {
       await deleteLineItemFile(url);
     }
     await prisma.transaction.deleteMany({
-      where: { id: { in: [visitorPassTransactionId, employeeTransactionId] } },
+      where: { id: { in: [visitorPassTransactionId, employeeTransactionId, postedTransactionId] } },
     });
     await prisma.matrixType.deleteMany({ where: { id: employeeMatrixTypeId } });
     await prisma.$disconnect();

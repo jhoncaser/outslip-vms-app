@@ -30,11 +30,18 @@ export async function POST(
   const { id: transactionId } = await params;
   const transaction = await prisma.transaction.findUnique({
     where: { id: transactionId },
-    select: { matrixType: { select: { name: true } } },
+    select: { postedAt: true, matrixType: { select: { name: true } } },
   });
 
   if (!transaction) {
     return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
+  }
+
+  if (transaction.postedAt !== null) {
+    return NextResponse.json(
+      { error: "Cannot modify line items on a posted transaction." },
+      { status: 409 }
+    );
   }
 
   const formData = await request.formData();

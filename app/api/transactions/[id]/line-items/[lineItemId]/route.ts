@@ -42,6 +42,13 @@ export async function PATCH(
     return NextResponse.json({ error: "Line item not found" }, { status: 404 });
   }
 
+  if (existing.transaction.postedAt !== null) {
+    return NextResponse.json(
+      { error: "Cannot modify line items on a posted transaction." },
+      { status: 409 }
+    );
+  }
+
   const formData = await request.formData();
   const isVisitorPass = existing.transaction.matrixType.name === "Visitor Pass";
 
@@ -162,7 +169,11 @@ export async function DELETE(
   const { id: transactionId, lineItemId } = await params;
   const existing = await prisma.transactionLineItem.findUnique({
     where: { id: lineItemId },
-    select: { uploadFileUrl: true, transactionId: true },
+    select: {
+      uploadFileUrl: true,
+      transactionId: true,
+      transaction: { select: { postedAt: true } },
+    },
   });
 
   if (!existing) {
@@ -171,6 +182,13 @@ export async function DELETE(
 
   if (existing.transactionId !== transactionId) {
     return NextResponse.json({ error: "Line item not found" }, { status: 404 });
+  }
+
+  if (existing.transaction.postedAt !== null) {
+    return NextResponse.json(
+      { error: "Cannot modify line items on a posted transaction." },
+      { status: 409 }
+    );
   }
 
   await prisma.transactionLineItem.delete({ where: { id: lineItemId } });
