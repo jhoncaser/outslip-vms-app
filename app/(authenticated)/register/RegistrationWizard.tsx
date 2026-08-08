@@ -7,6 +7,8 @@ import { registrationSchema, editUserSchema } from "@/lib/validation/registratio
 import { ROLES, ROLE_LABELS, type RoleValue } from "@/lib/roles";
 import { fieldLabel, fieldUnderline, buttonPrimary, buttonSecondary } from "@/lib/deepForest";
 
+const TOTAL_STEPS = 5;
+
 type ReferenceItem = { id: string; name: string };
 type ReferenceData = {
   departments: ReferenceItem[];
@@ -47,10 +49,11 @@ type RegistrationWizardProps = {
   onDone?: () => void;
 };
 
-function StepIndicator({ step }: { step: number }) {
+function StepIndicator({ step, total }: { step: number; total: number }) {
+  const steps = Array.from({ length: total }, (_, i) => i + 1);
   return (
     <div className="mb-5 flex items-center gap-1.5">
-      {[1, 2, 3].map((n) => (
+      {steps.map((n) => (
         <div key={n} className="flex flex-1 items-center gap-1.5 last:flex-none">
           <div
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
@@ -61,7 +64,7 @@ function StepIndicator({ step }: { step: number }) {
           >
             {n < step ? "✓" : n}
           </div>
-          {n < 3 && (
+          {n < total && (
             <div
               className={`h-0.5 flex-1 ${n < step ? "bg-[#3a9d0a]" : "bg-[#1c2519]"}`}
             />
@@ -241,7 +244,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
   if (step === 1) {
     return (
       <div>
-        <StepIndicator step={1} />
+        <StepIndicator step={1} total={TOTAL_STEPS} />
         <div className="mb-3.5 text-sm font-bold text-[#7be36f]">
           Select your role
         </div>
@@ -278,11 +281,16 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
   }
 
   if (step === 2) {
+    const step2Valid =
+      form.firstName.trim().length > 0 &&
+      form.lastName.trim().length > 0 &&
+      form.jobTitle.trim().length > 0;
+
     return (
       <div>
-        <StepIndicator step={2} />
+        <StepIndicator step={2} total={TOTAL_STEPS} />
         <div className="mb-3.5 text-sm font-bold text-[#7be36f]">
-          Personal &amp; account details
+          Personal Info
         </div>
         <label htmlFor="firstName" className={fieldLabel}>
           First Name
@@ -324,6 +332,39 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           className={`mb-4 h-8 ${fieldUnderline}`}
         />
 
+        <div className="flex justify-between">
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className={buttonSecondary}
+          >
+            ← BACK
+          </button>
+          <button
+            type="button"
+            disabled={!step2Valid}
+            onClick={() => setStep(3)}
+            className={buttonPrimary}
+          >
+            NEXT →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === 3) {
+    const step3Valid =
+      form.departmentId.length > 0 &&
+      form.businessUnitId.length > 0 &&
+      form.locationId.length > 0;
+
+    return (
+      <div>
+        <StepIndicator step={3} total={TOTAL_STEPS} />
+        <div className="mb-3.5 text-sm font-bold text-[#7be36f]">
+          Work Assignment
+        </div>
         <label htmlFor="department" className={fieldLabel}>
           Department
         </label>
@@ -378,6 +419,34 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
           ))}
         </select>
 
+        <div className="flex justify-between">
+          <button
+            type="button"
+            onClick={() => setStep(2)}
+            className={buttonSecondary}
+          >
+            ← BACK
+          </button>
+          <button
+            type="button"
+            disabled={!step3Valid}
+            onClick={() => setStep(4)}
+            className={buttonPrimary}
+          >
+            NEXT →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === 4) {
+    return (
+      <div>
+        <StepIndicator step={4} total={TOTAL_STEPS} />
+        <div className="mb-3.5 text-sm font-bold text-[#7be36f]">
+          Account
+        </div>
         <label htmlFor="email" className={fieldLabel}>
           Email
         </label>
@@ -418,7 +487,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
         <div className="flex justify-between">
           <button
             type="button"
-            onClick={() => setStep(1)}
+            onClick={() => setStep(3)}
             className={buttonSecondary}
           >
             ← BACK
@@ -429,7 +498,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
               !(isEditing ? editUserSchema : registrationSchema).safeParse(form)
                 .success
             }
-            onClick={() => setStep(3)}
+            onClick={() => setStep(5)}
             className={buttonPrimary}
           >
             NEXT →
@@ -441,7 +510,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
 
   return (
     <div>
-      <StepIndicator step={3} />
+      <StepIndicator step={5} total={TOTAL_STEPS} />
       <div className="mb-3 text-sm font-bold text-[#7be36f]">
         Review &amp; confirm
       </div>
@@ -491,7 +560,7 @@ export function RegistrationWizard({ userId, onDone }: RegistrationWizardProps) 
       <div className="flex justify-between">
         <button
           type="button"
-          onClick={() => setStep(2)}
+          onClick={() => setStep(4)}
           className={buttonSecondary}
         >
           ← BACK

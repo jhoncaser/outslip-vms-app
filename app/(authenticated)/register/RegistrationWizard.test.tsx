@@ -14,6 +14,37 @@ const referenceData = {
   locations: [{ id: "loc_1", name: "Zamboanga" }],
 };
 
+function goToPersonalInfo() {
+  fireEvent.change(screen.getByLabelText(/role/i), {
+    target: { value: "CREATOR" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: /next/i }));
+}
+
+function fillPersonalInfo() {
+  fireEvent.change(screen.getByLabelText(/first name/i), {
+    target: { value: "Juan" },
+  });
+  fireEvent.change(screen.getByLabelText(/last name/i), {
+    target: { value: "Dela Cruz" },
+  });
+  fireEvent.change(screen.getByLabelText(/job title/i), {
+    target: { value: "IT Officer" },
+  });
+}
+
+function fillWorkAssignment() {
+  fireEvent.change(screen.getByLabelText(/^department$/i), {
+    target: { value: "dept_1" },
+  });
+  fireEvent.change(screen.getByLabelText(/business unit/i), {
+    target: { value: "bu_1" },
+  });
+  fireEvent.change(screen.getByLabelText(/^location$/i), {
+    target: { value: "loc_1" },
+  });
+}
+
 describe("RegistrationWizard", () => {
   beforeEach(() => {
     refreshMock.mockReset();
@@ -37,34 +68,21 @@ describe("RegistrationWizard", () => {
     );
   });
 
-  it("walks through all 3 steps and submits", async () => {
+  it("walks through all 5 steps and submits", async () => {
     render(<RegistrationWizard />);
 
     await screen.findByText(/select a role/i);
-    fireEvent.change(screen.getByLabelText(/role/i), {
-      target: { value: "CREATOR" },
-    });
+    goToPersonalInfo();
+
+    await screen.findByText(/personal info/i);
+    fillPersonalInfo();
     fireEvent.click(screen.getByRole("button", { name: /next/i }));
 
-    await screen.findByLabelText(/first name/i);
-    fireEvent.change(screen.getByLabelText(/first name/i), {
-      target: { value: "Juan" },
-    });
-    fireEvent.change(screen.getByLabelText(/last name/i), {
-      target: { value: "Dela Cruz" },
-    });
-    fireEvent.change(screen.getByLabelText(/job title/i), {
-      target: { value: "IT Officer" },
-    });
-    fireEvent.change(screen.getByLabelText(/^department$/i), {
-      target: { value: "dept_1" },
-    });
-    fireEvent.change(screen.getByLabelText(/business unit/i), {
-      target: { value: "bu_1" },
-    });
-    fireEvent.change(screen.getByLabelText(/^location$/i), {
-      target: { value: "loc_1" },
-    });
+    await screen.findByText(/work assignment/i);
+    fillWorkAssignment();
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+
+    await screen.findByText(/^account$/i);
     fireEvent.change(screen.getByLabelText(/^email$/i), {
       target: { value: "juan.delacruz@company.com" },
     });
@@ -98,14 +116,11 @@ describe("RegistrationWizard", () => {
     await screen.findByText(/select a role/i);
   });
 
-  it("keeps step 2's Next button disabled until every field is valid", async () => {
+  it("keeps Personal Info's Next button disabled until name and job title are filled", async () => {
     render(<RegistrationWizard />);
 
     await screen.findByText(/select a role/i);
-    fireEvent.change(screen.getByLabelText(/role/i), {
-      target: { value: "CREATOR" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    goToPersonalInfo();
 
     await screen.findByLabelText(/first name/i);
     const nextButton = screen.getByRole("button", { name: /next/i });
@@ -114,21 +129,64 @@ describe("RegistrationWizard", () => {
     fireEvent.change(screen.getByLabelText(/first name/i), {
       target: { value: "Juan" },
     });
+    expect(nextButton).toBeDisabled();
+
     fireEvent.change(screen.getByLabelText(/last name/i), {
       target: { value: "Dela Cruz" },
     });
+    expect(nextButton).toBeDisabled();
+
     fireEvent.change(screen.getByLabelText(/job title/i), {
       target: { value: "IT Officer" },
     });
+    expect(nextButton).not.toBeDisabled();
+  });
+
+  it("keeps Work Assignment's Next button disabled until department, business unit, and location are selected", async () => {
+    render(<RegistrationWizard />);
+
+    await screen.findByText(/select a role/i);
+    goToPersonalInfo();
+    await screen.findByText(/personal info/i);
+    fillPersonalInfo();
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+
+    await screen.findByText(/work assignment/i);
+    const nextButton = screen.getByRole("button", { name: /next/i });
+    expect(nextButton).toBeDisabled();
+
     fireEvent.change(screen.getByLabelText(/^department$/i), {
       target: { value: "dept_1" },
     });
+    expect(nextButton).toBeDisabled();
+
     fireEvent.change(screen.getByLabelText(/business unit/i), {
       target: { value: "bu_1" },
     });
+    expect(nextButton).toBeDisabled();
+
     fireEvent.change(screen.getByLabelText(/^location$/i), {
       target: { value: "loc_1" },
     });
+    expect(nextButton).not.toBeDisabled();
+  });
+
+  it("keeps Account's Next button disabled until email and password are valid", async () => {
+    render(<RegistrationWizard />);
+
+    await screen.findByText(/select a role/i);
+    goToPersonalInfo();
+    await screen.findByText(/personal info/i);
+    fillPersonalInfo();
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    await screen.findByText(/work assignment/i);
+    fillWorkAssignment();
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+
+    await screen.findByText(/^account$/i);
+    const nextButton = screen.getByRole("button", { name: /next/i });
+    expect(nextButton).toBeDisabled();
+
     fireEvent.change(screen.getByLabelText(/^email$/i), {
       target: { value: "juan.delacruz@company.com" },
     });
@@ -211,12 +269,17 @@ describe("RegistrationWizard — edit mode", () => {
     await screen.findByDisplayValue("Maria");
     expect(screen.getByDisplayValue("Santos")).toBeInTheDocument();
     expect(screen.getByDisplayValue("HR Manager")).toBeInTheDocument();
-    expect(screen.queryByLabelText(/^password$/i)).not.toBeInTheDocument();
-    expect(screen.queryByLabelText(/confirm password/i)).not.toBeInTheDocument();
-
     fireEvent.change(screen.getByLabelText(/job title/i), {
       target: { value: "Senior HR Manager" },
     });
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+
+    await screen.findByText(/work assignment/i);
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+
+    await screen.findByText(/^account$/i);
+    expect(screen.queryByLabelText(/^password$/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/confirm password/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /next/i }));
 
     await screen.findByText(/review & confirm/i);
