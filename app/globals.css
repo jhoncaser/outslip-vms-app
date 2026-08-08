@@ -169,6 +169,11 @@ body {
   }
 }
 
+select option {
+  background-color: #141e12;
+  color: #eafbe4;
+}
+
 @keyframes drawer-slide-in {
   from {
     transform: translateX(-100%);
