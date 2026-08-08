@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { transactionSchema } from "./transaction";
+import { transactionSchema, postTransactionSchema } from "./transaction";
 
 describe("transactionSchema", () => {
   it("accepts a valid matrixTypeId with no other fields", () => {
@@ -70,6 +70,28 @@ describe("transactionSchema", () => {
       matrixTypeId: "abc123",
       transportType: "Not A Real Type",
     });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("postTransactionSchema", () => {
+  it("accepts { posted: true }", () => {
+    const result = postTransactionSchema.safeParse({ posted: true });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts { posted: false }", () => {
+    const result = postTransactionSchema.safeParse({ posted: false });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a missing posted field", () => {
+    const result = postTransactionSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a non-boolean posted value", () => {
+    const result = postTransactionSchema.safeParse({ posted: "true" });
     expect(result.success).toBe(false);
   });
 });

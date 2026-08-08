@@ -147,6 +147,7 @@ model Transaction {
   plateNo       String?
 
   lineItems TransactionLineItem[]
+  postedAt  DateTime?
 }
 
 model TransactionLineItem {

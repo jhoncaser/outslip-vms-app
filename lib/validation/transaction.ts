@@ -19,3 +19,7 @@ export const transactionSchema = z.object({
   transportType: z.enum(TRANSPORT_TYPE_OPTIONS).optional(),
   plateNo: z.string().optional(),
 });
+
+export const postTransactionSchema = z.object({
+  posted: z.boolean(),
+});
