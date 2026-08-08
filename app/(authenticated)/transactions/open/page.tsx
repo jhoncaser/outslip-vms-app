@@ -83,6 +83,8 @@ export default async function OpenTransactionsPage() {
         day: "numeric",
         year: "numeric",
       }),
+      postedAt: row.postedAt ? row.postedAt.toISOString() : null,
+      canManagePosting: session?.sub === row.creatorId,
     }))
   );
 

@@ -29,6 +29,8 @@ const transactions = [
     createdBy: "Jhon Caser",
     statusName: "Open",
     createdAt: "Jul 21, 2026",
+    postedAt: null,
+    canManagePosting: true,
   },
 ];
 const visitorPassTransactions = [
@@ -70,10 +72,10 @@ const businessUnits = [
   { id: "bu2", name: "MSC" },
 ];
 
-function renderView(currentUserBusinessUnit = "") {
+function renderView(currentUserBusinessUnit = "", rows = transactions) {
   return render(
     <TransactionsView
-      transactions={transactions}
+      transactions={rows}
       matrixTypes={matrixTypes}
       currentUserBusinessUnit={currentUserBusinessUnit}
       departments={departments}
@@ -113,7 +115,7 @@ describe("TransactionsView", () => {
     );
   });
 
-  it("renders the transactions table with the 6 core columns", () => {
+  it("renders the transactions table with the 7 core columns", () => {
     renderView();
     const headers = screen.getAllByRole("columnheader").map((h) => h.textContent);
     expect(headers).toEqual([
@@ -123,6 +125,7 @@ describe("TransactionsView", () => {
       "Created By",
       "Status",
       "Date Filed",
+      "Actions",
     ]);
     expect(screen.getByText("OT-001")).toBeInTheDocument();
     expect(screen.getByText("Halfday")).toBeInTheDocument();
@@ -696,6 +699,71 @@ describe("TransactionsView", () => {
 
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    );
+  });
+});
+
+describe("TransactionsView — Post/Unpost", () => {
+  beforeEach(() => {
+    pushMock.mockClear();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve({ ok: true, json: async () => ({ postedAt: null }) }))
+    );
+  });
+
+  it("shows a Post button when the current user created the transaction and it isn't posted", () => {
+    renderView("", [{ ...transactions[0], canManagePosting: true, postedAt: null }]);
+    expect(
+      within(rowFor("OT-001")).getByRole("button", { name: /^post$/i })
+    ).toBeInTheDocument();
+  });
+
+  it("shows a dash instead of a button when the current user didn't create the transaction", () => {
+    renderView("", [{ ...transactions[0], canManagePosting: false, postedAt: null }]);
+    expect(
+      within(rowFor("OT-001")).queryByRole("button", { name: /^post$|^unpost$/i })
+    ).not.toBeInTheDocument();
+    expect(within(rowFor("OT-001")).getByText("—")).toBeInTheDocument();
+  });
+
+  it("shows an Unpost button and a POSTED badge when already posted", () => {
+    renderView("", [
+      { ...transactions[0], canManagePosting: true, postedAt: "2026-08-08T00:00:00.000Z" },
+    ]);
+    const row = rowFor("OT-001");
+    expect(within(row).getByRole("button", { name: /^unpost$/i })).toBeInTheDocument();
+    expect(within(row).getByText("POSTED")).toBeInTheDocument();
+  });
+
+  it("posting requires confirmation and does not navigate the row", () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    renderView("", [{ ...transactions[0], canManagePosting: true, postedAt: null }]);
+    fireEvent.click(within(rowFor("OT-001")).getByRole("button", { name: /^post$/i }));
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(pushMock).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
+
+  it("unposting does not show a confirm dialog", () => {
+    const confirmSpy = vi.spyOn(window, "confirm");
+    renderView("", [
+      { ...transactions[0], canManagePosting: true, postedAt: "2026-08-08T00:00:00.000Z" },
+    ]);
+    fireEvent.click(within(rowFor("OT-001")).getByRole("button", { name: /^unpost$/i }));
+    expect(confirmSpy).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
+
+  it("calls the PATCH endpoint with the transaction id and posted flag", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    renderView("", [{ ...transactions[0], canManagePosting: true, postedAt: null }]);
+    fireEvent.click(within(rowFor("OT-001")).getByRole("button", { name: /^post$/i }));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions/t1",
+        expect.objectContaining({ method: "PATCH", body: JSON.stringify({ posted: true }) })
+      )
     );
   });
 });

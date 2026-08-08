@@ -34,6 +34,8 @@ export type TransactionRow = {
   createdBy: string;
   statusName: string;
   createdAt: string;
+  postedAt: string | null;
+  canManagePosting: boolean;
 };
 export type MatrixTypeOption = { id: string; name: string };
 export type DepartmentOption = { id: string; name: string };
@@ -60,9 +62,44 @@ function CloseIcon() {
 
 function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
   const router = useRouter();
-  const columns = ["QR", "Code", "Transaction Type", "Created By", "Status", "Date Filed"];
+  const columns = ["QR", "Code", "Transaction Type", "Created By", "Status", "Date Filed", "Actions"];
   const [enlargedCode, setEnlargedCode] = useState<string | null>(null);
   const enlargedRow = rows.find((row) => row.transactionCode === enlargedCode) ?? null;
+  const [postingId, setPostingId] = useState<string | null>(null);
+  const [postError, setPostError] = useState<{ id: string; message: string } | null>(null);
+
+  async function handleTogglePosted(row: TransactionRow) {
+    const nextPosted = row.postedAt === null;
+    if (nextPosted) {
+      const confirmed = window.confirm(
+        "Post this transaction? You won't be able to add, edit, or delete line items until you unpost it."
+      );
+      if (!confirmed) return;
+    }
+
+    setPostError(null);
+    setPostingId(row.id);
+    try {
+      const response = await fetch(`/api/transactions/${row.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ posted: nextPosted }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setPostError({ id: row.id, message: data.error ?? "Something went wrong" });
+        setPostingId(null);
+        return;
+      }
+
+      setPostingId(null);
+      router.refresh();
+    } catch {
+      setPostError({ id: row.id, message: "An error occurred while updating the transaction" });
+      setPostingId(null);
+    }
+  }
 
   return (
     <>
@@ -124,8 +161,31 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
                   <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{row.createdBy}</td>
                   <td className="whitespace-nowrap px-4 py-3">
                     <span className={pillClass("slate")}>{row.statusName}</span>
+                    {row.postedAt && <span className={`ml-2 ${pillClass("green")}`}>POSTED</span>}
                   </td>
                   <td className={`whitespace-nowrap px-4 py-3 ${mutedText}`}>{row.createdAt}</td>
+                  <td className="whitespace-nowrap px-4 py-3">
+                    {row.canManagePosting ? (
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleTogglePosted(row);
+                        }}
+                        disabled={postingId === row.id}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[#4ca71a]/40 bg-transparent px-3 py-1.5 text-xs font-semibold text-[#7be36f] transition-colors duration-150 hover:border-[#57e34c] hover:bg-[#57e34c]/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#57e34c]/35 motion-reduce:transition-none disabled:opacity-60"
+                      >
+                        {postingId === row.id ? "Saving…" : row.postedAt ? "Unpost" : "Post"}
+                      </button>
+                    ) : (
+                      <span className={mutedText}>—</span>
+                    )}
+                    {postError?.id === row.id && (
+                      <p role="alert" className="mt-1 text-[10px] text-red-400">
+                        {postError.message}
+                      </p>
+                    )}
+                  </td>
                 </RevealRow>
               ))
             )}
