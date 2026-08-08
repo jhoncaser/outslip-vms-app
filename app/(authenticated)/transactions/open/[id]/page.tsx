@@ -1,6 +1,8 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/prisma";
+import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { pageBackground } from "@/lib/deepForest";
 import { findScopeMatchedApprovers } from "@/lib/matchApprovers";
 import { TransactionDetailView, type LineItemRow, type ApproverRow } from "./TransactionDetailView";
@@ -11,6 +13,10 @@ export default async function TransactionDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const session = token ? await verifySessionToken(token) : null;
 
   const [transaction, users] = await Promise.all([
     prisma.transaction.findUnique({
@@ -59,6 +65,7 @@ export default async function TransactionDetailPage({
   if (!transaction) notFound();
 
   const isVisitorPass = transaction.matrixType.name === "Visitor Pass";
+  const isOwner = session?.sub === transaction.creatorId;
 
   const matchedApprovers = await findScopeMatchedApprovers({
     matrixTypeId: transaction.matrixTypeId,
@@ -111,6 +118,7 @@ export default async function TransactionDetailPage({
       day: "numeric",
       year: "numeric",
     }),
+    postedAt: transaction.postedAt ? transaction.postedAt.toISOString() : null,
     detailFields: detailFieldCandidates.filter((field) => field.value !== "—"),
   };
 
@@ -154,6 +162,7 @@ export default async function TransactionDetailPage({
           employees={employees}
           remarksDefault={transaction.reason ?? ""}
           approvers={approvers}
+          isOwner={isOwner}
         />
       </div>
     </div>

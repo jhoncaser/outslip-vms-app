@@ -22,6 +22,7 @@ export type TransactionDetailData = {
   statusName: string;
   createdBy: string;
   createdAt: string;
+  postedAt: string | null;
   detailFields: { label: string; value: string }[];
 };
 
@@ -117,16 +118,20 @@ export function TransactionDetailView({
   employees,
   remarksDefault,
   approvers = [],
+  isOwner = false,
 }: {
   transaction: TransactionDetailData;
   lineItems: LineItemRow[];
   employees: EmployeeOption[];
   remarksDefault: string;
   approvers?: ApproverRow[];
+  isOwner?: boolean;
 }) {
   const router = useRouter();
   const isVisitorPass = transaction.matrixTypeName === "Visitor Pass";
-  const columns = isVisitorPass ? VISITOR_PASS_COLUMNS : EMPLOYEE_COLUMNS;
+  const isPosted = transaction.postedAt !== null;
+  const baseColumns = isVisitorPass ? VISITOR_PASS_COLUMNS : EMPLOYEE_COLUMNS;
+  const columns = isPosted ? baseColumns.filter((column) => column !== "Actions") : baseColumns;
 
   const approversByLevel = new Map<number, ApproverRow[]>();
   for (const approver of approvers) {
@@ -311,6 +316,41 @@ export function TransactionDetailView({
     }
   }
 
+  const [postSubmitting, setPostSubmitting] = useState(false);
+  const [postError, setPostError] = useState("");
+
+  async function handleTogglePosted() {
+    if (!isPosted) {
+      const confirmed = window.confirm(
+        "Post this transaction? You won't be able to add, edit, or delete line items until you unpost it."
+      );
+      if (!confirmed) return;
+    }
+
+    setPostError("");
+    setPostSubmitting(true);
+    try {
+      const response = await fetch(`/api/transactions/${transaction.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ posted: !isPosted }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setPostError(data.error ?? "Something went wrong");
+        setPostSubmitting(false);
+        return;
+      }
+
+      setPostSubmitting(false);
+      router.refresh();
+    } catch {
+      setPostError("An error occurred while updating the transaction");
+      setPostSubmitting(false);
+    }
+  }
+
   return (
     <div className="w-full">
       <Link
@@ -342,7 +382,10 @@ export function TransactionDetailView({
             <p className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">
               Status
             </p>
-            <p className="text-sm text-[#eafbe4]">{transaction.statusName}</p>
+            <p className="flex items-center gap-2 text-sm text-[#eafbe4]">
+              {transaction.statusName}
+              {isPosted && <span className={pillClass("green")}>POSTED</span>}
+            </p>
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">
@@ -366,14 +409,33 @@ export function TransactionDetailView({
           {isVisitorPass ? "Visitor Lists" : "Employee/Visitor Lists"}{" "}
           <span className="font-normal text-[#6f8a68]">({lineItems.length})</span>
         </h2>
-        <button
-          type="button"
-          onClick={openCreateModal}
-          className={`${buttonPrimary} px-5 py-2 text-xs`}
-        >
-          + Add Line Item
-        </button>
+        <div className="flex items-center gap-2">
+          {isOwner && (
+            <button
+              type="button"
+              onClick={handleTogglePosted}
+              disabled={postSubmitting}
+              className={`${isPosted ? buttonSecondary : buttonPrimary} px-5 py-2 text-xs`}
+            >
+              {postSubmitting ? "Saving…" : isPosted ? "UNPOST" : "POST"}
+            </button>
+          )}
+          {!isPosted && (
+            <button
+              type="button"
+              onClick={openCreateModal}
+              className={`${buttonPrimary} px-5 py-2 text-xs`}
+            >
+              + Add Line Item
+            </button>
+          )}
+        </div>
       </div>
+      {postError && (
+        <p role="alert" className="mb-3 text-xs text-red-400">
+          {postError}
+        </p>
+      )}
 
       <div className={tableWrap}>
         <table className="w-full border-collapse text-left text-sm text-[#cfe9c7]">
@@ -434,26 +496,28 @@ export function TransactionDetailView({
                       <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.remarks}</td>
                     </>
                   )}
-                  <td className="whitespace-nowrap px-4 py-3">
-                    <button
-                      type="button"
-                      title="Edit"
-                      aria-label={`Edit ${isVisitorPass ? item.visitorName : item.employeeName}`}
-                      onClick={() => openEditModal(item)}
-                      className="mr-2 inline-block text-[#6f8a68] transition-transform duration-150 hover:-translate-y-0.5 hover:scale-125 hover:text-[#7be36f] motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      type="button"
-                      title="Delete"
-                      aria-label={`Delete ${isVisitorPass ? item.visitorName : item.employeeName}`}
-                      onClick={() => openDeleteModal(item)}
-                      className="inline-block text-[#6f8a68] transition-transform duration-150 hover:-translate-y-0.5 hover:scale-125 hover:text-red-400 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100"
-                    >
-                      🗑️
-                    </button>
-                  </td>
+                  {!isPosted && (
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <button
+                        type="button"
+                        title="Edit"
+                        aria-label={`Edit ${isVisitorPass ? item.visitorName : item.employeeName}`}
+                        onClick={() => openEditModal(item)}
+                        className="mr-2 inline-block text-[#6f8a68] transition-transform duration-150 hover:-translate-y-0.5 hover:scale-125 hover:text-[#7be36f] motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        type="button"
+                        title="Delete"
+                        aria-label={`Delete ${isVisitorPass ? item.visitorName : item.employeeName}`}
+                        onClick={() => openDeleteModal(item)}
+                        className="inline-block text-[#6f8a68] transition-transform duration-150 hover:-translate-y-0.5 hover:scale-125 hover:text-red-400 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100"
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  )}
                 </RevealRow>
               ))
             )}

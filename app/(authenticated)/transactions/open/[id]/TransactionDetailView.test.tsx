@@ -14,6 +14,7 @@ const visitorPassTransaction = {
   statusName: "Open",
   createdBy: "Jhon Caser",
   createdAt: "Jul 28, 2026",
+  postedAt: null,
   detailFields: [{ label: "Reason", value: "Client meeting" }],
 };
 
@@ -678,5 +679,128 @@ describe("TransactionDetailView", () => {
       />
     );
     expect(screen.getByText(/👤 List Approvers/)).toBeInTheDocument();
+  });
+});
+
+describe("TransactionDetailView — Post/Unpost", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true, json: async () => ({ postedAt: null }) })));
+  });
+
+  it("does not render a Post button for a non-owner", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    expect(screen.queryByRole("button", { name: /^post$/i })).not.toBeInTheDocument();
+  });
+
+  it("renders a Post button for the owner when not posted, and confirms before posting", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^post$/i }));
+    expect(confirmSpy).toHaveBeenCalledWith(
+      "Post this transaction? You won't be able to add, edit, or delete line items until you unpost it."
+    );
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions/t1",
+        expect.objectContaining({ method: "PATCH", body: JSON.stringify({ posted: true }) })
+      )
+    );
+    confirmSpy.mockRestore();
+  });
+
+  it("does not post when the confirm dialog is dismissed", () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^post$/i }));
+    expect(fetch).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
+
+  it("shows a POSTED badge and hides + Add Line Item and the Actions column once posted, for every viewer", () => {
+    const postedTransaction = { ...visitorPassTransaction, postedAt: "2026-08-08T00:00:00.000Z" };
+    render(
+      <TransactionDetailView
+        transaction={postedTransaction}
+        lineItems={visitorPassLineItems}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    expect(screen.getByText("POSTED")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /\+ add line item/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Actions" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/edit analyn gentizon/i)).not.toBeInTheDocument();
+  });
+
+  it("renders an Unpost button for the owner when posted, with no confirm dialog", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm");
+    const postedTransaction = { ...visitorPassTransaction, postedAt: "2026-08-08T00:00:00.000Z" };
+    render(
+      <TransactionDetailView
+        transaction={postedTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^unpost$/i }));
+    expect(confirmSpy).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions/t1",
+        expect.objectContaining({ method: "PATCH", body: JSON.stringify({ posted: false }) })
+      )
+    );
+    confirmSpy.mockRestore();
+  });
+
+  it("shows an inline error when the PATCH request fails", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          json: async () => ({ error: "Only the creator can post or unpost this transaction" }),
+        })
+      )
+    );
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^post$/i }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /only the creator can post or unpost this transaction/i
+    );
   });
 });
