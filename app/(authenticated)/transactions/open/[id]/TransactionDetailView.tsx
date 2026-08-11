@@ -15,6 +15,8 @@ import { headingText, mutedText, tableWrap, tableHeaderRow, modalHeader, modalCa
 import { RevealRow } from "@/components/RevealRow";
 import { CancelTransactionModal } from "@/components/dashboard/CancelTransactionModal";
 import { PostTransactionModal } from "@/components/dashboard/PostTransactionModal";
+import { ApproveTransactionModal } from "@/components/dashboard/ApproveTransactionModal";
+import { ReviseTransactionModal } from "@/components/dashboard/ReviseTransactionModal";
 
 export type TransactionDetailData = {
   id: string;
@@ -25,6 +27,7 @@ export type TransactionDetailData = {
   createdBy: string;
   createdAt: string;
   postedAt: string | null;
+  revisionReason?: string | null;
   detailFields: { label: string; value: string }[];
 };
 
@@ -121,6 +124,8 @@ export function TransactionDetailView({
   remarksDefault,
   approvers = [],
   isOwner = false,
+  isPendingApprover = false,
+  isFinalApprovalLevel = false,
 }: {
   transaction: TransactionDetailData;
   lineItems: LineItemRow[];
@@ -128,6 +133,8 @@ export function TransactionDetailView({
   remarksDefault: string;
   approvers?: ApproverRow[];
   isOwner?: boolean;
+  isPendingApprover?: boolean;
+  isFinalApprovalLevel?: boolean;
 }) {
   const router = useRouter();
   const isVisitorPass = transaction.matrixTypeName === "Visitor Pass";
@@ -387,6 +394,64 @@ export function TransactionDetailView({
     }
   }
 
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [approveSubmitting, setApproveSubmitting] = useState(false);
+  const [approveError, setApproveError] = useState("");
+
+  async function handleConfirmApprove() {
+    setApproveError("");
+    setApproveSubmitting(true);
+    try {
+      const response = await fetch(`/api/transactions/${transaction.id}/approve`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setApproveError(data.error ?? "Failed to approve transaction");
+        setApproveSubmitting(false);
+        return;
+      }
+
+      setApproveSubmitting(false);
+      setShowApproveModal(false);
+      router.refresh();
+    } catch {
+      setApproveError("An error occurred while approving the transaction");
+      setApproveSubmitting(false);
+    }
+  }
+
+  const [showReviseModal, setShowReviseModal] = useState(false);
+  const [reviseSubmitting, setReviseSubmitting] = useState(false);
+  const [reviseError, setReviseError] = useState("");
+
+  async function handleConfirmRevise(reason: string) {
+    setReviseError("");
+    setReviseSubmitting(true);
+    try {
+      const response = await fetch(`/api/transactions/${transaction.id}/revise`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setReviseError(data.error ?? "Failed to revise transaction");
+        setReviseSubmitting(false);
+        return;
+      }
+
+      setReviseSubmitting(false);
+      setShowReviseModal(false);
+      router.refresh();
+    } catch {
+      setReviseError("An error occurred while revising the transaction");
+      setReviseSubmitting(false);
+    }
+  }
+
   return (
     <div className="w-full">
       <Link
@@ -465,6 +530,31 @@ export function TransactionDetailView({
               DELETE
             </button>
           )}
+          {isPendingApprover && (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowApproveModal(true)}
+                className={`${buttonPrimary} px-5 py-2 text-xs`}
+              >
+                Approve
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowReviseModal(true)}
+                className="rounded-full border border-[#fbbf24]/40 bg-transparent px-5 py-2 text-xs font-semibold text-[#fbbf24] transition-colors duration-150 hover:border-[#fbbf24] hover:bg-[#fbbf24]/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#fbbf24]/40 motion-reduce:transition-none"
+              >
+                Revise
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCancelModal(true)}
+                className="rounded-full border border-red-500/40 bg-transparent px-5 py-2 text-xs font-semibold text-red-400 transition-colors duration-150 hover:border-red-400 hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-400/40 motion-reduce:transition-none"
+              >
+                Cancel
+              </button>
+            </>
+          )}
           {!isLocked && (
             <button
               type="button"
@@ -476,6 +566,13 @@ export function TransactionDetailView({
           )}
         </div>
       </div>
+
+      {transaction.revisionReason && (
+        <div className="mb-3 rounded-lg border border-[#fbbf24]/30 bg-[#fbbf24]/10 px-3 py-2 text-xs text-[#fcd34d]">
+          <span className="font-bold">Revision requested:</span> {transaction.revisionReason}
+        </div>
+      )}
+
       {postError && !showPostModal && (
         <p role="alert" className="mb-3 text-xs text-red-400">
           {postError}
@@ -948,6 +1045,29 @@ export function TransactionDetailView({
           error={postError}
           onCancel={() => setShowPostModal(false)}
           onConfirm={handleTogglePosted}
+        />
+      )}
+
+      {showApproveModal && (
+        <ApproveTransactionModal
+          transactionCode={transaction.transactionCode}
+          matrixTypeName={transaction.matrixTypeName}
+          isFinalLevel={isFinalApprovalLevel}
+          submitting={approveSubmitting}
+          error={approveError}
+          onCancel={() => setShowApproveModal(false)}
+          onConfirm={handleConfirmApprove}
+        />
+      )}
+
+      {showReviseModal && (
+        <ReviseTransactionModal
+          transactionCode={transaction.transactionCode}
+          matrixTypeName={transaction.matrixTypeName}
+          submitting={reviseSubmitting}
+          error={reviseError}
+          onCancel={() => setShowReviseModal(false)}
+          onConfirm={handleConfirmRevise}
         />
       )}
     </div>

@@ -936,3 +936,140 @@ describe("TransactionDetailView — Delete", () => {
     expect(screen.queryByLabelText(/edit analyn gentizon/i)).not.toBeInTheDocument();
   });
 });
+
+describe("TransactionDetailView — Approver actions", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true, json: async () => ({}) })));
+  });
+
+  const postedTransaction = { ...visitorPassTransaction, postedAt: "2026-08-08T00:00:00.000Z" };
+
+  it("does not render approver buttons for a non-pending-approver viewer", () => {
+    render(
+      <TransactionDetailView
+        transaction={postedTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    expect(screen.queryByRole("button", { name: /^approve$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^revise$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^cancel$/i })).not.toBeInTheDocument();
+  });
+
+  it("renders Approve/Revise/Cancel for the pending-level approver", () => {
+    render(
+      <TransactionDetailView
+        transaction={postedTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isPendingApprover
+        isFinalApprovalLevel={false}
+      />
+    );
+    expect(screen.getByRole("button", { name: /^approve$/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^revise$/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^cancel$/i })).toBeInTheDocument();
+  });
+
+  it("opens the approve modal and calls the approve endpoint on confirm", async () => {
+    render(
+      <TransactionDetailView
+        transaction={postedTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isPendingApprover
+        isFinalApprovalLevel={false}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^approve$/i }));
+    const dialog = screen.getByRole("dialog", { name: /approve this transaction/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^approve$/i }));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions/t1/approve",
+        expect.objectContaining({ method: "POST" })
+      )
+    );
+  });
+
+  it("opens the revise modal and calls the revise endpoint with the reason on confirm", async () => {
+    render(
+      <TransactionDetailView
+        transaction={postedTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isPendingApprover
+        isFinalApprovalLevel={false}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^revise$/i }));
+    const dialog = screen.getByRole("dialog", { name: /send back for revision/i });
+    fireEvent.change(within(dialog).getByLabelText(/reason/i), {
+      target: { value: "Please double check the planned time" },
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: /send for revision/i }));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions/t1/revise",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ reason: "Please double check the planned time" }),
+        })
+      )
+    );
+  });
+
+  it("approver Cancel opens the existing CancelTransactionModal and calls DELETE", async () => {
+    render(
+      <TransactionDetailView
+        transaction={postedTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isPendingApprover
+        isFinalApprovalLevel={false}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
+    const dialog = screen.getByRole("dialog", { name: /delete this transaction/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^delete$/i }));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions/t1",
+        expect.objectContaining({ method: "DELETE" })
+      )
+    );
+  });
+
+  it("shows the revision reason banner when present", () => {
+    const revisedTransaction = { ...visitorPassTransaction, revisionReason: "Fix the planned date" };
+    render(
+      <TransactionDetailView
+        transaction={revisedTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    expect(screen.getByText(/fix the planned date/i)).toBeInTheDocument();
+  });
+
+  it("does not show the revision reason banner when absent", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    expect(screen.queryByText(/revision requested/i)).not.toBeInTheDocument();
+  });
+});
