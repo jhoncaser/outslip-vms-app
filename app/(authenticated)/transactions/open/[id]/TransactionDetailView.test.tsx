@@ -699,8 +699,7 @@ describe("TransactionDetailView — Post/Unpost", () => {
     expect(screen.queryByRole("button", { name: /^post$/i })).not.toBeInTheDocument();
   });
 
-  it("renders a Post button for the owner when not posted, and confirms before posting", async () => {
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+  it("opens the post-confirmation modal with the transaction code and type", () => {
     render(
       <TransactionDetailView
         transaction={visitorPassTransaction}
@@ -711,20 +710,33 @@ describe("TransactionDetailView — Post/Unpost", () => {
       />
     );
     fireEvent.click(screen.getByRole("button", { name: /^post$/i }));
-    expect(confirmSpy).toHaveBeenCalledWith(
-      "Post this transaction? You won't be able to add, edit, or delete line items until you unpost it."
+    const dialog = screen.getByRole("dialog", { name: /post this transaction/i });
+    expect(within(dialog).getByText("OT-001")).toBeInTheDocument();
+    expect(within(dialog).getByText("Visitor Pass")).toBeInTheDocument();
+  });
+
+  it("calls the PATCH endpoint on confirm", async () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
     );
+    fireEvent.click(screen.getByRole("button", { name: /^post$/i }));
+    const dialog = screen.getByRole("dialog", { name: /post this transaction/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^post$/i }));
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
         "/api/transactions/t1",
         expect.objectContaining({ method: "PATCH", body: JSON.stringify({ posted: true }) })
       )
     );
-    confirmSpy.mockRestore();
   });
 
-  it("does not post when the confirm dialog is dismissed", () => {
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+  it("closes the modal without calling PATCH when Cancel is clicked", () => {
     render(
       <TransactionDetailView
         transaction={visitorPassTransaction}
@@ -735,8 +747,10 @@ describe("TransactionDetailView — Post/Unpost", () => {
       />
     );
     fireEvent.click(screen.getByRole("button", { name: /^post$/i }));
+    const dialog = screen.getByRole("dialog", { name: /post this transaction/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^cancel$/i }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
-    confirmSpy.mockRestore();
   });
 
   it("shows a POSTED badge and hides + Add Line Item and the Actions column once posted, for every viewer", () => {
@@ -755,8 +769,7 @@ describe("TransactionDetailView — Post/Unpost", () => {
     expect(screen.queryByLabelText(/edit analyn gentizon/i)).not.toBeInTheDocument();
   });
 
-  it("renders an Unpost button for the owner when posted, with no confirm dialog", async () => {
-    const confirmSpy = vi.spyOn(window, "confirm");
+  it("renders an Unpost button for the owner when posted, and unposts immediately with no confirmation modal", async () => {
     const postedTransaction = { ...visitorPassTransaction, postedAt: "2026-08-08T00:00:00.000Z" };
     render(
       <TransactionDetailView
@@ -768,18 +781,16 @@ describe("TransactionDetailView — Post/Unpost", () => {
       />
     );
     fireEvent.click(screen.getByRole("button", { name: /^unpost$/i }));
-    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog", { name: /post this transaction/i })).not.toBeInTheDocument();
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
         "/api/transactions/t1",
         expect.objectContaining({ method: "PATCH", body: JSON.stringify({ posted: false }) })
       )
     );
-    confirmSpy.mockRestore();
   });
 
-  it("shows an inline error when the PATCH request fails", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+  it("shows an error inside the modal when the PATCH request fails, and keeps it open", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(() =>
@@ -799,9 +810,12 @@ describe("TransactionDetailView — Post/Unpost", () => {
       />
     );
     fireEvent.click(screen.getByRole("button", { name: /^post$/i }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
+    const dialog = screen.getByRole("dialog", { name: /post this transaction/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^post$/i }));
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
       /only the creator can post or unpost this transaction/i
     );
+    expect(screen.getByRole("dialog", { name: /post this transaction/i })).toBeInTheDocument();
   });
 });
 

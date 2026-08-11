@@ -14,6 +14,7 @@ import { TRANSPORT_TYPE_OPTIONS } from "@/lib/transportTypeOptions";
 import { headingText, mutedText, tableWrap, tableHeaderRow, modalHeader, modalCard, buttonPrimary, buttonSecondary, fieldLabel, fieldBox, pillClass } from "@/lib/deepForest";
 import { RevealRow } from "@/components/RevealRow";
 import { CancelTransactionModal } from "@/components/dashboard/CancelTransactionModal";
+import { PostTransactionModal } from "@/components/dashboard/PostTransactionModal";
 
 export type TransactionDetailData = {
   id: string;
@@ -321,15 +322,18 @@ export function TransactionDetailView({
 
   const [postSubmitting, setPostSubmitting] = useState(false);
   const [postError, setPostError] = useState("");
+  const [showPostModal, setShowPostModal] = useState(false);
+
+  function handlePostButtonClick() {
+    if (isPosted) {
+      handleTogglePosted();
+    } else {
+      setPostError("");
+      setShowPostModal(true);
+    }
+  }
 
   async function handleTogglePosted() {
-    if (!isPosted) {
-      const confirmed = window.confirm(
-        "Post this transaction? You won't be able to add, edit, or delete line items until you unpost it."
-      );
-      if (!confirmed) return;
-    }
-
     setPostError("");
     setPostSubmitting(true);
     try {
@@ -347,6 +351,7 @@ export function TransactionDetailView({
       }
 
       setPostSubmitting(false);
+      setShowPostModal(false);
       router.refresh();
     } catch {
       setPostError("An error occurred while updating the transaction");
@@ -444,7 +449,7 @@ export function TransactionDetailView({
           {isOwner && !isCancelled && (
             <button
               type="button"
-              onClick={handleTogglePosted}
+              onClick={handlePostButtonClick}
               disabled={postSubmitting}
               className={`${isPosted ? buttonSecondary : buttonPrimary} px-5 py-2 text-xs`}
             >
@@ -471,7 +476,7 @@ export function TransactionDetailView({
           )}
         </div>
       </div>
-      {postError && (
+      {postError && !showPostModal && (
         <p role="alert" className="mb-3 text-xs text-red-400">
           {postError}
         </p>
@@ -932,6 +937,17 @@ export function TransactionDetailView({
           error={cancelError}
           onCancel={() => setShowCancelModal(false)}
           onConfirm={handleConfirmCancel}
+        />
+      )}
+
+      {showPostModal && (
+        <PostTransactionModal
+          transactionCode={transaction.transactionCode}
+          matrixTypeName={transaction.matrixTypeName}
+          submitting={postSubmitting}
+          error={postError}
+          onCancel={() => setShowPostModal(false)}
+          onConfirm={handleTogglePosted}
         />
       )}
     </div>
