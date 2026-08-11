@@ -62,7 +62,8 @@ model User {
   transactionsCreated Transaction[]
   approverAssignments MatrixTypeApprover[]
 
-  lineItemAssignments TransactionLineItem[]
+  lineItemAssignments  TransactionLineItem[]
+  transactionApprovals TransactionApproval[]
 }
 
 model MatrixType {
@@ -148,6 +149,9 @@ model Transaction {
 
   lineItems TransactionLineItem[]
   postedAt  DateTime?
+
+  approvals      TransactionApproval[]
+  revisionReason String?
 }
 
 model TransactionLineItem {
@@ -174,4 +178,18 @@ model TransactionLineItem {
   employeeId   String?
   name         String?
   remarks      String?
+}
+
+model TransactionApproval {
+  id        String   @id @default(cuid())
+  level     Int
+  decidedAt DateTime @default(now())
+
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  transactionId String
+
+  approver   User   @relation(fields: [approverId], references: [id])
+  approverId String
+
+  @@unique([transactionId, level])
 }

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 export type ScopeMatchedApprover = {
   id: string;
   level: number;
+  approverId: string;
   approverFirstName: string;
   approverLastName: string;
 };
@@ -29,6 +30,7 @@ export async function findScopeMatchedApprovers(params: {
   return rows.map((row) => ({
     id: row.id,
     level: row.level,
+    approverId: row.approverId,
     approverFirstName: row.approver.firstName,
     approverLastName: row.approver.lastName,
   }));

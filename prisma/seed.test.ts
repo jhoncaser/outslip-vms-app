@@ -85,11 +85,11 @@ describe("seed script", () => {
     expect(matrixTypes).toHaveLength(6);
   });
 
-  it("seeds the Open and Cancelled transaction statuses", async () => {
+  it("seeds the Open, Cancelled, and Approved transaction statuses", async () => {
     await main();
 
     const statuses = await prisma.transactionStatus.findMany();
-    expect(statuses.map((s) => s.name)).toEqual(["Open", "Cancelled"]);
+    expect(statuses.map((s) => s.name)).toEqual(["Open", "Cancelled", "Approved"]);
   });
 
   it("does not duplicate transaction statuses when run twice", async () => {
@@ -97,7 +97,7 @@ describe("seed script", () => {
     await main();
 
     const statuses = await prisma.transactionStatus.findMany();
-    expect(statuses).toHaveLength(2);
+    expect(statuses).toHaveLength(3);
   });
 
   afterAll(async () => {

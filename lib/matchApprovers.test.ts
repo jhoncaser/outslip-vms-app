@@ -85,6 +85,7 @@ describe("findScopeMatchedApprovers", () => {
 
     expect(result).toHaveLength(1);
     expect(result[0].level).toBe(1);
+    expect(result[0].approverId).toBe(approverId);
     expect(result[0].approverFirstName).toBe("Approver");
     expect(result[0].approverLastName).toBe("Fixture");
   });

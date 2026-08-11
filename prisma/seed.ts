@@ -15,7 +15,7 @@ const MATRIX_TYPES = [
   "Out for Lunch",
   "Others",
 ];
-const TRANSACTION_STATUSES = ["Open", "Cancelled"];
+const TRANSACTION_STATUSES = ["Open", "Cancelled", "Approved"];
 
 async function seedReferenceData() {
   for (const name of DEPARTMENTS) {
