@@ -804,3 +804,121 @@ describe("TransactionDetailView — Post/Unpost", () => {
     );
   });
 });
+
+describe("TransactionDetailView — Delete", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true })));
+  });
+
+  it("does not render a Delete button for a non-owner", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    expect(screen.queryByRole("button", { name: /^delete$/i })).not.toBeInTheDocument();
+  });
+
+  it("renders a Delete button for the owner when not posted and not cancelled", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    expect(screen.getByRole("button", { name: /^delete$/i })).toBeInTheDocument();
+  });
+
+  it("does not render a Delete button for the owner once posted", () => {
+    const postedTransaction = { ...visitorPassTransaction, postedAt: "2026-08-08T00:00:00.000Z" };
+    render(
+      <TransactionDetailView
+        transaction={postedTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    expect(screen.queryByRole("button", { name: /^delete$/i })).not.toBeInTheDocument();
+  });
+
+  it("opens the confirmation modal with the transaction code and type", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+    const dialog = screen.getByRole("dialog", { name: /delete this transaction/i });
+    expect(within(dialog).getByText("OT-001")).toBeInTheDocument();
+    expect(within(dialog).getByText("Visitor Pass")).toBeInTheDocument();
+  });
+
+  it("calls the DELETE endpoint on confirm", async () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+    const dialog = screen.getByRole("dialog", { name: /delete this transaction/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^delete$/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions/t1",
+        expect.objectContaining({ method: "DELETE" })
+      )
+    );
+  });
+
+  it("closes the modal without calling DELETE when Cancel is clicked", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+    const dialog = screen.getByRole("dialog", { name: /delete this transaction/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^cancel$/i }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("hides Add Line Item, the Actions column, Post, and Delete once cancelled", () => {
+    const cancelledTransaction = { ...visitorPassTransaction, statusName: "Cancelled" };
+    render(
+      <TransactionDetailView
+        transaction={cancelledTransaction}
+        lineItems={visitorPassLineItems}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    expect(screen.queryByRole("button", { name: /\+ add line item/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^post$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^delete$/i })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/edit analyn gentizon/i)).not.toBeInTheDocument();
+  });
+});

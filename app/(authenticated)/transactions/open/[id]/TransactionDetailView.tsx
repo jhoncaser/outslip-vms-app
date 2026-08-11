@@ -13,6 +13,7 @@ import {
 import { TRANSPORT_TYPE_OPTIONS } from "@/lib/transportTypeOptions";
 import { headingText, mutedText, tableWrap, tableHeaderRow, modalHeader, modalCard, buttonPrimary, buttonSecondary, fieldLabel, fieldBox, pillClass } from "@/lib/deepForest";
 import { RevealRow } from "@/components/RevealRow";
+import { CancelTransactionModal } from "@/components/dashboard/CancelTransactionModal";
 
 export type TransactionDetailData = {
   id: string;
@@ -130,8 +131,10 @@ export function TransactionDetailView({
   const router = useRouter();
   const isVisitorPass = transaction.matrixTypeName === "Visitor Pass";
   const isPosted = transaction.postedAt !== null;
+  const isCancelled = transaction.statusName === "Cancelled";
+  const isLocked = isPosted || isCancelled;
   const baseColumns = isVisitorPass ? VISITOR_PASS_COLUMNS : EMPLOYEE_COLUMNS;
-  const columns = isPosted ? baseColumns.filter((column) => column !== "Actions") : baseColumns;
+  const columns = isLocked ? baseColumns.filter((column) => column !== "Actions") : baseColumns;
 
   const approversByLevel = new Map<number, ApproverRow[]>();
   for (const approver of approvers) {
@@ -351,6 +354,34 @@ export function TransactionDetailView({
     }
   }
 
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  const [cancelError, setCancelError] = useState("");
+
+  async function handleConfirmCancel() {
+    setCancelError("");
+    setCancelSubmitting(true);
+    try {
+      const response = await fetch(`/api/transactions/${transaction.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setCancelError(data.error ?? "Failed to delete transaction");
+        setCancelSubmitting(false);
+        return;
+      }
+
+      setCancelSubmitting(false);
+      setShowCancelModal(false);
+      router.refresh();
+    } catch {
+      setCancelError("An error occurred while deleting the transaction");
+      setCancelSubmitting(false);
+    }
+  }
+
   return (
     <div className="w-full">
       <Link
@@ -410,7 +441,7 @@ export function TransactionDetailView({
           <span className="font-normal text-[#6f8a68]">({lineItems.length})</span>
         </h2>
         <div className="flex items-center gap-2">
-          {isOwner && (
+          {isOwner && !isCancelled && (
             <button
               type="button"
               onClick={handleTogglePosted}
@@ -420,7 +451,16 @@ export function TransactionDetailView({
               {postSubmitting ? "Saving…" : isPosted ? "UNPOST" : "POST"}
             </button>
           )}
-          {!isPosted && (
+          {isOwner && !isLocked && (
+            <button
+              type="button"
+              onClick={() => setShowCancelModal(true)}
+              className="rounded-full border border-red-500/40 bg-transparent px-5 py-2 text-xs font-semibold text-red-400 transition-colors duration-150 hover:border-red-400 hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-400/40 motion-reduce:transition-none"
+            >
+              DELETE
+            </button>
+          )}
+          {!isLocked && (
             <button
               type="button"
               onClick={openCreateModal}
@@ -496,7 +536,7 @@ export function TransactionDetailView({
                       <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{item.remarks}</td>
                     </>
                   )}
-                  {!isPosted && (
+                  {!isLocked && (
                     <td className="whitespace-nowrap px-4 py-3">
                       <button
                         type="button"
@@ -882,6 +922,17 @@ export function TransactionDetailView({
             </div>
           </div>
         </div>
+      )}
+
+      {showCancelModal && (
+        <CancelTransactionModal
+          transactionCode={transaction.transactionCode}
+          matrixTypeName={transaction.matrixTypeName}
+          submitting={cancelSubmitting}
+          error={cancelError}
+          onCancel={() => setShowCancelModal(false)}
+          onConfirm={handleConfirmCancel}
+        />
       )}
     </div>
   );
