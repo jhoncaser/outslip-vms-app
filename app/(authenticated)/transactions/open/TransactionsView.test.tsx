@@ -763,35 +763,41 @@ describe("TransactionsView — Post/Unpost", () => {
     expect(within(row).getByText("POSTED")).toBeInTheDocument();
   });
 
-  it("posting requires confirmation and does not navigate the row", () => {
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+  it("opens the post-confirmation modal and does not navigate the row", () => {
     renderView("", [{ ...transactions[0], canManagePosting: true, postedAt: null }]);
     fireEvent.click(within(rowFor("OT-001")).getByRole("button", { name: /^post$/i }));
-    expect(confirmSpy).toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: /post this transaction/i })).toBeInTheDocument();
     expect(pushMock).not.toHaveBeenCalled();
-    confirmSpy.mockRestore();
   });
 
-  it("unposting does not show a confirm dialog", () => {
-    const confirmSpy = vi.spyOn(window, "confirm");
+  it("unposting fires immediately with no confirmation modal", () => {
     renderView("", [
       { ...transactions[0], canManagePosting: true, postedAt: "2026-08-08T00:00:00.000Z" },
     ]);
     fireEvent.click(within(rowFor("OT-001")).getByRole("button", { name: /^unpost$/i }));
-    expect(confirmSpy).not.toHaveBeenCalled();
-    confirmSpy.mockRestore();
+    expect(screen.queryByRole("dialog", { name: /post this transaction/i })).not.toBeInTheDocument();
   });
 
-  it("calls the PATCH endpoint with the transaction id and posted flag", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+  it("calls the PATCH endpoint with the transaction id and posted flag on confirm", async () => {
     renderView("", [{ ...transactions[0], canManagePosting: true, postedAt: null }]);
     fireEvent.click(within(rowFor("OT-001")).getByRole("button", { name: /^post$/i }));
+    const dialog = screen.getByRole("dialog", { name: /post this transaction/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^post$/i }));
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
         "/api/transactions/t1",
         expect.objectContaining({ method: "PATCH", body: JSON.stringify({ posted: true }) })
       )
     );
+  });
+
+  it("closes the modal without calling PATCH when Cancel is clicked", () => {
+    renderView("", [{ ...transactions[0], canManagePosting: true, postedAt: null }]);
+    fireEvent.click(within(rowFor("OT-001")).getByRole("button", { name: /^post$/i }));
+    const dialog = screen.getByRole("dialog", { name: /post this transaction/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^cancel$/i }));
+    expect(screen.queryByRole("dialog", { name: /post this transaction/i })).not.toBeInTheDocument();
+    expect(fetch).not.toHaveBeenCalled();
   });
 });
 

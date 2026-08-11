@@ -14,6 +14,7 @@ import {
 import { headingText, mutedText, tableWrap, tableHeaderRow, modalHeader, modalCard, buttonPrimary, fieldLabel, fieldBox, pillClass } from "@/lib/deepForest";
 import { RevealRow } from "@/components/RevealRow";
 import { CancelTransactionModal } from "@/components/dashboard/CancelTransactionModal";
+import { PostTransactionModal } from "@/components/dashboard/PostTransactionModal";
 
 export type TransactionRow = {
   id: string;
@@ -77,19 +78,22 @@ export function TransactionsTable({
   const enlargedRow = rows.find((row) => row.transactionCode === enlargedCode) ?? null;
   const [postingId, setPostingId] = useState<string | null>(null);
   const [postError, setPostError] = useState<{ id: string; message: string } | null>(null);
+  const [postModalTarget, setPostModalTarget] = useState<TransactionRow | null>(null);
   const [cancelTarget, setCancelTarget] = useState<TransactionRow | null>(null);
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
   const [cancelError, setCancelError] = useState("");
 
+  function handlePostButtonClick(row: TransactionRow) {
+    if (row.postedAt) {
+      handleTogglePosted(row);
+    } else {
+      setPostError(null);
+      setPostModalTarget(row);
+    }
+  }
+
   async function handleTogglePosted(row: TransactionRow) {
     const nextPosted = row.postedAt === null;
-    if (nextPosted) {
-      const confirmed = window.confirm(
-        "Post this transaction? You won't be able to add, edit, or delete line items until you unpost it."
-      );
-      if (!confirmed) return;
-    }
-
     setPostError(null);
     setPostingId(row.id);
     try {
@@ -107,11 +111,17 @@ export function TransactionsTable({
       }
 
       setPostingId(null);
+      setPostModalTarget(null);
       router.refresh();
     } catch {
       setPostError({ id: row.id, message: "An error occurred while updating the transaction" });
       setPostingId(null);
     }
+  }
+
+  async function handleConfirmPost() {
+    if (!postModalTarget) return;
+    await handleTogglePosted(postModalTarget);
   }
 
   async function handleConfirmCancel() {
@@ -210,7 +220,7 @@ export function TransactionsTable({
                             type="button"
                             onClick={(event) => {
                               event.stopPropagation();
-                              handleTogglePosted(row);
+                              handlePostButtonClick(row);
                             }}
                             disabled={postingId === row.id}
                             className="inline-flex items-center gap-1.5 rounded-full border border-[#4ca71a]/40 bg-transparent px-3 py-1.5 text-xs font-semibold text-[#7be36f] transition-colors duration-150 hover:border-[#57e34c] hover:bg-[#57e34c]/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#57e34c]/35 motion-reduce:transition-none disabled:opacity-60"
@@ -233,7 +243,7 @@ export function TransactionsTable({
                       ) : (
                         <span className={mutedText}>—</span>
                       )}
-                      {postError?.id === row.id && (
+                      {postError?.id === row.id && postModalTarget?.id !== row.id && (
                         <p role="alert" className="mt-1 text-[10px] text-red-400">
                           {postError.message}
                         </p>
@@ -300,6 +310,17 @@ export function TransactionsTable({
           error={cancelError}
           onCancel={() => setCancelTarget(null)}
           onConfirm={handleConfirmCancel}
+        />
+      )}
+
+      {postModalTarget && (
+        <PostTransactionModal
+          transactionCode={postModalTarget.transactionCode}
+          matrixTypeName={postModalTarget.matrixTypeName}
+          submitting={postingId === postModalTarget.id}
+          error={postError?.id === postModalTarget.id ? postError.message : ""}
+          onCancel={() => setPostModalTarget(null)}
+          onConfirm={handleConfirmPost}
         />
       )}
     </>
