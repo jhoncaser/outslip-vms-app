@@ -14,6 +14,10 @@ let deleteTransactionId: string;
 let postedForDeleteTransactionId: string;
 let cancelledTransactionId: string;
 let zeroApproverTransactionId: string;
+let approverMatrixTypeId: string;
+let approverId: string;
+let approverToken: string;
+let approverPendingTransactionId: string;
 
 function requestWithCookie(token: string | undefined, body: unknown) {
   return new NextRequest("http://localhost/api/transactions/x", {
@@ -158,6 +162,67 @@ describe("PATCH /api/transactions/[id]", () => {
       },
     });
     zeroApproverTransactionId = zeroApproverTransaction.id;
+
+    const approverMatrixType = await prisma.matrixType.upsert({
+      where: { name: "Transaction ID Route Fixture Matrix Type (with approver)" },
+      update: {},
+      create: {
+        matrixCode: "MT-TXNIDROUTEFIXTUREAPPROVER",
+        name: "Transaction ID Route Fixture Matrix Type (with approver)",
+        creatorId,
+      },
+    });
+    approverMatrixTypeId = approverMatrixType.id;
+
+    const approver = await prisma.user.upsert({
+      where: { email: "transaction-id-route-test-approver@example.com" },
+      update: {},
+      create: {
+        firstName: "Approver",
+        lastName: "Tester",
+        jobTitle: "Tester",
+        email: "transaction-id-route-test-approver@example.com",
+        passwordHash: "unused",
+        role: "APPROVER",
+        departmentId: department.id,
+        businessUnitId: businessUnit.id,
+        locationId: location.id,
+        mustChangePassword: false,
+      },
+    });
+    approverId = approver.id;
+
+    approverToken = await createSessionToken({
+      sub: approver.id,
+      email: approver.email,
+      firstName: approver.firstName,
+      lastName: approver.lastName,
+      role: "APPROVER",
+      department: "ICT",
+      mustChangePassword: false,
+    });
+
+    await prisma.matrixTypeApprover.create({
+      data: {
+        matrixTypeId: approverMatrixTypeId,
+        approverId,
+        level: 1,
+        departmentId: department.id,
+        businessUnitId: businessUnit.id,
+        locationId: location.id,
+      },
+    });
+
+    const approverPendingTransaction = await prisma.transaction.create({
+      data: {
+        transactionCode: "OT-TXNIDDELETEAPPROVER",
+        matrixTypeId: approverMatrixTypeId,
+        statusId: openStatus.id,
+        creatorId,
+        postedAt: new Date(),
+      },
+    });
+    approverPendingTransactionId = approverPendingTransaction.id;
 
     await prisma.transactionStatus.upsert({
       where: { name: "Cancelled" },
@@ -307,7 +372,7 @@ describe("PATCH /api/transactions/[id]", () => {
     );
     expect(response.status).toBe(403);
     const data = await response.json();
-    expect(data.error).toBe("Only the creator can delete this transaction");
+    expect(data.error).toBe("Only the creator or the current approver can delete this transaction");
   });
 
   it("DELETE returns 409 when the transaction is posted", async () => {
@@ -318,6 +383,20 @@ describe("PATCH /api/transactions/[id]", () => {
     expect(response.status).toBe(409);
     const data = await response.json();
     expect(data.error).toBe("Unpost this transaction before deleting it.");
+  });
+
+  it("DELETE allows the pending-level approver to cancel a posted transaction directly", async () => {
+    const response = await DELETE(
+      deleteRequestWithCookie(approverToken),
+      paramsFor(approverPendingTransactionId)
+    );
+    expect(response.status).toBe(204);
+
+    const stored = await prisma.transaction.findUniqueOrThrow({
+      where: { id: approverPendingTransactionId },
+      include: { status: true },
+    });
+    expect(stored.status.name).toBe("Cancelled");
   });
 
   it("DELETE returns 409 when the transaction is already cancelled", async () => {
@@ -355,11 +434,13 @@ describe("PATCH /api/transactions/[id]", () => {
             postedForDeleteTransactionId,
             cancelledTransactionId,
             zeroApproverTransactionId,
+            approverPendingTransactionId,
           ],
         },
       },
     });
-    await prisma.matrixType.deleteMany({ where: { id: matrixTypeId } });
+    await prisma.matrixTypeApprover.deleteMany({ where: { matrixTypeId: approverMatrixTypeId } });
+    await prisma.matrixType.deleteMany({ where: { id: { in: [matrixTypeId, approverMatrixTypeId] } } });
     await prisma.$disconnect();
   });
 });

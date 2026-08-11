@@ -88,14 +88,23 @@ export async function DELETE(
     return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
   }
 
-  if (transaction.creatorId !== session.sub) {
+  const isCreator = transaction.creatorId === session.sub;
+  let isPendingApprover = false;
+
+  if (transaction.postedAt !== null && transaction.status.name !== "Cancelled") {
+    const state = await getApprovalState(id);
+    const pendingApprover = state.chain.find((approver) => approver.level === state.pendingLevel);
+    isPendingApprover = pendingApprover?.approverId === session.sub;
+  }
+
+  if (!isCreator && !isPendingApprover) {
     return NextResponse.json(
-      { error: "Only the creator can delete this transaction" },
+      { error: "Only the creator or the current approver can delete this transaction" },
       { status: 403 }
     );
   }
 
-  if (transaction.postedAt !== null) {
+  if (transaction.postedAt !== null && !isPendingApprover) {
     return NextResponse.json(
       { error: "Unpost this transaction before deleting it." },
       { status: 409 }
