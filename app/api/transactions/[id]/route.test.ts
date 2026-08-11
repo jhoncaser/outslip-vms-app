@@ -13,6 +13,7 @@ let transactionId: string;
 let deleteTransactionId: string;
 let postedForDeleteTransactionId: string;
 let cancelledTransactionId: string;
+let zeroApproverTransactionId: string;
 
 function requestWithCookie(token: string | undefined, body: unknown) {
   return new NextRequest("http://localhost/api/transactions/x", {
@@ -121,6 +122,12 @@ describe("PATCH /api/transactions/[id]", () => {
       where: { name: "Open" },
     });
 
+    await prisma.transactionStatus.upsert({
+      where: { name: "Approved" },
+      update: {},
+      create: { name: "Approved" },
+    });
+
     const matrixType = await prisma.matrixType.upsert({
       where: { name: "Transaction ID Route Fixture Matrix Type" },
       update: {},
@@ -141,6 +148,16 @@ describe("PATCH /api/transactions/[id]", () => {
       },
     });
     transactionId = transaction.id;
+
+    const zeroApproverTransaction = await prisma.transaction.create({
+      data: {
+        transactionCode: "OT-TXNIDZEROAPPROVER",
+        matrixTypeId,
+        statusId: openStatus.id,
+        creatorId,
+      },
+    });
+    zeroApproverTransactionId = zeroApproverTransaction.id;
 
     await prisma.transactionStatus.upsert({
       where: { name: "Cancelled" },
@@ -253,6 +270,20 @@ describe("PATCH /api/transactions/[id]", () => {
     expect(data.error).toBe("This transaction is cancelled.");
   });
 
+  it("posting a transaction with zero configured approvers immediately marks it Approved", async () => {
+    const response = await PATCH(
+      requestWithCookie(creatorToken, { posted: true }),
+      paramsFor(zeroApproverTransactionId)
+    );
+    expect(response.status).toBe(200);
+
+    const stored = await prisma.transaction.findUniqueOrThrow({
+      where: { id: zeroApproverTransactionId },
+      include: { status: true },
+    });
+    expect(stored.status.name).toBe("Approved");
+  });
+
   it("DELETE returns 401 with no session", async () => {
     const response = await DELETE(
       deleteRequestWithCookie(undefined),
@@ -323,6 +354,7 @@ describe("PATCH /api/transactions/[id]", () => {
             deleteTransactionId,
             postedForDeleteTransactionId,
             cancelledTransactionId,
+            zeroApproverTransactionId,
           ],
         },
       },

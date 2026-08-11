@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { postTransactionSchema } from "@/lib/validation/transaction";
+import { getApprovalState } from "@/lib/transactionApproval";
 
 export async function PATCH(
   request: NextRequest,
@@ -49,6 +50,16 @@ export async function PATCH(
     data: { postedAt: parsed.data.posted ? new Date() : null },
     select: { postedAt: true },
   });
+
+  if (parsed.data.posted) {
+    const state = await getApprovalState(id);
+    if (state.isFullyApproved) {
+      const approvedStatus = await prisma.transactionStatus.findUniqueOrThrow({
+        where: { name: "Approved" },
+      });
+      await prisma.transaction.update({ where: { id }, data: { statusId: approvedStatus.id } });
+    }
+  }
 
   return NextResponse.json(
     { postedAt: updated.postedAt ? updated.postedAt.toISOString() : null },
