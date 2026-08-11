@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { NextRequest } from "next/server";
-import { PATCH } from "./route";
+import { PATCH, DELETE } from "./route";
 import { prisma } from "@/lib/prisma";
 import { createSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 
@@ -10,6 +10,9 @@ let creatorId: string;
 let otherUserToken: string;
 let matrixTypeId: string;
 let transactionId: string;
+let deleteTransactionId: string;
+let postedForDeleteTransactionId: string;
+let cancelledTransactionId: string;
 
 function requestWithCookie(token: string | undefined, body: unknown) {
   return new NextRequest("http://localhost/api/transactions/x", {
@@ -19,6 +22,13 @@ function requestWithCookie(token: string | undefined, body: unknown) {
       ...(token ? { cookie: `${SESSION_COOKIE_NAME}=${token}` } : {}),
       "Content-Type": "application/json",
     },
+  });
+}
+
+function deleteRequestWithCookie(token: string | undefined) {
+  return new NextRequest("http://localhost/api/transactions/x", {
+    method: "DELETE",
+    headers: token ? { cookie: `${SESSION_COOKIE_NAME}=${token}` } : {},
   });
 }
 
@@ -131,6 +141,46 @@ describe("PATCH /api/transactions/[id]", () => {
       },
     });
     transactionId = transaction.id;
+
+    await prisma.transactionStatus.upsert({
+      where: { name: "Cancelled" },
+      update: {},
+      create: { name: "Cancelled" },
+    });
+    const cancelledStatus = await prisma.transactionStatus.findUniqueOrThrow({
+      where: { name: "Cancelled" },
+    });
+
+    const deleteTransaction = await prisma.transaction.create({
+      data: {
+        transactionCode: "OT-TXNIDDELETE",
+        matrixTypeId,
+        statusId: openStatus.id,
+        creatorId,
+      },
+    });
+    deleteTransactionId = deleteTransaction.id;
+
+    const postedForDeleteTransaction = await prisma.transaction.create({
+      data: {
+        transactionCode: "OT-TXNIDDELETEPOSTED",
+        matrixTypeId,
+        statusId: openStatus.id,
+        creatorId,
+        postedAt: new Date(),
+      },
+    });
+    postedForDeleteTransactionId = postedForDeleteTransaction.id;
+
+    const cancelledTransaction = await prisma.transaction.create({
+      data: {
+        transactionCode: "OT-TXNIDCANCELLED",
+        matrixTypeId,
+        statusId: cancelledStatus.id,
+        creatorId,
+      },
+    });
+    cancelledTransactionId = cancelledTransaction.id;
   });
 
   it("returns 401 with no session", async () => {
@@ -193,8 +243,90 @@ describe("PATCH /api/transactions/[id]", () => {
     expect(stored.postedAt).toBeNull();
   });
 
+  it("returns 409 when trying to post/unpost an already-cancelled transaction", async () => {
+    const response = await PATCH(
+      requestWithCookie(creatorToken, { posted: true }),
+      paramsFor(cancelledTransactionId)
+    );
+    expect(response.status).toBe(409);
+    const data = await response.json();
+    expect(data.error).toBe("This transaction is cancelled.");
+  });
+
+  it("DELETE returns 401 with no session", async () => {
+    const response = await DELETE(
+      deleteRequestWithCookie(undefined),
+      paramsFor(deleteTransactionId)
+    );
+    expect(response.status).toBe(401);
+  });
+
+  it("DELETE returns 404 for a nonexistent transaction id", async () => {
+    const response = await DELETE(
+      deleteRequestWithCookie(creatorToken),
+      paramsFor("nonexistent-id")
+    );
+    expect(response.status).toBe(404);
+  });
+
+  it("DELETE returns 403 when a non-creator tries to delete it", async () => {
+    const response = await DELETE(
+      deleteRequestWithCookie(otherUserToken),
+      paramsFor(deleteTransactionId)
+    );
+    expect(response.status).toBe(403);
+    const data = await response.json();
+    expect(data.error).toBe("Only the creator can delete this transaction");
+  });
+
+  it("DELETE returns 409 when the transaction is posted", async () => {
+    const response = await DELETE(
+      deleteRequestWithCookie(creatorToken),
+      paramsFor(postedForDeleteTransactionId)
+    );
+    expect(response.status).toBe(409);
+    const data = await response.json();
+    expect(data.error).toBe("Unpost this transaction before deleting it.");
+  });
+
+  it("DELETE returns 409 when the transaction is already cancelled", async () => {
+    const response = await DELETE(
+      deleteRequestWithCookie(creatorToken),
+      paramsFor(cancelledTransactionId)
+    );
+    expect(response.status).toBe(409);
+    const data = await response.json();
+    expect(data.error).toBe("Transaction is already cancelled.");
+  });
+
+  it("DELETE cancels the transaction, setting status to Cancelled", async () => {
+    const response = await DELETE(
+      deleteRequestWithCookie(creatorToken),
+      paramsFor(deleteTransactionId)
+    );
+    expect(response.status).toBe(204);
+
+    const stored = await prisma.transaction.findUniqueOrThrow({
+      where: { id: deleteTransactionId },
+      include: { status: true },
+    });
+    expect(stored.status.name).toBe("Cancelled");
+    expect(stored.postedAt).toBeNull();
+  });
+
   afterAll(async () => {
-    await prisma.transaction.deleteMany({ where: { id: transactionId } });
+    await prisma.transaction.deleteMany({
+      where: {
+        id: {
+          in: [
+            transactionId,
+            deleteTransactionId,
+            postedForDeleteTransactionId,
+            cancelledTransactionId,
+          ],
+        },
+      },
+    });
     await prisma.matrixType.deleteMany({ where: { id: matrixTypeId } });
     await prisma.$disconnect();
   });

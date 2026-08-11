@@ -17,7 +17,7 @@ export async function PATCH(
   const { id } = await params;
   const transaction = await prisma.transaction.findUnique({
     where: { id },
-    select: { creatorId: true },
+    select: { creatorId: true, status: { select: { name: true } } },
   });
 
   if (!transaction) {
@@ -28,6 +28,13 @@ export async function PATCH(
     return NextResponse.json(
       { error: "Only the creator can post or unpost this transaction" },
       { status: 403 }
+    );
+  }
+
+  if (transaction.status.name === "Cancelled") {
+    return NextResponse.json(
+      { error: "This transaction is cancelled." },
+      { status: 409 }
     );
   }
 
@@ -47,4 +54,58 @@ export async function PATCH(
     { postedAt: updated.postedAt ? updated.postedAt.toISOString() : null },
     { status: 200 }
   );
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  const session = token ? await verifySessionToken(token) : null;
+
+  if (!session) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const transaction = await prisma.transaction.findUnique({
+    where: { id },
+    select: { creatorId: true, postedAt: true, status: { select: { name: true } } },
+  });
+
+  if (!transaction) {
+    return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
+  }
+
+  if (transaction.creatorId !== session.sub) {
+    return NextResponse.json(
+      { error: "Only the creator can delete this transaction" },
+      { status: 403 }
+    );
+  }
+
+  if (transaction.postedAt !== null) {
+    return NextResponse.json(
+      { error: "Unpost this transaction before deleting it." },
+      { status: 409 }
+    );
+  }
+
+  if (transaction.status.name === "Cancelled") {
+    return NextResponse.json(
+      { error: "Transaction is already cancelled." },
+      { status: 409 }
+    );
+  }
+
+  const cancelledStatus = await prisma.transactionStatus.findUniqueOrThrow({
+    where: { name: "Cancelled" },
+  });
+
+  await prisma.transaction.update({
+    where: { id },
+    data: { statusId: cancelledStatus.id },
+  });
+
+  return new NextResponse(null, { status: 204 });
 }
