@@ -14,6 +14,7 @@ let transactionId: string;
 let visitorPassMatrixTypeId: string;
 let visitorPassTransactionId: string;
 let postedTransactionId: string;
+let cancelledTransactionId: string;
 const createdLineItemIds: string[] = [];
 const savedFileUrls: string[] = [];
 
@@ -139,6 +140,25 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
       },
     });
     postedTransactionId = postedTransaction.id;
+
+    await prisma.transactionStatus.upsert({
+      where: { name: "Cancelled" },
+      update: {},
+      create: { name: "Cancelled" },
+    });
+    const cancelledStatus = await prisma.transactionStatus.findUniqueOrThrow({
+      where: { name: "Cancelled" },
+    });
+
+    const cancelledTransaction = await prisma.transaction.create({
+      data: {
+        transactionCode: "OT-IDCANCELLED",
+        matrixTypeId,
+        statusId: cancelledStatus.id,
+        creatorId: userId,
+      },
+    });
+    cancelledTransactionId = cancelledTransaction.id;
   });
 
   it("returns 401 with no session on PATCH", async () => {
@@ -319,6 +339,44 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
     expect(stillThere).not.toBeNull();
   });
 
+  it("returns 409 when PATCHing a line item on a cancelled transaction", async () => {
+    const lineItem = await prisma.transactionLineItem.create({
+      data: { transactionId: cancelledTransactionId, employeeType: "Third-Party", name: "X", remarks: "X" },
+    });
+    createdLineItemIds.push(lineItem.id);
+
+    const body = new FormData();
+    body.set("employeeType", "Third-Party");
+    body.set("name", "Should Not Update");
+    body.set("remarks", "X");
+
+    const response = await PATCH(
+      requestWithCookie("PATCH", userToken, body),
+      paramsFor(cancelledTransactionId, lineItem.id)
+    );
+    expect(response.status).toBe(409);
+    const data = await response.json();
+    expect(data.error).toBe("Cannot modify line items on a cancelled transaction.");
+  });
+
+  it("returns 409 when DELETEing a line item on a cancelled transaction", async () => {
+    const lineItem = await prisma.transactionLineItem.create({
+      data: { transactionId: cancelledTransactionId, employeeType: "Third-Party", name: "X", remarks: "X" },
+    });
+    createdLineItemIds.push(lineItem.id);
+
+    const response = await DELETE(
+      requestWithCookie("DELETE", userToken, new FormData()),
+      paramsFor(cancelledTransactionId, lineItem.id)
+    );
+    expect(response.status).toBe(409);
+    const data = await response.json();
+    expect(data.error).toBe("Cannot modify line items on a cancelled transaction.");
+
+    const stillThere = await prisma.transactionLineItem.findUnique({ where: { id: lineItem.id } });
+    expect(stillThere).not.toBeNull();
+  });
+
   it("deletes a line item and its file", async () => {
     const saved = await (
       await import("@/lib/lineItemFileStorage")
@@ -367,7 +425,11 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
       await deleteLineItemFile(url);
     }
     await prisma.transaction.deleteMany({
-      where: { id: { in: [transactionId, visitorPassTransactionId, postedTransactionId] } },
+      where: {
+        id: {
+          in: [transactionId, visitorPassTransactionId, postedTransactionId, cancelledTransactionId],
+        },
+      },
     });
     await prisma.matrixType.deleteMany({ where: { id: matrixTypeId } });
     await prisma.$disconnect();

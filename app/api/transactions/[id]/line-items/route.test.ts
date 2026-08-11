@@ -13,6 +13,7 @@ let employeeMatrixTypeId: string;
 let visitorPassTransactionId: string;
 let employeeTransactionId: string;
 let postedTransactionId: string;
+let cancelledTransactionId: string;
 const createdLineItemIds: string[] = [];
 const savedFileUrls: string[] = [];
 
@@ -138,6 +139,25 @@ describe("POST /api/transactions/[id]/line-items", () => {
       },
     });
     postedTransactionId = postedTransaction.id;
+
+    await prisma.transactionStatus.upsert({
+      where: { name: "Cancelled" },
+      update: {},
+      create: { name: "Cancelled" },
+    });
+    const cancelledStatus = await prisma.transactionStatus.findUniqueOrThrow({
+      where: { name: "Cancelled" },
+    });
+
+    const cancelledTransaction = await prisma.transaction.create({
+      data: {
+        transactionCode: "OT-LICANCELLED",
+        matrixTypeId: employeeMatrixTypeId,
+        statusId: cancelledStatus.id,
+        creatorId: userId,
+      },
+    });
+    cancelledTransactionId = cancelledTransaction.id;
   });
 
   it("returns 401 with no session", async () => {
@@ -169,6 +189,21 @@ describe("POST /api/transactions/[id]/line-items", () => {
     expect(response.status).toBe(409);
     const data = await response.json();
     expect(data.error).toBe("Cannot modify line items on a posted transaction.");
+  });
+
+  it("returns 409 when the transaction is cancelled", async () => {
+    const body = new FormData();
+    body.set("employeeType", "Third-Party");
+    body.set("name", "Should Not Be Created");
+    body.set("remarks", "X");
+
+    const response = await POST(
+      requestWithCookie(userToken, cancelledTransactionId, body),
+      paramsFor(cancelledTransactionId)
+    );
+    expect(response.status).toBe(409);
+    const data = await response.json();
+    expect(data.error).toBe("Cannot modify line items on a cancelled transaction.");
   });
 
   it("returns a specific message when a required Visitor Pass field is missing", async () => {
@@ -387,7 +422,16 @@ describe("POST /api/transactions/[id]/line-items", () => {
       await deleteLineItemFile(url);
     }
     await prisma.transaction.deleteMany({
-      where: { id: { in: [visitorPassTransactionId, employeeTransactionId, postedTransactionId] } },
+      where: {
+        id: {
+          in: [
+            visitorPassTransactionId,
+            employeeTransactionId,
+            postedTransactionId,
+            cancelledTransactionId,
+          ],
+        },
+      },
     });
     await prisma.matrixType.deleteMany({ where: { id: employeeMatrixTypeId } });
     await prisma.$disconnect();

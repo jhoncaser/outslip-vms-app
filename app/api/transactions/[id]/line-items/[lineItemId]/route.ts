@@ -31,7 +31,14 @@ export async function PATCH(
   const { id: transactionId, lineItemId } = await params;
   const existing = await prisma.transactionLineItem.findUnique({
     where: { id: lineItemId },
-    include: { transaction: { include: { matrixType: { select: { name: true } } } } },
+    include: {
+      transaction: {
+        include: {
+          matrixType: { select: { name: true } },
+          status: { select: { name: true } },
+        },
+      },
+    },
   });
 
   if (!existing) {
@@ -45,6 +52,13 @@ export async function PATCH(
   if (existing.transaction.postedAt !== null) {
     return NextResponse.json(
       { error: "Cannot modify line items on a posted transaction." },
+      { status: 409 }
+    );
+  }
+
+  if (existing.transaction.status.name === "Cancelled") {
+    return NextResponse.json(
+      { error: "Cannot modify line items on a cancelled transaction." },
       { status: 409 }
     );
   }
@@ -172,7 +186,7 @@ export async function DELETE(
     select: {
       uploadFileUrl: true,
       transactionId: true,
-      transaction: { select: { postedAt: true } },
+      transaction: { select: { postedAt: true, status: { select: { name: true } } } },
     },
   });
 
@@ -187,6 +201,13 @@ export async function DELETE(
   if (existing.transaction.postedAt !== null) {
     return NextResponse.json(
       { error: "Cannot modify line items on a posted transaction." },
+      { status: 409 }
+    );
+  }
+
+  if (existing.transaction.status.name === "Cancelled") {
+    return NextResponse.json(
+      { error: "Cannot modify line items on a cancelled transaction." },
       { status: 409 }
     );
   }

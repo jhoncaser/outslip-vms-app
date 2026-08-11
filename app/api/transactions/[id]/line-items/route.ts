@@ -30,7 +30,11 @@ export async function POST(
   const { id: transactionId } = await params;
   const transaction = await prisma.transaction.findUnique({
     where: { id: transactionId },
-    select: { postedAt: true, matrixType: { select: { name: true } } },
+    select: {
+      postedAt: true,
+      status: { select: { name: true } },
+      matrixType: { select: { name: true } },
+    },
   });
 
   if (!transaction) {
@@ -40,6 +44,13 @@ export async function POST(
   if (transaction.postedAt !== null) {
     return NextResponse.json(
       { error: "Cannot modify line items on a posted transaction." },
+      { status: 409 }
+    );
+  }
+
+  if (transaction.status.name === "Cancelled") {
+    return NextResponse.json(
+      { error: "Cannot modify line items on a cancelled transaction." },
       { status: 409 }
     );
   }
