@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { TransactionsView } from "./TransactionsView";
+import { TransactionsView, TransactionsTable } from "./TransactionsView";
 
 const pushMock = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -130,6 +130,22 @@ describe("TransactionsView", () => {
     expect(screen.getByText("OT-001")).toBeInTheDocument();
     expect(screen.getByText("Halfday")).toBeInTheDocument();
     expect(screen.getByText("Jhon Caser")).toBeInTheDocument();
+  });
+
+  it("renders without the Actions column when showActions is false", () => {
+    render(<TransactionsTable rows={transactions} showActions={false} />);
+    const headers = screen.getAllByRole("columnheader").map((h) => h.textContent);
+    expect(headers).toEqual([
+      "QR",
+      "Code",
+      "Transaction Type",
+      "Created By",
+      "Status",
+      "Date Filed",
+    ]);
+    expect(
+      screen.queryByRole("button", { name: /^post$|^unpost$|^delete$/i })
+    ).not.toBeInTheDocument();
   });
 
   it("navigates to the transaction's detail page when a row is clicked", () => {
@@ -765,5 +781,63 @@ describe("TransactionsView — Post/Unpost", () => {
         expect.objectContaining({ method: "PATCH", body: JSON.stringify({ posted: true }) })
       )
     );
+  });
+});
+
+describe("TransactionsView — Delete", () => {
+  beforeEach(() => {
+    pushMock.mockClear();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve({ ok: true }))
+    );
+  });
+
+  it("shows a Delete button next to Post when the current user created the transaction and it isn't posted", () => {
+    renderView("", [{ ...transactions[0], canManagePosting: true, postedAt: null }]);
+    expect(
+      within(rowFor("OT-001")).getByRole("button", { name: /^delete$/i })
+    ).toBeInTheDocument();
+  });
+
+  it("hides the Delete button once the transaction is posted", () => {
+    renderView("", [
+      { ...transactions[0], canManagePosting: true, postedAt: "2026-08-08T00:00:00.000Z" },
+    ]);
+    expect(
+      within(rowFor("OT-001")).queryByRole("button", { name: /^delete$/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens the confirmation modal with the transaction code and type, without navigating the row", () => {
+    renderView("", [{ ...transactions[0], canManagePosting: true, postedAt: null }]);
+    fireEvent.click(within(rowFor("OT-001")).getByRole("button", { name: /^delete$/i }));
+    const dialog = screen.getByRole("dialog", { name: /delete this transaction/i });
+    expect(within(dialog).getByText("OT-001")).toBeInTheDocument();
+    expect(within(dialog).getByText("Halfday")).toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("calls the DELETE endpoint on confirm", async () => {
+    renderView("", [{ ...transactions[0], canManagePosting: true, postedAt: null }]);
+    fireEvent.click(within(rowFor("OT-001")).getByRole("button", { name: /^delete$/i }));
+    const dialog = screen.getByRole("dialog", { name: /delete this transaction/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^delete$/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transactions/t1",
+        expect.objectContaining({ method: "DELETE" })
+      )
+    );
+  });
+
+  it("closes the modal without calling DELETE when Cancel is clicked", () => {
+    renderView("", [{ ...transactions[0], canManagePosting: true, postedAt: null }]);
+    fireEvent.click(within(rowFor("OT-001")).getByRole("button", { name: /^delete$/i }));
+    const dialog = screen.getByRole("dialog", { name: /delete this transaction/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: /^cancel$/i }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

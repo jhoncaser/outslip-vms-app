@@ -13,6 +13,7 @@ import {
 } from "@/lib/transactionFieldSets";
 import { headingText, mutedText, tableWrap, tableHeaderRow, modalHeader, modalCard, buttonPrimary, fieldLabel, fieldBox, pillClass } from "@/lib/deepForest";
 import { RevealRow } from "@/components/RevealRow";
+import { CancelTransactionModal } from "@/components/dashboard/CancelTransactionModal";
 
 export type TransactionRow = {
   id: string;
@@ -60,13 +61,23 @@ function CloseIcon() {
 }
 
 
-function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
+export function TransactionsTable({
+  rows,
+  showActions = true,
+}: {
+  rows: TransactionRow[];
+  showActions?: boolean;
+}) {
   const router = useRouter();
-  const columns = ["QR", "Code", "Transaction Type", "Created By", "Status", "Date Filed", "Actions"];
+  const baseColumns = ["QR", "Code", "Transaction Type", "Created By", "Status", "Date Filed"];
+  const columns = showActions ? [...baseColumns, "Actions"] : baseColumns;
   const [enlargedCode, setEnlargedCode] = useState<string | null>(null);
   const enlargedRow = rows.find((row) => row.transactionCode === enlargedCode) ?? null;
   const [postingId, setPostingId] = useState<string | null>(null);
   const [postError, setPostError] = useState<{ id: string; message: string } | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<TransactionRow | null>(null);
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
   async function handleTogglePosted(row: TransactionRow) {
     const nextPosted = row.postedAt === null;
@@ -98,6 +109,31 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
     } catch {
       setPostError({ id: row.id, message: "An error occurred while updating the transaction" });
       setPostingId(null);
+    }
+  }
+
+  async function handleConfirmCancel() {
+    if (!cancelTarget) return;
+    setCancelError("");
+    setCancelSubmitting(true);
+    try {
+      const response = await fetch(`/api/transactions/${cancelTarget.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setCancelError(data.error ?? "Failed to delete transaction");
+        setCancelSubmitting(false);
+        return;
+      }
+
+      setCancelSubmitting(false);
+      setCancelTarget(null);
+      router.refresh();
+    } catch {
+      setCancelError("An error occurred while deleting the transaction");
+      setCancelSubmitting(false);
     }
   }
 
@@ -164,28 +200,44 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
                     {row.postedAt && <span className={`ml-2 ${pillClass("green")}`}>POSTED</span>}
                   </td>
                   <td className={`whitespace-nowrap px-4 py-3 ${mutedText}`}>{row.createdAt}</td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    {row.canManagePosting ? (
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleTogglePosted(row);
-                        }}
-                        disabled={postingId === row.id}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-[#4ca71a]/40 bg-transparent px-3 py-1.5 text-xs font-semibold text-[#7be36f] transition-colors duration-150 hover:border-[#57e34c] hover:bg-[#57e34c]/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#57e34c]/35 motion-reduce:transition-none disabled:opacity-60"
-                      >
-                        {postingId === row.id ? "Saving…" : row.postedAt ? "Unpost" : "Post"}
-                      </button>
-                    ) : (
-                      <span className={mutedText}>—</span>
-                    )}
-                    {postError?.id === row.id && (
-                      <p role="alert" className="mt-1 text-[10px] text-red-400">
-                        {postError.message}
-                      </p>
-                    )}
-                  </td>
+                  {showActions && (
+                    <td className="whitespace-nowrap px-4 py-3">
+                      {row.canManagePosting ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleTogglePosted(row);
+                            }}
+                            disabled={postingId === row.id}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-[#4ca71a]/40 bg-transparent px-3 py-1.5 text-xs font-semibold text-[#7be36f] transition-colors duration-150 hover:border-[#57e34c] hover:bg-[#57e34c]/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#57e34c]/35 motion-reduce:transition-none disabled:opacity-60"
+                          >
+                            {postingId === row.id ? "Saving…" : row.postedAt ? "Unpost" : "Post"}
+                          </button>
+                          {!row.postedAt && (
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setCancelTarget(row);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-red-500/40 bg-transparent px-3 py-1.5 text-xs font-semibold text-red-400 transition-colors duration-150 hover:border-red-400 hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-400/40 motion-reduce:transition-none"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <span className={mutedText}>—</span>
+                      )}
+                      {postError?.id === row.id && (
+                        <p role="alert" className="mt-1 text-[10px] text-red-400">
+                          {postError.message}
+                        </p>
+                      )}
+                    </td>
+                  )}
                 </RevealRow>
               ))
             )}
@@ -236,6 +288,17 @@ function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
             </div>
           </div>
         </div>
+      )}
+
+      {cancelTarget && (
+        <CancelTransactionModal
+          transactionCode={cancelTarget.transactionCode}
+          matrixTypeName={cancelTarget.matrixTypeName}
+          submitting={cancelSubmitting}
+          error={cancelError}
+          onCancel={() => setCancelTarget(null)}
+          onConfirm={handleConfirmCancel}
+        />
       )}
     </>
   );
