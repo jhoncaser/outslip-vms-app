@@ -148,6 +148,17 @@ describe("TransactionsView", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("renders the default empty message when no emptyMessage prop is provided", () => {
+    render(<TransactionsTable rows={[]} />);
+    expect(screen.getByText("No open transactions yet.")).toBeInTheDocument();
+  });
+
+  it("renders a custom empty message when emptyMessage prop is provided", () => {
+    render(<TransactionsTable rows={[]} emptyMessage="No cancelled transactions yet." />);
+    expect(screen.getByText("No cancelled transactions yet.")).toBeInTheDocument();
+    expect(screen.queryByText("No open transactions yet.")).not.toBeInTheDocument();
+  });
+
   it("navigates to the transaction's detail page when a row is clicked", () => {
     renderView();
     fireEvent.click(rowFor("OT-001"));

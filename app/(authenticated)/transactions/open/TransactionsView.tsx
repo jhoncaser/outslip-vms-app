@@ -64,9 +64,11 @@ function CloseIcon() {
 export function TransactionsTable({
   rows,
   showActions = true,
+  emptyMessage = "No open transactions yet.",
 }: {
   rows: TransactionRow[];
   showActions?: boolean;
+  emptyMessage?: string;
 }) {
   const router = useRouter();
   const baseColumns = ["QR", "Code", "Transaction Type", "Created By", "Status", "Date Filed"];
@@ -157,7 +159,7 @@ export function TransactionsTable({
             {rows.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className={`px-4 py-8 text-center ${mutedText}`}>
-                  No open transactions yet.
+                  {emptyMessage}
                 </td>
               </tr>
             ) : (

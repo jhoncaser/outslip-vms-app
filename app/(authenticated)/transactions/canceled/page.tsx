@@ -81,7 +81,7 @@ export default async function CanceledTransactionsPage() {
           <h1 className={`text-lg ${headingText}`}>Canceled Transaction</h1>
           <p className={`text-xs ${mutedText}`}>Historical record of cancelled requests</p>
         </div>
-        <TransactionsTable rows={transactionRows} showActions={false} />
+        <TransactionsTable rows={transactionRows} showActions={false} emptyMessage="No cancelled transactions yet." />
       </div>
     </div>
   );
