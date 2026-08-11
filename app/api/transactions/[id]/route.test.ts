@@ -18,6 +18,7 @@ let approverMatrixTypeId: string;
 let approverId: string;
 let approverToken: string;
 let approverPendingTransactionId: string;
+let unpostedApproverTransactionId: string;
 
 function requestWithCookie(token: string | undefined, body: unknown) {
   return new NextRequest("http://localhost/api/transactions/x", {
@@ -224,6 +225,16 @@ describe("PATCH /api/transactions/[id]", () => {
     });
     approverPendingTransactionId = approverPendingTransaction.id;
 
+    const unpostedApproverTransaction = await prisma.transaction.create({
+      data: {
+        transactionCode: "OT-TXNIDDELETEAPPROVERUNPOSTED",
+        matrixTypeId: approverMatrixTypeId,
+        statusId: openStatus.id,
+        creatorId,
+      },
+    });
+    unpostedApproverTransactionId = unpostedApproverTransaction.id;
+
     await prisma.transactionStatus.upsert({
       where: { name: "Cancelled" },
       update: {},
@@ -399,6 +410,14 @@ describe("PATCH /api/transactions/[id]", () => {
     expect(stored.status.name).toBe("Cancelled");
   });
 
+  it("DELETE returns 403 when the pending-level approver tries to cancel a transaction that hasn't been posted yet", async () => {
+    const response = await DELETE(
+      deleteRequestWithCookie(approverToken),
+      paramsFor(unpostedApproverTransactionId)
+    );
+    expect(response.status).toBe(403);
+  });
+
   it("DELETE returns 409 when the transaction is already cancelled", async () => {
     const response = await DELETE(
       deleteRequestWithCookie(creatorToken),
@@ -435,6 +454,7 @@ describe("PATCH /api/transactions/[id]", () => {
             cancelledTransactionId,
             zeroApproverTransactionId,
             approverPendingTransactionId,
+            unpostedApproverTransactionId,
           ],
         },
       },
