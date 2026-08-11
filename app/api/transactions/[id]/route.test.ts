@@ -19,6 +19,8 @@ let approverId: string;
 let approverToken: string;
 let approverPendingTransactionId: string;
 let unpostedApproverTransactionId: string;
+let approvedTransactionId: string;
+let revisionReasonTransactionId: string;
 
 function requestWithCookie(token: string | undefined, body: unknown) {
   return new NextRequest("http://localhost/api/transactions/x", {
@@ -144,8 +146,10 @@ describe("PATCH /api/transactions/[id]", () => {
     });
     matrixTypeId = matrixType.id;
 
-    const transaction = await prisma.transaction.create({
-      data: {
+    const transaction = await prisma.transaction.upsert({
+      where: { transactionCode: "OT-TXNIDROUTE" },
+      update: {},
+      create: {
         transactionCode: "OT-TXNIDROUTE",
         matrixTypeId,
         statusId: openStatus.id,
@@ -154,8 +158,10 @@ describe("PATCH /api/transactions/[id]", () => {
     });
     transactionId = transaction.id;
 
-    const zeroApproverTransaction = await prisma.transaction.create({
-      data: {
+    const zeroApproverTransaction = await prisma.transaction.upsert({
+      where: { transactionCode: "OT-TXNIDZEROAPPROVER" },
+      update: {},
+      create: {
         transactionCode: "OT-TXNIDZEROAPPROVER",
         matrixTypeId,
         statusId: openStatus.id,
@@ -203,8 +209,18 @@ describe("PATCH /api/transactions/[id]", () => {
       mustChangePassword: false,
     });
 
-    await prisma.matrixTypeApprover.create({
-      data: {
+    await prisma.matrixTypeApprover.upsert({
+      where: {
+        matrixTypeId_level_departmentId_businessUnitId_locationId: {
+          matrixTypeId: approverMatrixTypeId,
+          level: 1,
+          departmentId: department.id,
+          businessUnitId: businessUnit.id,
+          locationId: location.id,
+        },
+      },
+      update: { approverId },
+      create: {
         matrixTypeId: approverMatrixTypeId,
         approverId,
         level: 1,
@@ -214,8 +230,10 @@ describe("PATCH /api/transactions/[id]", () => {
       },
     });
 
-    const approverPendingTransaction = await prisma.transaction.create({
-      data: {
+    const approverPendingTransaction = await prisma.transaction.upsert({
+      where: { transactionCode: "OT-TXNIDDELETEAPPROVER" },
+      update: { statusId: openStatus.id },
+      create: {
         transactionCode: "OT-TXNIDDELETEAPPROVER",
         matrixTypeId: approverMatrixTypeId,
         statusId: openStatus.id,
@@ -225,8 +243,10 @@ describe("PATCH /api/transactions/[id]", () => {
     });
     approverPendingTransactionId = approverPendingTransaction.id;
 
-    const unpostedApproverTransaction = await prisma.transaction.create({
-      data: {
+    const unpostedApproverTransaction = await prisma.transaction.upsert({
+      where: { transactionCode: "OT-TXNIDDELETEAPPROVERUNPOSTED" },
+      update: {},
+      create: {
         transactionCode: "OT-TXNIDDELETEAPPROVERUNPOSTED",
         matrixTypeId: approverMatrixTypeId,
         statusId: openStatus.id,
@@ -234,6 +254,46 @@ describe("PATCH /api/transactions/[id]", () => {
       },
     });
     unpostedApproverTransactionId = unpostedApproverTransaction.id;
+
+    const approvedTransaction = await prisma.transaction.upsert({
+      where: { transactionCode: "OT-TXNIDAPPROVED" },
+      update: {},
+      create: {
+        transactionCode: "OT-TXNIDAPPROVED",
+        matrixTypeId: approverMatrixTypeId,
+        statusId: openStatus.id,
+        creatorId,
+        postedAt: new Date(),
+      },
+    });
+    approvedTransactionId = approvedTransaction.id;
+
+    // Only create approval if it doesn't exist
+    const existingApproval = await prisma.transactionApproval.findUnique({
+      where: { transactionId_level: { transactionId: approvedTransactionId, level: 1 } },
+    });
+    if (!existingApproval) {
+      await prisma.transactionApproval.create({
+        data: {
+          transactionId: approvedTransactionId,
+          level: 1,
+          approverId,
+        },
+      });
+    }
+
+    const revisionReasonTransaction = await prisma.transaction.upsert({
+      where: { transactionCode: "OT-TXNIDREVISIONREASON" },
+      update: { revisionReason: "Please fix the dates" },
+      create: {
+        transactionCode: "OT-TXNIDREVISIONREASON",
+        matrixTypeId,
+        statusId: openStatus.id,
+        creatorId,
+        revisionReason: "Please fix the dates",
+      },
+    });
+    revisionReasonTransactionId = revisionReasonTransaction.id;
 
     await prisma.transactionStatus.upsert({
       where: { name: "Cancelled" },
@@ -244,8 +304,10 @@ describe("PATCH /api/transactions/[id]", () => {
       where: { name: "Cancelled" },
     });
 
-    const deleteTransaction = await prisma.transaction.create({
-      data: {
+    const deleteTransaction = await prisma.transaction.upsert({
+      where: { transactionCode: "OT-TXNIDDELETE" },
+      update: { statusId: openStatus.id },
+      create: {
         transactionCode: "OT-TXNIDDELETE",
         matrixTypeId,
         statusId: openStatus.id,
@@ -254,8 +316,10 @@ describe("PATCH /api/transactions/[id]", () => {
     });
     deleteTransactionId = deleteTransaction.id;
 
-    const postedForDeleteTransaction = await prisma.transaction.create({
-      data: {
+    const postedForDeleteTransaction = await prisma.transaction.upsert({
+      where: { transactionCode: "OT-TXNIDDELETEPOSTED" },
+      update: {},
+      create: {
         transactionCode: "OT-TXNIDDELETEPOSTED",
         matrixTypeId,
         statusId: openStatus.id,
@@ -265,8 +329,10 @@ describe("PATCH /api/transactions/[id]", () => {
     });
     postedForDeleteTransactionId = postedForDeleteTransaction.id;
 
-    const cancelledTransaction = await prisma.transaction.create({
-      data: {
+    const cancelledTransaction = await prisma.transaction.upsert({
+      where: { transactionCode: "OT-TXNIDCANCELLED" },
+      update: {},
+      create: {
         transactionCode: "OT-TXNIDCANCELLED",
         matrixTypeId,
         statusId: cancelledStatus.id,
@@ -360,6 +426,29 @@ describe("PATCH /api/transactions/[id]", () => {
     expect(stored.status.name).toBe("Approved");
   });
 
+  it("returns 409 when creator tries to unpost a transaction that has approvals", async () => {
+    const response = await PATCH(
+      requestWithCookie(creatorToken, { posted: false }),
+      paramsFor(approvedTransactionId)
+    );
+    expect(response.status).toBe(409);
+    const data = await response.json();
+    expect(data.error).toBe("This transaction has already been approved at one or more levels. Ask the current approver to revise it instead of unposting.");
+  });
+
+  it("clears revisionReason when creator successfully re-posts a transaction", async () => {
+    const response = await PATCH(
+      requestWithCookie(creatorToken, { posted: true }),
+      paramsFor(revisionReasonTransactionId)
+    );
+    expect(response.status).toBe(200);
+
+    const stored = await prisma.transaction.findUniqueOrThrow({
+      where: { id: revisionReasonTransactionId },
+    });
+    expect(stored.revisionReason).toBeNull();
+  });
+
   it("DELETE returns 401 with no session", async () => {
     const response = await DELETE(
       deleteRequestWithCookie(undefined),
@@ -444,23 +533,32 @@ describe("PATCH /api/transactions/[id]", () => {
   });
 
   afterAll(async () => {
-    await prisma.transaction.deleteMany({
-      where: {
-        id: {
-          in: [
-            transactionId,
-            deleteTransactionId,
-            postedForDeleteTransactionId,
-            cancelledTransactionId,
-            zeroApproverTransactionId,
-            approverPendingTransactionId,
-            unpostedApproverTransactionId,
-          ],
-        },
-      },
+    // Delete by transactionCode to ensure we get all test transactions
+    const testCodes = [
+      "OT-TXNIDROUTE",
+      "OT-TXNIDZEROAPPROVER",
+      "OT-TXNIDDELETEAPPROVER",
+      "OT-TXNIDDELETEAPPROVERUNPOSTED",
+      "OT-TXNIDAPPROVED",
+      "OT-TXNIDREVISIONREASON",
+      "OT-TXNIDDELETE",
+      "OT-TXNIDDELETEPOSTED",
+      "OT-TXNIDCANCELLED",
+    ];
+
+    await prisma.transactionApproval.deleteMany({
+      where: { transaction: { transactionCode: { in: testCodes } } },
     });
-    await prisma.matrixTypeApprover.deleteMany({ where: { matrixTypeId: approverMatrixTypeId } });
-    await prisma.matrixType.deleteMany({ where: { id: { in: [matrixTypeId, approverMatrixTypeId] } } });
+    await prisma.transaction.deleteMany({
+      where: { transactionCode: { in: testCodes } },
+    });
+
+    const typeIds = [matrixTypeId, approverMatrixTypeId].filter(id => id !== undefined);
+    if (typeIds.length > 0) {
+      await prisma.matrixTypeApprover.deleteMany({ where: { matrixTypeId: { in: typeIds } } });
+      await prisma.matrixType.deleteMany({ where: { id: { in: typeIds } } });
+    }
+
     await prisma.$disconnect();
   });
 });

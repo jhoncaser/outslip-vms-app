@@ -45,9 +45,23 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
+  // Block unposting if any approval levels already exist
+  if (parsed.data.posted === false) {
+    const state = await getApprovalState(id);
+    if (state.approvedLevels.length > 0) {
+      return NextResponse.json(
+        { error: "This transaction has already been approved at one or more levels. Ask the current approver to revise it instead of unposting." },
+        { status: 409 }
+      );
+    }
+  }
+
   const updated = await prisma.transaction.update({
     where: { id },
-    data: { postedAt: parsed.data.posted ? new Date() : null },
+    data: {
+      postedAt: parsed.data.posted ? new Date() : null,
+      revisionReason: parsed.data.posted ? null : undefined,
+    },
     select: { postedAt: true },
   });
 

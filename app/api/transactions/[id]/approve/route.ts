@@ -51,19 +51,25 @@ export async function POST(
     );
   }
 
-  await prisma.transactionApproval.create({
-    data: { transactionId: id, level: pendingApprover.level, approverId: session.sub },
-  });
-
   const isLastLevel = pendingIndex === state.chain.length - 1;
   const nextPendingLevel = isLastLevel ? null : state.chain[pendingIndex + 1].level;
 
+  let approvedStatusId: string | undefined;
   if (isLastLevel) {
     const approvedStatus = await prisma.transactionStatus.findUniqueOrThrow({
       where: { name: "Approved" },
     });
-    await prisma.transaction.update({ where: { id }, data: { statusId: approvedStatus.id } });
+    approvedStatusId = approvedStatus.id;
   }
+
+  await prisma.$transaction([
+    prisma.transactionApproval.create({
+      data: { transactionId: id, level: pendingApprover.level, approverId: session.sub },
+    }),
+    ...(approvedStatusId
+      ? [prisma.transaction.update({ where: { id }, data: { statusId: approvedStatusId } })]
+      : []),
+  ]);
 
   return NextResponse.json(
     { pendingLevel: nextPendingLevel, isFullyApproved: isLastLevel },

@@ -13,7 +13,7 @@ export default async function OpenTransactionsPage() {
   const [transactions, matrixTypes, currentUser, departments, businessUnits] =
     await Promise.all([
       prisma.transaction.findMany({
-        where: { status: { name: "Open" } },
+        where: { status: { name: { in: ["Open", "Approved"] } } },
         orderBy: { createdAt: "desc" },
         include: {
           matrixType: { select: { name: true } },
