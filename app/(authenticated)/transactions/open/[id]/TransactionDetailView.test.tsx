@@ -736,7 +736,7 @@ describe("TransactionDetailView — Post/Unpost", () => {
     render(
       <TransactionDetailView
         transaction={visitorPassTransaction}
-        lineItems={[]}
+        lineItems={visitorPassLineItems}
         employees={employees}
         remarksDefault="Sample reason"
         isOwner
@@ -752,7 +752,7 @@ describe("TransactionDetailView — Post/Unpost", () => {
     render(
       <TransactionDetailView
         transaction={visitorPassTransaction}
-        lineItems={[]}
+        lineItems={visitorPassLineItems}
         employees={employees}
         remarksDefault="Sample reason"
         isOwner
@@ -773,7 +773,7 @@ describe("TransactionDetailView — Post/Unpost", () => {
     render(
       <TransactionDetailView
         transaction={visitorPassTransaction}
-        lineItems={[]}
+        lineItems={visitorPassLineItems}
         employees={employees}
         remarksDefault="Sample reason"
         isOwner
@@ -784,6 +784,33 @@ describe("TransactionDetailView — Post/Unpost", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: /^cancel$/i }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("does not render a Post button for the owner when there are no line items yet", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    expect(screen.queryByRole("button", { name: /^post$/i })).not.toBeInTheDocument();
+  });
+
+  it("still renders the Unpost button when already posted, even with no line items", () => {
+    const postedTransaction = { ...visitorPassTransaction, postedAt: "2026-08-08T00:00:00.000Z" };
+    render(
+      <TransactionDetailView
+        transaction={postedTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+      />
+    );
+    expect(screen.getByRole("button", { name: /^unpost$/i })).toBeInTheDocument();
   });
 
   it("hides + Add Line Item and the Actions column once posted, for every viewer", () => {
@@ -871,7 +898,7 @@ describe("TransactionDetailView — Post/Unpost", () => {
     render(
       <TransactionDetailView
         transaction={visitorPassTransaction}
-        lineItems={[]}
+        lineItems={visitorPassLineItems}
         employees={employees}
         remarksDefault="Sample reason"
         isOwner

@@ -515,7 +515,7 @@ export function TransactionDetailView({
           <span className="font-normal text-[#6f8a68]">({lineItems.length})</span>
         </h2>
         <div className="flex items-center gap-2">
-          {isOwner && !isCancelled && (
+          {isOwner && !isCancelled && (isPosted || lineItems.length > 0) && (
             <button
               type="button"
               onClick={handlePostButtonClick}
