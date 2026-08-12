@@ -12,6 +12,7 @@ const visitorPassTransaction = {
   qrDataUrl: "data:image/png;base64,mockqrdata",
   matrixTypeName: "Visitor Pass",
   statusName: "Open",
+  statusDisplay: "Open",
   createdBy: "Jhon Caser",
   createdAt: "Jul 28, 2026",
   postedAt: null,
@@ -784,7 +785,7 @@ describe("TransactionDetailView — Post/Unpost", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("shows a POSTED badge and hides + Add Line Item and the Actions column once posted, for every viewer", () => {
+  it("hides + Add Line Item and the Actions column once posted, for every viewer", () => {
     const postedTransaction = { ...visitorPassTransaction, postedAt: "2026-08-08T00:00:00.000Z" };
     render(
       <TransactionDetailView
@@ -794,10 +795,27 @@ describe("TransactionDetailView — Post/Unpost", () => {
         remarksDefault="Sample reason"
       />
     );
-    expect(screen.getByText("POSTED")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /\+ add line item/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Actions" })).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/edit analyn gentizon/i)).not.toBeInTheDocument();
+  });
+
+  it("renders statusDisplay text in the Status field instead of a separate POSTED badge", () => {
+    const waitingTransaction = {
+      ...visitorPassTransaction,
+      statusDisplay: "Waiting to be approved in 1st Level",
+      postedAt: "2026-08-08T00:00:00.000Z",
+    };
+    render(
+      <TransactionDetailView
+        transaction={waitingTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    expect(screen.getByText("Waiting to be approved in 1st Level")).toBeInTheDocument();
+    expect(screen.queryByText("POSTED")).not.toBeInTheDocument();
   });
 
   it("renders an Unpost button for the owner when posted, and unposts immediately with no confirmation modal", async () => {

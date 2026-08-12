@@ -24,6 +24,7 @@ export type TransactionDetailData = {
   qrDataUrl: string;
   matrixTypeName: string;
   statusName: string;
+  statusDisplay: string;
   createdBy: string;
   createdAt: string;
   postedAt: string | null;
@@ -486,8 +487,7 @@ export function TransactionDetailView({
               Status
             </p>
             <p className="flex items-center gap-2 text-sm text-[#eafbe4]">
-              {transaction.statusName}
-              {isPosted && <span className={pillClass("green")}>POSTED</span>}
+              {transaction.statusDisplay}
             </p>
           </div>
           <div>

@@ -7,6 +7,7 @@ import { canViewApprovals } from "@/lib/auth/permissions";
 import { pageBackground } from "@/lib/deepForest";
 import { findScopeMatchedApprovers } from "@/lib/matchApprovers";
 import { getApprovalState } from "@/lib/transactionApproval";
+import { formatApprovalStatusText } from "@/lib/approvalStatusText";
 import {
   TransactionDetailView,
   type LineItemRow,
@@ -134,6 +135,10 @@ export default async function MyApprovalTransactionDetailPage({
     qrDataUrl: await QRCode.toDataURL(transaction.transactionCode, { width: 240, margin: 1 }),
     matrixTypeName: transaction.matrixType.name,
     statusName: transaction.status.name,
+    statusDisplay: formatApprovalStatusText(
+      transaction.status.name,
+      approvalState?.pendingLevel ?? null
+    ),
     createdBy: `${transaction.creator.firstName} ${transaction.creator.lastName}`,
     createdAt: transaction.createdAt.toLocaleDateString("en-US", {
       month: "short",

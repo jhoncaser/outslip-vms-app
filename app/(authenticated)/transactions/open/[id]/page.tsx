@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { pageBackground } from "@/lib/deepForest";
 import { findScopeMatchedApprovers } from "@/lib/matchApprovers";
+import { getApprovalState } from "@/lib/transactionApproval";
+import { formatApprovalStatusText } from "@/lib/approvalStatusText";
 import { TransactionDetailView, type LineItemRow, type ApproverRow } from "./TransactionDetailView";
 
 export default async function TransactionDetailPage({
@@ -81,6 +83,11 @@ export default async function TransactionDetailPage({
     initials: `${row.approverFirstName.charAt(0)}${row.approverLastName.charAt(0)}`.toUpperCase(),
   }));
 
+  const pendingLevel =
+    transaction.postedAt !== null && transaction.status.name !== "Cancelled"
+      ? (await getApprovalState(id)).pendingLevel
+      : null;
+
   const detailFieldCandidates: { label: string; value: string }[] = [
     {
       label: "Planned Date",
@@ -112,6 +119,7 @@ export default async function TransactionDetailPage({
     qrDataUrl: await QRCode.toDataURL(transaction.transactionCode, { width: 240, margin: 1 }),
     matrixTypeName: transaction.matrixType.name,
     statusName: transaction.status.name,
+    statusDisplay: formatApprovalStatusText(transaction.status.name, pendingLevel),
     createdBy: `${transaction.creator.firstName} ${transaction.creator.lastName}`,
     createdAt: transaction.createdAt.toLocaleDateString("en-US", {
       month: "short",
