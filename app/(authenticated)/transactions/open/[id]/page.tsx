@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { pageBackground } from "@/lib/deepForest";
 import { findScopeMatchedApprovers } from "@/lib/matchApprovers";
-import { getApprovalState } from "@/lib/transactionApproval";
 import { TransactionDetailView, type LineItemRow, type ApproverRow } from "./TransactionDetailView";
 
 export default async function TransactionDetailPage({
@@ -81,18 +80,6 @@ export default async function TransactionDetailPage({
     approverName: `${row.approverFirstName} ${row.approverLastName}`,
     initials: `${row.approverFirstName.charAt(0)}${row.approverLastName.charAt(0)}`.toUpperCase(),
   }));
-
-  const approvalState =
-    transaction.postedAt !== null && transaction.status.name !== "Cancelled"
-      ? await getApprovalState(id)
-      : null;
-  const pendingApprover = approvalState?.chain.find(
-    (approver) => approver.level === approvalState.pendingLevel
-  );
-  const isPendingApprover = session?.sub === pendingApprover?.approverId;
-  const isFinalApprovalLevel =
-    !!approvalState &&
-    approvalState.chain[approvalState.chain.length - 1]?.level === approvalState.pendingLevel;
 
   const detailFieldCandidates: { label: string; value: string }[] = [
     {
@@ -177,8 +164,6 @@ export default async function TransactionDetailPage({
           remarksDefault={transaction.reason ?? ""}
           approvers={approvers}
           isOwner={isOwner}
-          isPendingApprover={isPendingApprover}
-          isFinalApprovalLevel={isFinalApprovalLevel}
         />
       </div>
     </div>
