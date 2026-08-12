@@ -126,6 +126,7 @@ export function TransactionDetailView({
   isOwner = false,
   isPendingApprover = false,
   isFinalApprovalLevel = false,
+  backHref = "/transactions/open",
 }: {
   transaction: TransactionDetailData;
   lineItems: LineItemRow[];
@@ -135,6 +136,7 @@ export function TransactionDetailView({
   isOwner?: boolean;
   isPendingApprover?: boolean;
   isFinalApprovalLevel?: boolean;
+  backHref?: string;
 }) {
   const router = useRouter();
   const isVisitorPass = transaction.matrixTypeName === "Visitor Pass";
@@ -455,7 +457,7 @@ export function TransactionDetailView({
   return (
     <div className="w-full">
       <Link
-        href="/transactions/open"
+        href={backHref}
         className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[#4ca71a]/40 bg-transparent px-3 py-1.5 text-xs font-semibold text-[#7be36f] transition-colors duration-150 hover:border-[#57e34c] hover:bg-[#57e34c]/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#57e34c]/35 motion-reduce:transition-none"
       >
         <BackIcon />

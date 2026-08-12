@@ -133,6 +133,37 @@ describe("TransactionDetailView", () => {
     );
   });
 
+  it("renders the Back link pointing at /transactions/open by default", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    expect(screen.getByRole("link", { name: /back/i })).toHaveAttribute(
+      "href",
+      "/transactions/open"
+    );
+  });
+
+  it("renders the Back link pointing at a custom backHref when provided", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        backHref="/transactions/my-approvals"
+      />
+    );
+    expect(screen.getByRole("link", { name: /back/i })).toHaveAttribute(
+      "href",
+      "/transactions/my-approvals"
+    );
+  });
+
   it("renders the Visitor Pass line items table with its columns", () => {
     render(
       <TransactionDetailView
