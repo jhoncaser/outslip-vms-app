@@ -66,10 +66,12 @@ export function TransactionsTable({
   rows,
   showActions = true,
   emptyMessage = "No open transactions yet.",
+  detailBasePath = "/transactions/open",
 }: {
   rows: TransactionRow[];
   showActions?: boolean;
   emptyMessage?: string;
+  detailBasePath?: string;
 }) {
   const router = useRouter();
   const baseColumns = ["QR", "Code", "Transaction Type", "Created By", "Status", "Date Filed"];
@@ -177,12 +179,12 @@ export function TransactionsTable({
                 <RevealRow
                   key={row.id}
                   index={index}
-                  onClick={() => router.push(`/transactions/open/${row.id}`)}
+                  onClick={() => router.push(`${detailBasePath}/${row.id}`)}
                   onKeyDown={(event) => {
                     if (event.target !== event.currentTarget) return;
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      router.push(`/transactions/open/${row.id}`);
+                      router.push(`${detailBasePath}/${row.id}`);
                     }
                   }}
                   tabIndex={0}

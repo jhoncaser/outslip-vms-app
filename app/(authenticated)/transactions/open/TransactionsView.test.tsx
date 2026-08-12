@@ -165,6 +165,12 @@ describe("TransactionsView", () => {
     expect(pushMock).toHaveBeenCalledWith("/transactions/open/t1");
   });
 
+  it("navigates under a custom detailBasePath when provided", () => {
+    render(<TransactionsTable rows={transactions} detailBasePath="/transactions/my-approvals" />);
+    fireEvent.click(rowFor("OT-001"));
+    expect(pushMock).toHaveBeenCalledWith("/transactions/my-approvals/t1");
+  });
+
   it("does not navigate when the QR thumbnail is clicked", () => {
     renderView();
     fireEvent.click(
