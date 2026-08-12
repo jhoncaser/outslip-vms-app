@@ -12,6 +12,7 @@ import {
 } from "@/lib/validation/transactionLineItem";
 import { TRANSPORT_TYPE_OPTIONS } from "@/lib/transportTypeOptions";
 import { headingText, mutedText, tableWrap, tableHeaderRow, modalHeader, modalCard, buttonPrimary, buttonSecondary, fieldLabel, fieldBox, pillClass } from "@/lib/deepForest";
+import type { ApprovalStatusHue } from "@/lib/approvalStatusText";
 import { RevealRow } from "@/components/RevealRow";
 import { CancelTransactionModal } from "@/components/dashboard/CancelTransactionModal";
 import { PostTransactionModal } from "@/components/dashboard/PostTransactionModal";
@@ -25,6 +26,7 @@ export type TransactionDetailData = {
   matrixTypeName: string;
   statusName: string;
   statusDisplay: string;
+  statusHue: ApprovalStatusHue;
   createdBy: string;
   createdAt: string;
   postedAt: string | null;
@@ -486,8 +488,8 @@ export function TransactionDetailView({
             <p className="text-[10px] font-bold uppercase tracking-wide text-[#6f8a68]">
               Status
             </p>
-            <p className="flex items-center gap-2 text-sm text-[#eafbe4]">
-              {transaction.statusDisplay}
+            <p className="text-sm">
+              <span className={pillClass(transaction.statusHue)}>{transaction.statusDisplay}</span>
             </p>
           </div>
           <div>

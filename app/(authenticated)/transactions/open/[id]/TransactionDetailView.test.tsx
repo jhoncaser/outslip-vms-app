@@ -13,6 +13,7 @@ const visitorPassTransaction = {
   matrixTypeName: "Visitor Pass",
   statusName: "Open",
   statusDisplay: "Open",
+  statusHue: "slate" as const,
   createdBy: "Jhon Caser",
   createdAt: "Jul 28, 2026",
   postedAt: null,
@@ -818,6 +819,24 @@ describe("TransactionDetailView — Post/Unpost", () => {
     expect(screen.queryByText("POSTED")).not.toBeInTheDocument();
   });
 
+  it("colors the status pill according to statusHue", () => {
+    const approvedTransaction = {
+      ...visitorPassTransaction,
+      statusDisplay: "Approved",
+      statusHue: "green" as const,
+      postedAt: "2026-08-08T00:00:00.000Z",
+    };
+    render(
+      <TransactionDetailView
+        transaction={approvedTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+      />
+    );
+    expect(screen.getByText("Approved")).toHaveClass("text-[#86efac]");
+  });
+
   it("renders an Unpost button for the owner when posted, and unposts immediately with no confirmation modal", async () => {
     const postedTransaction = { ...visitorPassTransaction, postedAt: "2026-08-08T00:00:00.000Z" };
     render(
@@ -968,7 +987,12 @@ describe("TransactionDetailView — Delete", () => {
   });
 
   it("hides Add Line Item, the Actions column, Post, and Delete once cancelled", () => {
-    const cancelledTransaction = { ...visitorPassTransaction, statusName: "Cancelled" };
+    const cancelledTransaction = {
+      ...visitorPassTransaction,
+      statusName: "Cancelled",
+      statusDisplay: "Cancelled",
+      statusHue: "slate" as const,
+    };
     render(
       <TransactionDetailView
         transaction={cancelledTransaction}

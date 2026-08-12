@@ -7,7 +7,7 @@ import { canViewApprovals } from "@/lib/auth/permissions";
 import { pageBackground } from "@/lib/deepForest";
 import { findScopeMatchedApprovers } from "@/lib/matchApprovers";
 import { getApprovalState } from "@/lib/transactionApproval";
-import { formatApprovalStatusText } from "@/lib/approvalStatusText";
+import { formatApprovalStatusText, getApprovalStatusHue } from "@/lib/approvalStatusText";
 import {
   TransactionDetailView,
   type LineItemRow,
@@ -139,6 +139,7 @@ export default async function MyApprovalTransactionDetailPage({
       transaction.status.name,
       approvalState?.pendingLevel ?? null
     ),
+    statusHue: getApprovalStatusHue(transaction.status.name, approvalState?.pendingLevel ?? null),
     createdBy: `${transaction.creator.firstName} ${transaction.creator.lastName}`,
     createdAt: transaction.createdAt.toLocaleDateString("en-US", {
       month: "short",

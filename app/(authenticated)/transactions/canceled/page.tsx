@@ -65,6 +65,7 @@ export default async function CanceledTransactionsPage() {
       createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
       statusName: row.status.name,
       statusDisplay: row.status.name,
+      statusHue: "slate" as const,
       createdAt: row.createdAt.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",

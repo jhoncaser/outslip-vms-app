@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatApprovalStatusText } from "./approvalStatusText";
+import { formatApprovalStatusText, getApprovalStatusHue } from "./approvalStatusText";
 
 describe("formatApprovalStatusText", () => {
   it("returns the status name unchanged when there is no pending level", () => {
@@ -25,5 +25,27 @@ describe("formatApprovalStatusText", () => {
   it("returns 'Cancelled' unchanged regardless of pending level", () => {
     expect(formatApprovalStatusText("Cancelled", 1)).toBe("Cancelled");
     expect(formatApprovalStatusText("Cancelled", null)).toBe("Cancelled");
+  });
+});
+
+describe("getApprovalStatusHue", () => {
+  it("returns slate for unposted Open", () => {
+    expect(getApprovalStatusHue("Open", null)).toBe("slate");
+  });
+
+  it("returns red for Open with a pending level (waiting to be approved)", () => {
+    expect(getApprovalStatusHue("Open", 1)).toBe("red");
+    expect(getApprovalStatusHue("Open", 2)).toBe("red");
+    expect(getApprovalStatusHue("Open", 3)).toBe("red");
+  });
+
+  it("returns green for Approved, regardless of pending level", () => {
+    expect(getApprovalStatusHue("Approved", null)).toBe("green");
+    expect(getApprovalStatusHue("Approved", 1)).toBe("green");
+  });
+
+  it("returns slate for Cancelled, regardless of pending level", () => {
+    expect(getApprovalStatusHue("Cancelled", null)).toBe("slate");
+    expect(getApprovalStatusHue("Cancelled", 1)).toBe("slate");
   });
 });

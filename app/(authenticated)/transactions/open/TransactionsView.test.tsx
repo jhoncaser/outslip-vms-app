@@ -29,6 +29,7 @@ const transactions = [
     createdBy: "Jhon Caser",
     statusName: "Open",
     statusDisplay: "Open",
+    statusHue: "slate" as const,
     createdAt: "Jul 21, 2026",
     postedAt: null,
     canManagePosting: true,
@@ -55,6 +56,7 @@ const visitorPassTransactions = [
     createdBy: "Jhon Caser",
     statusName: "Open",
     statusDisplay: "Open",
+    statusHue: "slate" as const,
     createdAt: "Jul 25, 2026",
   },
 ];
@@ -171,6 +173,17 @@ describe("TransactionsView", () => {
     render(<TransactionsTable rows={transactions} detailBasePath="/transactions/my-approvals" />);
     fireEvent.click(rowFor("OT-001"));
     expect(pushMock).toHaveBeenCalledWith("/transactions/my-approvals/t1");
+  });
+
+  it("colors the status pill according to statusHue", () => {
+    render(
+      <TransactionsTable
+        rows={[
+          { ...transactions[0], statusDisplay: "Waiting to be approved in 1st Level", statusHue: "red" },
+        ]}
+      />
+    );
+    expect(screen.getByText("Waiting to be approved in 1st Level")).toHaveClass("text-[#fca5a5]");
   });
 
   it("does not navigate when the QR thumbnail is clicked", () => {

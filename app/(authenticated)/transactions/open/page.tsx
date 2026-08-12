@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { pageBackground } from "@/lib/deepForest";
 import { getApprovalState } from "@/lib/transactionApproval";
-import { formatApprovalStatusText } from "@/lib/approvalStatusText";
+import { formatApprovalStatusText, getApprovalStatusHue } from "@/lib/approvalStatusText";
 import { TransactionsView } from "./TransactionsView";
 
 export default async function OpenTransactionsPage() {
@@ -38,62 +38,65 @@ export default async function OpenTransactionsPage() {
   const currentUserBusinessUnit = currentUser?.businessUnit.name ?? "";
 
   const transactionRows = await Promise.all(
-    transactions.map(async (row) => ({
-      id: row.id,
-      transactionCode: row.transactionCode,
-      qrDataUrl: await QRCode.toDataURL(row.transactionCode, {
-        width: 240,
-        margin: 1,
-      }),
-      matrixTypeName: row.matrixType.name,
-      plannedDate: row.plannedDate
-        ? row.plannedDate.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-            timeZone: "UTC",
-          })
-        : "—",
-      plannedTime: row.plannedTime
-        ? row.plannedTime.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-            timeZone: "UTC",
-          })
-        : "—",
-      returnTime: row.returnTime
-        ? row.returnTime.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-            timeZone: "UTC",
-          })
-        : "—",
-      originBusinessUnit: row.originBusinessUnit ?? "—",
-      enrouteBusinessUnits:
-        row.enrouteBusinessUnits.length > 0 ? row.enrouteBusinessUnits.join(", ") : "—",
-      reason: row.reason ?? "—",
-      visitorType: row.visitorType ?? "—",
-      personToMeet: row.personToMeet ?? "—",
-      department: row.department?.name ?? "—",
-      location: row.visitLocation ?? "—",
-      transportType: row.transportType ?? "—",
-      plateNo: row.plateNo ?? "—",
-      createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
-      statusName: row.status.name,
-      statusDisplay: row.postedAt
-        ? formatApprovalStatusText(
-            row.status.name,
-            (await getApprovalState(row.id)).pendingLevel
-          )
-        : row.status.name,
-      createdAt: row.createdAt.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      postedAt: row.postedAt ? row.postedAt.toISOString() : null,
-      canManagePosting: session?.sub === row.creatorId,
-    }))
+    transactions.map(async (row) => {
+      const pendingLevel =
+        row.postedAt && row.status.name === "Open"
+          ? (await getApprovalState(row.id)).pendingLevel
+          : null;
+
+      return {
+        id: row.id,
+        transactionCode: row.transactionCode,
+        qrDataUrl: await QRCode.toDataURL(row.transactionCode, {
+          width: 240,
+          margin: 1,
+        }),
+        matrixTypeName: row.matrixType.name,
+        plannedDate: row.plannedDate
+          ? row.plannedDate.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              timeZone: "UTC",
+            })
+          : "—",
+        plannedTime: row.plannedTime
+          ? row.plannedTime.toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+              timeZone: "UTC",
+            })
+          : "—",
+        returnTime: row.returnTime
+          ? row.returnTime.toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+              timeZone: "UTC",
+            })
+          : "—",
+        originBusinessUnit: row.originBusinessUnit ?? "—",
+        enrouteBusinessUnits:
+          row.enrouteBusinessUnits.length > 0 ? row.enrouteBusinessUnits.join(", ") : "—",
+        reason: row.reason ?? "—",
+        visitorType: row.visitorType ?? "—",
+        personToMeet: row.personToMeet ?? "—",
+        department: row.department?.name ?? "—",
+        location: row.visitLocation ?? "—",
+        transportType: row.transportType ?? "—",
+        plateNo: row.plateNo ?? "—",
+        createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
+        statusName: row.status.name,
+        statusDisplay: formatApprovalStatusText(row.status.name, pendingLevel),
+        statusHue: getApprovalStatusHue(row.status.name, pendingLevel),
+        createdAt: row.createdAt.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        postedAt: row.postedAt ? row.postedAt.toISOString() : null,
+        canManagePosting: session?.sub === row.creatorId,
+      };
+    })
   );
 
   return (

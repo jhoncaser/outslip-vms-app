@@ -12,6 +12,7 @@ import {
   type TransactionFieldKey,
 } from "@/lib/transactionFieldSets";
 import { headingText, mutedText, tableWrap, tableHeaderRow, modalHeader, modalCard, buttonPrimary, fieldLabel, fieldBox, pillClass } from "@/lib/deepForest";
+import type { ApprovalStatusHue } from "@/lib/approvalStatusText";
 import { RevealRow } from "@/components/RevealRow";
 import { CancelTransactionModal } from "@/components/dashboard/CancelTransactionModal";
 import { PostTransactionModal } from "@/components/dashboard/PostTransactionModal";
@@ -36,6 +37,7 @@ export type TransactionRow = {
   createdBy: string;
   statusName: string;
   statusDisplay: string;
+  statusHue: ApprovalStatusHue;
   createdAt: string;
   postedAt: string | null;
   canManagePosting: boolean;
@@ -211,7 +213,7 @@ export function TransactionsTable({
                   <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{row.matrixTypeName}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{row.createdBy}</td>
                   <td className="whitespace-nowrap px-4 py-3">
-                    <span className={pillClass("slate")}>{row.statusDisplay}</span>
+                    <span className={pillClass(row.statusHue)}>{row.statusDisplay}</span>
                   </td>
                   <td className={`whitespace-nowrap px-4 py-3 ${mutedText}`}>{row.createdAt}</td>
                   {showActions && (

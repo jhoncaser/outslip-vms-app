@@ -15,3 +15,14 @@ export function formatApprovalStatusText(
   const levelLabel = LEVEL_LABELS[pendingLevel] ?? `Level ${pendingLevel}`;
   return `Waiting to be approved in ${levelLabel}`;
 }
+
+export type ApprovalStatusHue = "slate" | "red" | "green";
+
+export function getApprovalStatusHue(
+  statusName: string,
+  pendingLevel: number | null
+): ApprovalStatusHue {
+  if (statusName === "Approved") return "green";
+  if (statusName === "Open" && pendingLevel !== null) return "red";
+  return "slate";
+}

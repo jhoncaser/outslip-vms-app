@@ -6,7 +6,7 @@ import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { pageBackground } from "@/lib/deepForest";
 import { findScopeMatchedApprovers } from "@/lib/matchApprovers";
 import { getApprovalState } from "@/lib/transactionApproval";
-import { formatApprovalStatusText } from "@/lib/approvalStatusText";
+import { formatApprovalStatusText, getApprovalStatusHue } from "@/lib/approvalStatusText";
 import { TransactionDetailView, type LineItemRow, type ApproverRow } from "./TransactionDetailView";
 
 export default async function TransactionDetailPage({
@@ -84,7 +84,7 @@ export default async function TransactionDetailPage({
   }));
 
   const pendingLevel =
-    transaction.postedAt !== null && transaction.status.name !== "Cancelled"
+    transaction.postedAt !== null && transaction.status.name === "Open"
       ? (await getApprovalState(id)).pendingLevel
       : null;
 
@@ -120,6 +120,7 @@ export default async function TransactionDetailPage({
     matrixTypeName: transaction.matrixType.name,
     statusName: transaction.status.name,
     statusDisplay: formatApprovalStatusText(transaction.status.name, pendingLevel),
+    statusHue: getApprovalStatusHue(transaction.status.name, pendingLevel),
     createdBy: `${transaction.creator.firstName} ${transaction.creator.lastName}`,
     createdAt: transaction.createdAt.toLocaleDateString("en-US", {
       month: "short",
