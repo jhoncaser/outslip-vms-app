@@ -22,6 +22,7 @@ export default async function OpenTransactionsPage() {
           status: { select: { name: true } },
           creator: { select: { firstName: true, lastName: true } },
           department: { select: { name: true } },
+          _count: { select: { lineItems: true } },
         },
       }),
       prisma.matrixType.findMany({ orderBy: { name: "asc" } }),
@@ -95,6 +96,7 @@ export default async function OpenTransactionsPage() {
         }),
         postedAt: row.postedAt ? row.postedAt.toISOString() : null,
         canManagePosting: session?.sub === row.creatorId,
+        lineItemCount: row._count.lineItems,
       };
     })
   );

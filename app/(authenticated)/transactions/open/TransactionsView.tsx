@@ -41,6 +41,7 @@ export type TransactionRow = {
   createdAt: string;
   postedAt: string | null;
   canManagePosting: boolean;
+  lineItemCount: number;
 };
 export type MatrixTypeOption = { id: string; name: string };
 export type DepartmentOption = { id: string; name: string };
@@ -220,17 +221,19 @@ export function TransactionsTable({
                     <td className="whitespace-nowrap px-4 py-3">
                       {row.canManagePosting ? (
                         <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handlePostButtonClick(row);
-                            }}
-                            disabled={postingId === row.id}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-[#4ca71a]/40 bg-transparent px-3 py-1.5 text-xs font-semibold text-[#7be36f] transition-colors duration-150 hover:border-[#57e34c] hover:bg-[#57e34c]/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#57e34c]/35 motion-reduce:transition-none disabled:opacity-60"
-                          >
-                            {postingId === row.id ? "Saving…" : row.postedAt ? "Unpost" : "Post"}
-                          </button>
+                          {(row.postedAt || row.lineItemCount > 0) && (
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handlePostButtonClick(row);
+                              }}
+                              disabled={postingId === row.id}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-[#4ca71a]/40 bg-transparent px-3 py-1.5 text-xs font-semibold text-[#7be36f] transition-colors duration-150 hover:border-[#57e34c] hover:bg-[#57e34c]/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#57e34c]/35 motion-reduce:transition-none disabled:opacity-60"
+                            >
+                              {postingId === row.id ? "Saving…" : row.postedAt ? "Unpost" : "Post"}
+                            </button>
+                          )}
                           {!row.postedAt && (
                             <button
                               type="button"

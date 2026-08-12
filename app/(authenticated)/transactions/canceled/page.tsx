@@ -18,6 +18,7 @@ export default async function CanceledTransactionsPage() {
       status: { select: { name: true } },
       creator: { select: { firstName: true, lastName: true } },
       department: { select: { name: true } },
+      _count: { select: { lineItems: true } },
     },
   });
 
@@ -73,6 +74,7 @@ export default async function CanceledTransactionsPage() {
       }),
       postedAt: row.postedAt ? row.postedAt.toISOString() : null,
       canManagePosting: session?.sub === row.creatorId,
+      lineItemCount: row._count.lineItems,
     }))
   );
 

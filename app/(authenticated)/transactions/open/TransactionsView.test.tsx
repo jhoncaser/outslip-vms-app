@@ -33,6 +33,7 @@ const transactions = [
     createdAt: "Jul 21, 2026",
     postedAt: null,
     canManagePosting: true,
+    lineItemCount: 1,
   },
 ];
 const visitorPassTransactions = [
@@ -58,6 +59,7 @@ const visitorPassTransactions = [
     statusDisplay: "Open",
     statusHue: "slate" as const,
     createdAt: "Jul 25, 2026",
+    lineItemCount: 1,
   },
 ];
 const matrixTypes = [
@@ -764,6 +766,29 @@ describe("TransactionsView — Post/Unpost", () => {
     renderView("", [{ ...transactions[0], canManagePosting: true, postedAt: null }]);
     expect(
       within(rowFor("OT-001")).getByRole("button", { name: /^post$/i })
+    ).toBeInTheDocument();
+  });
+
+  it("hides the Post button when the transaction has no line items yet", () => {
+    renderView("", [
+      { ...transactions[0], canManagePosting: true, postedAt: null, lineItemCount: 0 },
+    ]);
+    const row = rowFor("OT-001");
+    expect(within(row).queryByRole("button", { name: /^post$/i })).not.toBeInTheDocument();
+    expect(within(row).getByRole("button", { name: /^delete$/i })).toBeInTheDocument();
+  });
+
+  it("still shows the Unpost button when already posted, even with no line items", () => {
+    renderView("", [
+      {
+        ...transactions[0],
+        canManagePosting: true,
+        postedAt: "2026-08-08T00:00:00.000Z",
+        lineItemCount: 0,
+      },
+    ]);
+    expect(
+      within(rowFor("OT-001")).getByRole("button", { name: /^unpost$/i })
     ).toBeInTheDocument();
   });
 
