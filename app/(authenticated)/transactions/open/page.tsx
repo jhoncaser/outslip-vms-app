@@ -3,6 +3,8 @@ import QRCode from "qrcode";
 import { prisma } from "@/lib/prisma";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { pageBackground } from "@/lib/deepForest";
+import { getApprovalState } from "@/lib/transactionApproval";
+import { formatApprovalStatusText } from "@/lib/approvalStatusText";
 import { TransactionsView } from "./TransactionsView";
 
 export default async function OpenTransactionsPage() {
@@ -78,6 +80,12 @@ export default async function OpenTransactionsPage() {
       plateNo: row.plateNo ?? "—",
       createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
       statusName: row.status.name,
+      statusDisplay: row.postedAt
+        ? formatApprovalStatusText(
+            row.status.name,
+            (await getApprovalState(row.id)).pendingLevel
+          )
+        : row.status.name,
       createdAt: row.createdAt.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",

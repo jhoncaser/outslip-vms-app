@@ -35,6 +35,7 @@ export type TransactionRow = {
   plateNo: string;
   createdBy: string;
   statusName: string;
+  statusDisplay: string;
   createdAt: string;
   postedAt: string | null;
   canManagePosting: boolean;
@@ -210,8 +211,7 @@ export function TransactionsTable({
                   <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{row.matrixTypeName}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-[#eafbe4]">{row.createdBy}</td>
                   <td className="whitespace-nowrap px-4 py-3">
-                    <span className={pillClass("slate")}>{row.statusName}</span>
-                    {row.postedAt && <span className={`ml-2 ${pillClass("green")}`}>POSTED</span>}
+                    <span className={pillClass("slate")}>{row.statusDisplay}</span>
                   </td>
                   <td className={`whitespace-nowrap px-4 py-3 ${mutedText}`}>{row.createdAt}</td>
                   {showActions && (

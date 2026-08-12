@@ -6,6 +6,8 @@ import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { canViewApprovals } from "@/lib/auth/permissions";
 import { pageBackground, headingText, mutedText } from "@/lib/deepForest";
 import { findPendingApprovalTransactionIds } from "@/lib/myApprovals";
+import { getApprovalState } from "@/lib/transactionApproval";
+import { formatApprovalStatusText } from "@/lib/approvalStatusText";
 import { TransactionsTable } from "../open/TransactionsView";
 
 export default async function MyApprovalsPage() {
@@ -73,6 +75,12 @@ export default async function MyApprovalsPage() {
       plateNo: row.plateNo ?? "—",
       createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
       statusName: row.status.name,
+      statusDisplay: row.postedAt
+        ? formatApprovalStatusText(
+            row.status.name,
+            (await getApprovalState(row.id)).pendingLevel
+          )
+        : row.status.name,
       createdAt: row.createdAt.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",

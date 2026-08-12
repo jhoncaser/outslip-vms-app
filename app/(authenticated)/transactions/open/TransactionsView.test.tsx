@@ -28,6 +28,7 @@ const transactions = [
     plateNo: "—",
     createdBy: "Jhon Caser",
     statusName: "Open",
+    statusDisplay: "Open",
     createdAt: "Jul 21, 2026",
     postedAt: null,
     canManagePosting: true,
@@ -53,6 +54,7 @@ const visitorPassTransactions = [
     plateNo: "ABC-1234",
     createdBy: "Jhon Caser",
     statusName: "Open",
+    statusDisplay: "Open",
     createdAt: "Jul 25, 2026",
   },
 ];
@@ -760,13 +762,25 @@ describe("TransactionsView — Post/Unpost", () => {
     expect(within(rowFor("OT-001")).getByText("—")).toBeInTheDocument();
   });
 
-  it("shows an Unpost button and a POSTED badge when already posted", () => {
+  it("shows an Unpost button when already posted", () => {
     renderView("", [
       { ...transactions[0], canManagePosting: true, postedAt: "2026-08-08T00:00:00.000Z" },
     ]);
     const row = rowFor("OT-001");
     expect(within(row).getByRole("button", { name: /^unpost$/i })).toBeInTheDocument();
-    expect(within(row).getByText("POSTED")).toBeInTheDocument();
+  });
+
+  it("renders statusDisplay text in the Status column instead of a separate POSTED badge", () => {
+    renderView("", [
+      {
+        ...transactions[0],
+        statusDisplay: "Waiting to be approved in 1st Level",
+        postedAt: "2026-08-08T00:00:00.000Z",
+      },
+    ]);
+    const row = rowFor("OT-001");
+    expect(within(row).getByText("Waiting to be approved in 1st Level")).toBeInTheDocument();
+    expect(within(row).queryByText("POSTED")).not.toBeInTheDocument();
   });
 
   it("opens the post-confirmation modal and does not navigate the row", () => {

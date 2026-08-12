@@ -64,6 +64,7 @@ export default async function CanceledTransactionsPage() {
       plateNo: row.plateNo ?? "—",
       createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
       statusName: row.status.name,
+      statusDisplay: row.status.name,
       createdAt: row.createdAt.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
