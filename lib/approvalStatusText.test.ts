@@ -44,8 +44,8 @@ describe("getApprovalStatusHue", () => {
     expect(getApprovalStatusHue("Approved", 1)).toBe("green");
   });
 
-  it("returns slate for Cancelled, regardless of pending level", () => {
-    expect(getApprovalStatusHue("Cancelled", null)).toBe("slate");
-    expect(getApprovalStatusHue("Cancelled", 1)).toBe("slate");
+  it("returns red for Cancelled, regardless of pending level", () => {
+    expect(getApprovalStatusHue("Cancelled", null)).toBe("red");
+    expect(getApprovalStatusHue("Cancelled", 1)).toBe("red");
   });
 });

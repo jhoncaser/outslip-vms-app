@@ -668,6 +668,43 @@ describe("TransactionDetailView", () => {
     expect(screen.getByText("MS")).toBeInTheDocument();
   });
 
+  it("shows when and how long an approver took, once they've decided", () => {
+    const decidedApprovers = [
+      {
+        id: "a1",
+        level: 1,
+        approverName: "Maria Santos",
+        initials: "MS",
+        decidedAtLabel: "Aug 13, 2026 11:13 AM",
+        durationLabel: "0M : 43S",
+      },
+    ];
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        approvers={decidedApprovers}
+      />
+    );
+    expect(screen.getByText("Aug 13, 2026 11:13 AM")).toBeInTheDocument();
+    expect(screen.getByText(/successfully approved within 0M : 43S/)).toBeInTheDocument();
+  });
+
+  it("shows no timestamp or duration for an approver who hasn't decided yet", () => {
+    render(
+      <TransactionDetailView
+        transaction={visitorPassTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        approvers={approvers}
+      />
+    );
+    expect(screen.queryByText(/successfully approved within/)).not.toBeInTheDocument();
+  });
+
   it("renders the empty state when no approvers are configured for a Visitor Pass transaction", () => {
     render(
       <TransactionDetailView
@@ -883,6 +920,21 @@ describe("TransactionDetailView — Post/Unpost", () => {
         expect.objectContaining({ method: "PATCH", body: JSON.stringify({ posted: false }) })
       )
     );
+  });
+
+  it("hides the Unpost button once the transaction has been approved at any level", () => {
+    const postedTransaction = { ...visitorPassTransaction, postedAt: "2026-08-08T00:00:00.000Z" };
+    render(
+      <TransactionDetailView
+        transaction={postedTransaction}
+        lineItems={[]}
+        employees={employees}
+        remarksDefault="Sample reason"
+        isOwner
+        hasApprovals
+      />
+    );
+    expect(screen.queryByRole("button", { name: /^unpost$/i })).not.toBeInTheDocument();
   });
 
   it("shows an error inside the modal when the PATCH request fails, and keeps it open", async () => {

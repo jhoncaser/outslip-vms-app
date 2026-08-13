@@ -94,6 +94,8 @@ export type ApproverRow = {
   level: number;
   approverName: string;
   initials: string;
+  decidedAtLabel?: string | null;
+  durationLabel?: string | null;
 };
 
 const LEVEL_LABELS: Record<number, string> = {
@@ -129,6 +131,7 @@ export function TransactionDetailView({
   isOwner = false,
   isPendingApprover = false,
   isFinalApprovalLevel = false,
+  hasApprovals = false,
   backHref = "/transactions/open",
 }: {
   transaction: TransactionDetailData;
@@ -139,6 +142,7 @@ export function TransactionDetailView({
   isOwner?: boolean;
   isPendingApprover?: boolean;
   isFinalApprovalLevel?: boolean;
+  hasApprovals?: boolean;
   backHref?: string;
 }) {
   const router = useRouter();
@@ -515,7 +519,7 @@ export function TransactionDetailView({
           <span className="font-normal text-[#6f8a68]">({lineItems.length})</span>
         </h2>
         <div className="flex items-center gap-2">
-          {isOwner && !isCancelled && (isPosted || lineItems.length > 0) && (
+          {isOwner && !isCancelled && (isPosted ? !hasApprovals : lineItems.length > 0) && (
             <button
               type="button"
               onClick={handlePostButtonClick}
@@ -695,11 +699,28 @@ export function TransactionDetailView({
                   </h3>
                   <div className="flex flex-col gap-3">
                     {approversByLevel.get(level)!.map((approver) => (
-                      <div key={approver.id} className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#3a9d0a] to-[#245c01] text-xs font-bold text-white">
-                          {approver.initials}
-                        </span>
-                        <span className="text-sm text-[#cfe9c7]">{approver.approverName}</span>
+                      <div key={approver.id} className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#3a9d0a] to-[#245c01] text-xs font-bold text-white">
+                              {approver.initials}
+                            </span>
+                            <span className="text-sm text-[#cfe9c7]">{approver.approverName}</span>
+                          </div>
+                          {approver.decidedAtLabel && (
+                            <span className="whitespace-nowrap text-xs text-[#6f8a68]">
+                              {approver.decidedAtLabel}
+                            </span>
+                          )}
+                        </div>
+                        {approver.durationLabel && (
+                          <p className="ml-12 flex items-center gap-1.5 text-xs text-[#7be36f]">
+                            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#3a9d0a] text-[9px] text-white">
+                              ✓
+                            </span>
+                            successfully approved within {approver.durationLabel}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>

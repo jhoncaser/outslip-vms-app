@@ -18,7 +18,7 @@ export default async function CanceledTransactionsPage() {
       status: { select: { name: true } },
       creator: { select: { firstName: true, lastName: true } },
       department: { select: { name: true } },
-      _count: { select: { lineItems: true } },
+      _count: { select: { lineItems: true, approvals: true } },
     },
   });
 
@@ -66,7 +66,7 @@ export default async function CanceledTransactionsPage() {
       createdBy: `${row.creator.firstName} ${row.creator.lastName}`,
       statusName: row.status.name,
       statusDisplay: row.status.name,
-      statusHue: "slate" as const,
+      statusHue: "red" as const,
       createdAt: row.createdAt.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
@@ -75,6 +75,7 @@ export default async function CanceledTransactionsPage() {
       postedAt: row.postedAt ? row.postedAt.toISOString() : null,
       canManagePosting: session?.sub === row.creatorId,
       lineItemCount: row._count.lineItems,
+      hasApprovals: row._count.approvals > 0,
     }))
   );
 

@@ -8,11 +8,22 @@ import { pageBackground } from "@/lib/deepForest";
 import { findScopeMatchedApprovers } from "@/lib/matchApprovers";
 import { getApprovalState } from "@/lib/transactionApproval";
 import { formatApprovalStatusText, getApprovalStatusHue } from "@/lib/approvalStatusText";
+import { formatApprovalDuration } from "@/lib/approvalDuration";
 import {
   TransactionDetailView,
   type LineItemRow,
   type ApproverRow,
 } from "../../open/[id]/TransactionDetailView";
+
+function formatDecidedAt(date: Date): string {
+  const datePart = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const timePart = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return `${datePart} ${timePart}`;
+}
 
 export default async function MyApprovalTransactionDetailPage({
   params,
@@ -58,6 +69,8 @@ export default async function MyApprovalTransactionDetailPage({
             },
           },
         },
+        approvals: { select: { level: true, decidedAt: true } },
+        _count: { select: { approvals: true } },
       },
     }),
     prisma.user.findMany({
@@ -85,12 +98,29 @@ export default async function MyApprovalTransactionDetailPage({
     locationId: transaction.creator.locationId,
   });
 
-  const approvers: ApproverRow[] = matchedApprovers.map((row) => ({
-    id: row.id,
-    level: row.level,
-    approverName: `${row.approverFirstName} ${row.approverLastName}`,
-    initials: `${row.approverFirstName.charAt(0)}${row.approverLastName.charAt(0)}`.toUpperCase(),
-  }));
+  const decidedAtByLevel = new Map(
+    transaction.approvals.map((approval) => [approval.level, approval.decidedAt])
+  );
+
+  const approvers: ApproverRow[] = matchedApprovers.map((row, index) => {
+    const decidedAt = decidedAtByLevel.get(row.level) ?? null;
+    const previousDecidedAt =
+      index === 0
+        ? transaction.postedAt
+        : (decidedAtByLevel.get(matchedApprovers[index - 1].level) ?? null);
+
+    return {
+      id: row.id,
+      level: row.level,
+      approverName: `${row.approverFirstName} ${row.approverLastName}`,
+      initials: `${row.approverFirstName.charAt(0)}${row.approverLastName.charAt(0)}`.toUpperCase(),
+      decidedAtLabel: decidedAt ? formatDecidedAt(decidedAt) : null,
+      durationLabel:
+        decidedAt && previousDecidedAt
+          ? formatApprovalDuration(previousDecidedAt.getTime(), decidedAt.getTime())
+          : null,
+    };
+  });
 
   const approvalState =
     transaction.postedAt !== null && transaction.status.name !== "Cancelled"
@@ -194,6 +224,7 @@ export default async function MyApprovalTransactionDetailPage({
           isOwner={isOwner}
           isPendingApprover={isPendingApprover}
           isFinalApprovalLevel={isFinalApprovalLevel}
+          hasApprovals={transaction._count.approvals > 0}
           backHref="/transactions/my-approvals"
         />
       </div>

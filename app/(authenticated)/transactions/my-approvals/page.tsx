@@ -29,7 +29,7 @@ export default async function MyApprovalsPage() {
       status: { select: { name: true } },
       creator: { select: { firstName: true, lastName: true } },
       department: { select: { name: true } },
-      _count: { select: { lineItems: true } },
+      _count: { select: { lineItems: true, approvals: true } },
     },
   });
 
@@ -92,6 +92,7 @@ export default async function MyApprovalsPage() {
         postedAt: row.postedAt ? row.postedAt.toISOString() : null,
         canManagePosting: false,
         lineItemCount: row._count.lineItems,
+        hasApprovals: row._count.approvals > 0,
       };
     })
   );

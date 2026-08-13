@@ -34,6 +34,7 @@ const transactions = [
     postedAt: null,
     canManagePosting: true,
     lineItemCount: 1,
+    hasApprovals: false,
   },
 ];
 const visitorPassTransactions = [
@@ -806,6 +807,20 @@ describe("TransactionsView — Post/Unpost", () => {
     ]);
     const row = rowFor("OT-001");
     expect(within(row).getByRole("button", { name: /^unpost$/i })).toBeInTheDocument();
+  });
+
+  it("hides the Unpost button once the transaction has been approved at any level", () => {
+    renderView("", [
+      {
+        ...transactions[0],
+        canManagePosting: true,
+        postedAt: "2026-08-08T00:00:00.000Z",
+        hasApprovals: true,
+      },
+    ]);
+    expect(
+      within(rowFor("OT-001")).queryByRole("button", { name: /^unpost$/i })
+    ).not.toBeInTheDocument();
   });
 
   it("renders statusDisplay text in the Status column instead of a separate POSTED badge", () => {

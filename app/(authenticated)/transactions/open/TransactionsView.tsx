@@ -42,6 +42,7 @@ export type TransactionRow = {
   postedAt: string | null;
   canManagePosting: boolean;
   lineItemCount: number;
+  hasApprovals: boolean;
 };
 export type MatrixTypeOption = { id: string; name: string };
 export type DepartmentOption = { id: string; name: string };
@@ -221,7 +222,8 @@ export function TransactionsTable({
                     <td className="whitespace-nowrap px-4 py-3">
                       {row.canManagePosting ? (
                         <div className="flex items-center gap-2">
-                          {(row.postedAt || row.lineItemCount > 0) && (
+                          {((row.postedAt && !row.hasApprovals) ||
+                            (!row.postedAt && row.lineItemCount > 0)) && (
                             <button
                               type="button"
                               onClick={(event) => {

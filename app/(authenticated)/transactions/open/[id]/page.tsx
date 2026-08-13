@@ -7,7 +7,18 @@ import { pageBackground } from "@/lib/deepForest";
 import { findScopeMatchedApprovers } from "@/lib/matchApprovers";
 import { getApprovalState } from "@/lib/transactionApproval";
 import { formatApprovalStatusText, getApprovalStatusHue } from "@/lib/approvalStatusText";
+import { formatApprovalDuration } from "@/lib/approvalDuration";
 import { TransactionDetailView, type LineItemRow, type ApproverRow } from "./TransactionDetailView";
+
+function formatDecidedAt(date: Date): string {
+  const datePart = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const timePart = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return `${datePart} ${timePart}`;
+}
 
 export default async function TransactionDetailPage({
   params,
@@ -49,6 +60,8 @@ export default async function TransactionDetailPage({
             },
           },
         },
+        approvals: { select: { level: true, decidedAt: true } },
+        _count: { select: { approvals: true } },
       },
     }),
     prisma.user.findMany({
@@ -76,17 +89,44 @@ export default async function TransactionDetailPage({
     locationId: transaction.creator.locationId,
   });
 
-  const approvers: ApproverRow[] = matchedApprovers.map((row) => ({
-    id: row.id,
-    level: row.level,
-    approverName: `${row.approverFirstName} ${row.approverLastName}`,
-    initials: `${row.approverFirstName.charAt(0)}${row.approverLastName.charAt(0)}`.toUpperCase(),
-  }));
+  const decidedAtByLevel = new Map(
+    transaction.approvals.map((approval) => [approval.level, approval.decidedAt])
+  );
+
+  const approvers: ApproverRow[] = matchedApprovers.map((row, index) => {
+    const decidedAt = decidedAtByLevel.get(row.level) ?? null;
+    const previousDecidedAt =
+      index === 0
+        ? transaction.postedAt
+        : (decidedAtByLevel.get(matchedApprovers[index - 1].level) ?? null);
+
+    return {
+      id: row.id,
+      level: row.level,
+      approverName: `${row.approverFirstName} ${row.approverLastName}`,
+      initials: `${row.approverFirstName.charAt(0)}${row.approverLastName.charAt(0)}`.toUpperCase(),
+      decidedAtLabel: decidedAt ? formatDecidedAt(decidedAt) : null,
+      durationLabel:
+        decidedAt && previousDecidedAt
+          ? formatApprovalDuration(previousDecidedAt.getTime(), decidedAt.getTime())
+          : null,
+    };
+  });
 
   const pendingLevel =
     transaction.postedAt !== null && transaction.status.name === "Open"
       ? (await getApprovalState(id)).pendingLevel
       : null;
+
+  // Approved/Canceled Transaction both link into this same detail route (like Open
+  // Transaction does); status alone tells us which list to return to, since a
+  // transaction can only be in one of these terminal states at a time.
+  const backHref =
+    transaction.status.name === "Approved"
+      ? "/transactions/approved"
+      : transaction.status.name === "Cancelled"
+        ? "/transactions/canceled"
+        : "/transactions/open";
 
   const detailFieldCandidates: { label: string; value: string }[] = [
     {
@@ -173,6 +213,8 @@ export default async function TransactionDetailPage({
           remarksDefault={transaction.reason ?? ""}
           approvers={approvers}
           isOwner={isOwner}
+          hasApprovals={transaction._count.approvals > 0}
+          backHref={backHref}
         />
       </div>
     </div>

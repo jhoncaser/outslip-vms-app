@@ -15,14 +15,14 @@ export default async function OpenTransactionsPage() {
   const [transactions, matrixTypes, currentUser, departments, businessUnits] =
     await Promise.all([
       prisma.transaction.findMany({
-        where: { status: { name: { in: ["Open", "Approved"] } } },
+        where: { status: { name: "Open" } },
         orderBy: { createdAt: "desc" },
         include: {
           matrixType: { select: { name: true } },
           status: { select: { name: true } },
           creator: { select: { firstName: true, lastName: true } },
           department: { select: { name: true } },
-          _count: { select: { lineItems: true } },
+          _count: { select: { lineItems: true, approvals: true } },
         },
       }),
       prisma.matrixType.findMany({ orderBy: { name: "asc" } }),
@@ -97,6 +97,7 @@ export default async function OpenTransactionsPage() {
         postedAt: row.postedAt ? row.postedAt.toISOString() : null,
         canManagePosting: session?.sub === row.creatorId,
         lineItemCount: row._count.lineItems,
+        hasApprovals: row._count.approvals > 0,
       };
     })
   );

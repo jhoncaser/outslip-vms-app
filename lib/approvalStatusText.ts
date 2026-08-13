@@ -24,5 +24,6 @@ export function getApprovalStatusHue(
 ): ApprovalStatusHue {
   if (statusName === "Approved") return "green";
   if (statusName === "Open" && pendingLevel !== null) return "red";
+  if (statusName === "Cancelled") return "red";
   return "slate";
 }
