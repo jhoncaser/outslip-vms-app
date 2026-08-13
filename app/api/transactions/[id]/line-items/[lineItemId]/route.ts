@@ -16,6 +16,7 @@ import {
   isAllowedFileType,
   MAX_FILE_SIZE_BYTES,
 } from "@/lib/lineItemFileStorage";
+import { emitTransactionChanged } from "@/lib/transactionEvents";
 
 export async function PATCH(
   request: NextRequest,
@@ -126,6 +127,7 @@ export async function PATCH(
       await deleteLineItemFile(existing.uploadFileUrl);
     }
 
+    emitTransactionChanged();
     return NextResponse.json(updated, { status: 200 });
   }
 
@@ -160,6 +162,7 @@ export async function PATCH(
         remarks: parsed.data.remarks,
       },
     });
+    emitTransactionChanged();
     return NextResponse.json(updated, { status: 200 });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {
@@ -215,5 +218,6 @@ export async function DELETE(
   await prisma.transactionLineItem.delete({ where: { id: lineItemId } });
   if (existing.uploadFileUrl) await deleteLineItemFile(existing.uploadFileUrl);
 
+  emitTransactionChanged();
   return new NextResponse(null, { status: 204 });
 }

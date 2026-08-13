@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getApprovalState } from "@/lib/transactionApproval";
+import { emitTransactionChanged } from "@/lib/transactionEvents";
 
 export async function POST(
   request: NextRequest,
@@ -62,5 +63,6 @@ export async function POST(
     data: { postedAt: null, revisionReason: reason },
   });
 
+  emitTransactionChanged();
   return new NextResponse(null, { status: 204 });
 }

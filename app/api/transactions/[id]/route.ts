@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { postTransactionSchema } from "@/lib/validation/transaction";
 import { getApprovalState } from "@/lib/transactionApproval";
+import { emitTransactionChanged } from "@/lib/transactionEvents";
 
 export async function PATCH(
   request: NextRequest,
@@ -75,6 +76,7 @@ export async function PATCH(
     }
   }
 
+  emitTransactionChanged();
   return NextResponse.json(
     { postedAt: updated.postedAt ? updated.postedAt.toISOString() : null },
     { status: 200 }
@@ -141,5 +143,6 @@ export async function DELETE(
     data: { statusId: cancelledStatus.id },
   });
 
+  emitTransactionChanged();
   return new NextResponse(null, { status: 204 });
 }

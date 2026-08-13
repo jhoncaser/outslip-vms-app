@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getApprovalState } from "@/lib/transactionApproval";
+import { emitTransactionChanged } from "@/lib/transactionEvents";
 
 export async function POST(
   request: NextRequest,
@@ -71,6 +72,7 @@ export async function POST(
       : []),
   ]);
 
+  emitTransactionChanged();
   return NextResponse.json(
     { pendingLevel: nextPendingLevel, isFullyApproved: isLastLevel },
     { status: 200 }

@@ -15,6 +15,7 @@ import {
   isAllowedFileType,
   MAX_FILE_SIZE_BYTES,
 } from "@/lib/lineItemFileStorage";
+import { emitTransactionChanged } from "@/lib/transactionEvents";
 
 export async function POST(
   request: NextRequest,
@@ -111,6 +112,7 @@ export async function POST(
         uploadFileName,
       },
     });
+    emitTransactionChanged();
     return NextResponse.json(created, { status: 201 });
   }
 
@@ -145,6 +147,7 @@ export async function POST(
         remarks: parsed.data.remarks,
       },
     });
+    emitTransactionChanged();
     return NextResponse.json(created, { status: 201 });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {

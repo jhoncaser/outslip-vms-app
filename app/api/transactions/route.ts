@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { transactionSchema } from "@/lib/validation/transaction";
 import { TRANSACTION_FIELD_LABELS, findMissingRequiredField } from "@/lib/transactionFieldSets";
+import { emitTransactionChanged } from "@/lib/transactionEvents";
 
 const MAX_CODE_ATTEMPTS = 5;
 
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest) {
           plateNo: parsed.data.plateNo,
         },
       });
+      emitTransactionChanged();
       return NextResponse.json(created, { status: 201 });
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
