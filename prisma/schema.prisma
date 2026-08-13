@@ -167,7 +167,8 @@ model TransactionLineItem {
   company        String?
   contactNumber  String?
   emailAddress   String?
-  uploadFileUrl  String?
+  uploadFileData Bytes?
+  uploadFileType String?
   uploadFileName String?
   transportType  String?
   plateNo        String?

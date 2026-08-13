@@ -1,11 +1,10 @@
 // @vitest-environment node
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { existsSync } from "fs";
 import { NextRequest } from "next/server";
 import { PATCH, DELETE } from "./route";
 import { prisma } from "@/lib/prisma";
 import { createSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
-import { deleteLineItemFile, lineItemFilePath, MAX_FILE_SIZE_BYTES } from "@/lib/lineItemFileStorage";
+import { MAX_FILE_SIZE_BYTES } from "@/lib/lineItemFileStorage";
 
 let userToken: string;
 let userId: string;
@@ -16,7 +15,6 @@ let visitorPassTransactionId: string;
 let postedTransactionId: string;
 let cancelledTransactionId: string;
 const createdLineItemIds: string[] = [];
-const savedFileUrls: string[] = [];
 
 function requestWithCookie(method: string, token: string | undefined, body: FormData) {
   return new NextRequest("http://localhost/api/transactions/x/line-items/y", {
@@ -227,10 +225,7 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
     expect(response.status).toBe(404);
   });
 
-  it("replaces an uploaded file and deletes the old one", async () => {
-    const oldSaved = await (
-      await import("@/lib/lineItemFileStorage")
-    ).saveLineItemFile(new File([Buffer.from("old")], "old.pdf", { type: "application/pdf" }));
+  it("replaces an uploaded file's bytes when a new one is submitted", async () => {
     const lineItem = await prisma.transactionLineItem.create({
       data: {
         transactionId: visitorPassTransactionId,
@@ -238,8 +233,9 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
         jobTitle: "J",
         company: "C",
         transportType: "Car",
-        uploadFileUrl: oldSaved.url,
-        uploadFileName: oldSaved.fileName,
+        uploadFileData: Buffer.from("old"),
+        uploadFileName: "old.pdf",
+        uploadFileType: "application/pdf",
       },
     });
     createdLineItemIds.push(lineItem.id);
@@ -261,10 +257,13 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
     );
     expect(response.status).toBe(200);
     const updated = await response.json();
-    savedFileUrls.push(updated.uploadFileUrl);
-
     expect(updated.uploadFileName).toBe("new.pdf");
-    expect(existsSync(lineItemFilePath(oldSaved.url))).toBe(false);
+    expect(updated.uploadFileData).toBeUndefined();
+
+    const stored = await prisma.transactionLineItem.findUniqueOrThrow({
+      where: { id: lineItem.id },
+    });
+    expect(Buffer.from(stored.uploadFileData!).toString()).toBe("new");
   });
 
   it("rejects an oversized file (> MAX_FILE_SIZE_BYTES) on PATCH", async () => {
@@ -377,10 +376,7 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
     expect(stillThere).not.toBeNull();
   });
 
-  it("deletes a line item and its file", async () => {
-    const saved = await (
-      await import("@/lib/lineItemFileStorage")
-    ).saveLineItemFile(new File([Buffer.from("x")], "x.pdf", { type: "application/pdf" }));
+  it("deletes a line item along with its stored file bytes", async () => {
     const lineItem = await prisma.transactionLineItem.create({
       data: {
         transactionId,
@@ -388,8 +384,9 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
         jobTitle: "J",
         company: "C",
         transportType: "Car",
-        uploadFileUrl: saved.url,
-        uploadFileName: saved.fileName,
+        uploadFileData: Buffer.from("x"),
+        uploadFileName: "x.pdf",
+        uploadFileType: "application/pdf",
       },
     });
 
@@ -403,7 +400,6 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
       where: { id: lineItem.id },
     });
     expect(stillThere).toBeNull();
-    expect(existsSync(lineItemFilePath(saved.url))).toBe(false);
   });
 
   it("returns 401 with no session on DELETE", async () => {
@@ -421,9 +417,6 @@ describe("PATCH/DELETE /api/transactions/[id]/line-items/[lineItemId]", () => {
 
   afterAll(async () => {
     await prisma.transactionLineItem.deleteMany({ where: { id: { in: createdLineItemIds } } });
-    for (const url of savedFileUrls) {
-      await deleteLineItemFile(url);
-    }
     await prisma.transaction.deleteMany({
       where: {
         id: {

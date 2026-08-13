@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import { POST } from "./route";
 import { prisma } from "@/lib/prisma";
 import { createSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
-import { deleteLineItemFile, MAX_FILE_SIZE_BYTES } from "@/lib/lineItemFileStorage";
+import { MAX_FILE_SIZE_BYTES } from "@/lib/lineItemFileStorage";
 
 let userToken: string;
 let userId: string;
@@ -15,7 +15,6 @@ let employeeTransactionId: string;
 let postedTransactionId: string;
 let cancelledTransactionId: string;
 const createdLineItemIds: string[] = [];
-const savedFileUrls: string[] = [];
 
 function requestWithCookie(token: string | undefined, transactionId: string, body: FormData) {
   return new NextRequest(`http://localhost/api/transactions/${transactionId}/line-items`, {
@@ -243,7 +242,7 @@ describe("POST /api/transactions/[id]/line-items", () => {
     expect(created.plateNo).toBe("ABC-1234");
     expect(created.contactNumber).toBe("0917-000-0000");
     expect(created.emailAddress).toBe("analyn@example.com");
-    expect(created.uploadFileUrl).toBeNull();
+    expect(created.uploadFileName).toBeNull();
   });
 
   it("returns a specific message when Plate No. is missing for a non-Walk-In transport type", async () => {
@@ -297,10 +296,10 @@ describe("POST /api/transactions/[id]/line-items", () => {
     expect(response.status).toBe(201);
     const created = await response.json();
     createdLineItemIds.push(created.id);
-    if (created.uploadFileUrl) savedFileUrls.push(created.uploadFileUrl);
 
     expect(created.uploadFileName).toBe("id.pdf");
-    expect(created.uploadFileUrl).toBeTruthy();
+    expect(created.uploadFileType).toBe("application/pdf");
+    expect(created.uploadFileData).toBeUndefined();
   });
 
   it("rejects an unsupported file type", async () => {
@@ -418,9 +417,6 @@ describe("POST /api/transactions/[id]/line-items", () => {
 
   afterAll(async () => {
     await prisma.transactionLineItem.deleteMany({ where: { id: { in: createdLineItemIds } } });
-    for (const url of savedFileUrls) {
-      await deleteLineItemFile(url);
-    }
     await prisma.transaction.deleteMany({
       where: {
         id: {

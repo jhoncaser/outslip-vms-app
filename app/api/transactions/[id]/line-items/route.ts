@@ -11,7 +11,7 @@ import {
   EMPLOYEE_LINE_ITEM_LABELS,
 } from "@/lib/validation/transactionLineItem";
 import {
-  saveLineItemFile,
+  readLineItemFile,
   isAllowedFileType,
   MAX_FILE_SIZE_BYTES,
 } from "@/lib/lineItemFileStorage";
@@ -83,8 +83,9 @@ export async function POST(
       );
     }
 
-    let uploadFileUrl: string | undefined;
+    let uploadFileData: Buffer<ArrayBuffer> | undefined;
     let uploadFileName: string | undefined;
+    let uploadFileType: string | undefined;
     const file = formData.get("uploadFile");
     if (file instanceof File && file.size > 0) {
       if (!isAllowedFileType(file.type)) {
@@ -93,9 +94,10 @@ export async function POST(
       if (file.size > MAX_FILE_SIZE_BYTES) {
         return NextResponse.json({ error: "File is too large" }, { status: 400 });
       }
-      const saved = await saveLineItemFile(file);
-      uploadFileUrl = saved.url;
-      uploadFileName = saved.fileName;
+      const read = await readLineItemFile(file);
+      uploadFileData = read.data;
+      uploadFileName = read.fileName;
+      uploadFileType = read.type;
     }
 
     const created = await prisma.transactionLineItem.create({
@@ -108,9 +110,11 @@ export async function POST(
         emailAddress: parsed.data.emailAddress,
         transportType: parsed.data.transportType,
         plateNo: parsed.data.plateNo,
-        uploadFileUrl,
+        uploadFileData,
         uploadFileName,
+        uploadFileType,
       },
+      omit: { uploadFileData: true },
     });
     emitTransactionChanged();
     return NextResponse.json(created, { status: 201 });

@@ -1,15 +1,10 @@
-import { describe, it, expect, afterEach } from "vitest";
-import { existsSync } from "fs";
+import { describe, it, expect } from "vitest";
 import {
-  saveLineItemFile,
-  deleteLineItemFile,
-  lineItemFilePath,
+  readLineItemFile,
   isAllowedFileType,
   ALLOWED_FILE_TYPES,
   MAX_FILE_SIZE_BYTES,
 } from "./lineItemFileStorage";
-
-const savedUrls: string[] = [];
 
 describe("isAllowedFileType", () => {
   it("accepts every type in ALLOWED_FILE_TYPES", () => {
@@ -29,60 +24,28 @@ describe("MAX_FILE_SIZE_BYTES", () => {
   });
 });
 
-describe("saveLineItemFile / deleteLineItemFile", () => {
-  afterEach(async () => {
-    while (savedUrls.length > 0) {
-      await deleteLineItemFile(savedUrls.pop()!);
-    }
-  });
-
-  it("saves a file to disk and returns a url and the original file name", async () => {
+describe("readLineItemFile", () => {
+  it("reads the file's bytes, original name, and MIME type", async () => {
     const file = new File([Buffer.from("test content")], "id scan.pdf", {
       type: "application/pdf",
     });
 
-    const result = await saveLineItemFile(file);
-    savedUrls.push(result.url);
+    const result = await readLineItemFile(file);
 
+    expect(result.data).toBeInstanceOf(Buffer);
+    expect(result.data.toString()).toBe("test content");
     expect(result.fileName).toBe("id scan.pdf");
-    expect(existsSync(lineItemFilePath(result.url))).toBe(true);
+    expect(result.type).toBe("application/pdf");
   });
 
-  it("sanitizes the stored file name but keeps the original file name for display", async () => {
-    const file = new File([Buffer.from("x")], "weird name (final) v2.png", {
-      type: "image/png",
-    });
-
-    const result = await saveLineItemFile(file);
-    savedUrls.push(result.url);
-
-    expect(result.url).not.toContain(" ");
-    expect(result.url).not.toContain("(");
-    expect(result.fileName).toBe("weird name (final) v2.png");
-  });
-
-  it("generates a different url for two files with the same original name", async () => {
+  it("reads two different files independently without mixing up their bytes", async () => {
     const file1 = new File([Buffer.from("a")], "same.pdf", { type: "application/pdf" });
     const file2 = new File([Buffer.from("b")], "same.pdf", { type: "application/pdf" });
 
-    const result1 = await saveLineItemFile(file1);
-    const result2 = await saveLineItemFile(file2);
-    savedUrls.push(result1.url, result2.url);
+    const result1 = await readLineItemFile(file1);
+    const result2 = await readLineItemFile(file2);
 
-    expect(result1.url).not.toBe(result2.url);
-  });
-
-  it("deleteLineItemFile removes the file from disk", async () => {
-    const file = new File([Buffer.from("x")], "to-delete.pdf", {
-      type: "application/pdf",
-    });
-    const result = await saveLineItemFile(file);
-
-    await deleteLineItemFile(result.url);
-    expect(existsSync(lineItemFilePath(result.url))).toBe(false);
-  });
-
-  it("deleteLineItemFile does not throw for a url that doesn't exist on disk", async () => {
-    await expect(deleteLineItemFile("nonexistent-file.pdf")).resolves.not.toThrow();
+    expect(result1.data.toString()).toBe("a");
+    expect(result2.data.toString()).toBe("b");
   });
 });

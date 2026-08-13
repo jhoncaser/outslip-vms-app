@@ -11,8 +11,7 @@ import {
   EMPLOYEE_LINE_ITEM_LABELS,
 } from "@/lib/validation/transactionLineItem";
 import {
-  saveLineItemFile,
-  deleteLineItemFile,
+  readLineItemFile,
   isAllowedFileType,
   MAX_FILE_SIZE_BYTES,
 } from "@/lib/lineItemFileStorage";
@@ -91,9 +90,9 @@ export async function PATCH(
       );
     }
 
-    let uploadFileUrl = existing.uploadFileUrl;
+    let uploadFileData = existing.uploadFileData;
     let uploadFileName = existing.uploadFileName;
-    let newFileUrl: string | undefined;
+    let uploadFileType = existing.uploadFileType;
     const file = formData.get("uploadFile");
     if (file instanceof File && file.size > 0) {
       if (!isAllowedFileType(file.type)) {
@@ -102,10 +101,10 @@ export async function PATCH(
       if (file.size > MAX_FILE_SIZE_BYTES) {
         return NextResponse.json({ error: "File is too large" }, { status: 400 });
       }
-      const saved = await saveLineItemFile(file);
-      newFileUrl = saved.url;
-      uploadFileUrl = saved.url;
-      uploadFileName = saved.fileName;
+      const read = await readLineItemFile(file);
+      uploadFileData = read.data;
+      uploadFileName = read.fileName;
+      uploadFileType = read.type;
     }
 
     const updated = await prisma.transactionLineItem.update({
@@ -118,14 +117,12 @@ export async function PATCH(
         emailAddress: parsed.data.emailAddress,
         transportType: parsed.data.transportType,
         plateNo: parsed.data.plateNo,
-        uploadFileUrl,
+        uploadFileData,
         uploadFileName,
+        uploadFileType,
       },
+      omit: { uploadFileData: true },
     });
-
-    if (newFileUrl && existing.uploadFileUrl) {
-      await deleteLineItemFile(existing.uploadFileUrl);
-    }
 
     emitTransactionChanged();
     return NextResponse.json(updated, { status: 200 });
@@ -187,7 +184,6 @@ export async function DELETE(
   const existing = await prisma.transactionLineItem.findUnique({
     where: { id: lineItemId },
     select: {
-      uploadFileUrl: true,
       transactionId: true,
       transaction: { select: { postedAt: true, status: { select: { name: true } } } },
     },
@@ -216,7 +212,6 @@ export async function DELETE(
   }
 
   await prisma.transactionLineItem.delete({ where: { id: lineItemId } });
-  if (existing.uploadFileUrl) await deleteLineItemFile(existing.uploadFileUrl);
 
   emitTransactionChanged();
   return new NextResponse(null, { status: 204 });

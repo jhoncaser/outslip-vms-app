@@ -4,14 +4,12 @@ import { NextRequest } from "next/server";
 import { GET } from "./route";
 import { prisma } from "@/lib/prisma";
 import { createSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
-import { saveLineItemFile, deleteLineItemFile } from "@/lib/lineItemFileStorage";
 
 let userToken: string;
 let matrixTypeId: string;
 let transactionId: string;
 let lineItemWithFileId: string;
 let lineItemWithoutFileId: string;
-let savedFileUrl: string;
 
 function requestWithCookie(token: string | undefined) {
   return new NextRequest("http://localhost/api/line-items/x/file", {
@@ -97,17 +95,13 @@ describe("GET /api/line-items/[lineItemId]/file", () => {
     });
     transactionId = transaction.id;
 
-    const saved = await saveLineItemFile(
-      new File([Buffer.from("%PDF-1.4 test")], "id.pdf", { type: "application/pdf" })
-    );
-    savedFileUrl = saved.url;
-
     const withFile = await prisma.transactionLineItem.create({
       data: {
         transactionId,
         visitorName: "Analyn Gentizon",
-        uploadFileUrl: saved.url,
-        uploadFileName: saved.fileName,
+        uploadFileData: Buffer.from("%PDF-1.4 test"),
+        uploadFileName: "id.pdf",
+        uploadFileType: "application/pdf",
       },
     });
     lineItemWithFileId = withFile.id;
@@ -153,7 +147,6 @@ describe("GET /api/line-items/[lineItemId]/file", () => {
     await prisma.transactionLineItem.deleteMany({ where: { transactionId } });
     await prisma.transaction.deleteMany({ where: { id: transactionId } });
     await prisma.matrixType.deleteMany({ where: { id: matrixTypeId } });
-    await deleteLineItemFile(savedFileUrl);
     await prisma.$disconnect();
   });
 });

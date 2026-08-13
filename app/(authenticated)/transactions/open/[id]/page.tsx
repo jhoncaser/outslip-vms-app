@@ -48,6 +48,7 @@ export default async function TransactionDetailPage({
       },
         lineItems: {
           orderBy: { createdAt: "asc" },
+          omit: { uploadFileData: true },
           include: {
             employee: {
               select: {
@@ -183,7 +184,7 @@ export default async function TransactionDetailPage({
     transportType: item.transportType ?? "",
     plateNo: item.plateNo ?? "",
     uploadFileName: item.uploadFileName ?? "",
-    hasFile: Boolean(item.uploadFileUrl),
+    hasFile: Boolean(item.uploadFileName),
     employeeType: item.employeeType ?? "",
     employeeId: item.employeeId ?? "",
     employeeName: item.employee
