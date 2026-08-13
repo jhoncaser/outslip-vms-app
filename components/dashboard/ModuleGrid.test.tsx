@@ -19,4 +19,26 @@ describe("ModuleGrid", () => {
     render(<ModuleGrid canViewApprovals={true} />);
     expect(screen.getByText("My Approvals")).toBeInTheDocument();
   });
+
+  it("shows 0 for each tile's count when none is passed", () => {
+    render(<ModuleGrid canViewApprovals={false} />);
+    const counts = screen.getAllByText("0");
+    expect(counts).toHaveLength(3);
+  });
+
+  it("shows the real count passed in for each tile", () => {
+    render(
+      <ModuleGrid
+        canViewApprovals={true}
+        openCount={5}
+        approvedCount={12}
+        canceledCount={3}
+        myApprovalsCount={2}
+      />
+    );
+    expect(screen.getByText("5")).toBeInTheDocument();
+    expect(screen.getByText("12")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
+  });
 });

@@ -112,12 +112,25 @@ const APPROVALS_MODULE = {
 
 export function ModuleGrid({
   canViewApprovals,
+  openCount = 0,
+  approvedCount = 0,
+  canceledCount = 0,
+  myApprovalsCount = 0,
 }: {
   canViewApprovals: boolean;
+  openCount?: number;
+  approvedCount?: number;
+  canceledCount?: number;
+  myApprovalsCount?: number;
 }) {
+  const baseModules = [
+    { ...BASE_MODULES[0], count: openCount },
+    { ...BASE_MODULES[1], count: approvedCount },
+    { ...BASE_MODULES[2], count: canceledCount },
+  ];
   const modules = canViewApprovals
-    ? [...BASE_MODULES, APPROVALS_MODULE]
-    : BASE_MODULES;
+    ? [...baseModules, { ...APPROVALS_MODULE, count: myApprovalsCount }]
+    : baseModules;
 
   return (
     <div className="grid flex-1 grid-cols-1 gap-4 p-6 content-start sm:grid-cols-2">
@@ -131,7 +144,7 @@ export function ModuleGrid({
 function ModuleTile({
   module,
 }: {
-  module: (typeof BASE_MODULES)[number];
+  module: (typeof BASE_MODULES)[number] & { count: number };
 }) {
   const { ref, revealed } = useRevealOnce<HTMLAnchorElement>();
 
@@ -142,11 +155,11 @@ function ModuleTile({
       className={`reveal-once ${revealed ? "is-revealed" : ""} group flex items-start justify-between gap-3 border-l-4 border-l-[#3a9d0a] p-4 ${tileSurface} transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-l-[6px] hover:shadow-[0_8px_24px_rgba(58,157,10,0.3)] motion-reduce:transition-none motion-reduce:hover:translate-y-0`}
     >
       <div>
-        <div className="text-xs font-semibold uppercase tracking-wide text-[#9db894] transition-colors duration-200 group-hover:text-[#7be36f] motion-reduce:transition-none">
+        <div className="text-sm font-semibold uppercase tracking-wide text-[#9db894] transition-colors duration-200 group-hover:text-[#7be36f] motion-reduce:transition-none">
           {module.label}
         </div>
-        <div className="mt-1 font-outfit text-2xl font-bold text-[#7be36f]">
-          —
+        <div className="mt-1 font-outfit text-xl font-bold text-[#7be36f]">
+          {module.count}
         </div>
       </div>
       <span
