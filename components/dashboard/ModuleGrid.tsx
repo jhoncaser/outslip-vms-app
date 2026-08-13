@@ -152,6 +152,7 @@ function ModuleTile({
     <Link
       ref={ref}
       href={module.href}
+      prefetch={false}
       className={`reveal-once ${revealed ? "is-revealed" : ""} group flex items-start justify-between gap-3 border-l-4 border-l-[#3a9d0a] p-4 ${tileSurface} transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-l-[6px] hover:shadow-[0_8px_24px_rgba(58,157,10,0.3)] motion-reduce:transition-none motion-reduce:hover:translate-y-0`}
     >
       <div>

@@ -38,6 +38,7 @@ function NavTab({
   return (
     <Link
       href={href}
+      prefetch={false}
       aria-current={active ? "page" : undefined}
       className={active ? tabActiveClass : tabClass}
     >
